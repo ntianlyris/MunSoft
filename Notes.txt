@@ -1,0 +1,30 @@
+==============
+Development Notes:
+=============
+1. Employees Records - /
+2. Employee Employments - /
+3. Employee Earnings linked with Employee Employments for Service Record - /    
+    codes for earning_code (must not change,possible set enum on db) --> Sal-Reg (Salaries - Regular), Sal-Cas (Salaries-Casual),PERA,RA,TA,SUBSIST,HAZARD
+4. Employee Deductions - /
+5. Employee Government Shares - /
+6. Payroll COmputation/Generation - /
+7. Saving Payroll Computations per PayPeriod with snapshot of earnings,deduction and govshares for history viewing and audit (08-14-2025) - /
+8. Option to Change Inclusion of employee to Payroll Feature added - 10-20-2025 
+9. Employment_id of employee (the current position of employee) included upon saving the payroll for referencing previous employment and position of employees in payroll records
+10. Journal Entry a little functional, only Salaries Regular on debit side 
+    Formula: total deduct+net from gross - additional earnings; 
+    Needed to find a way about how about salaries casual, maybe separate all casual payrolls?
+11. Payroll Generation,Computation and Saving is separated by Identifier of employment type Regular and Casual
+12. Journal Entries are now separated for Regular and Casual
+13. Fixed the printing of payroll also separating Regular and Casual...
+14. Done Print the Journal entry
+15. Done For Retrieving Remittance Records with all breakdowns,
+    For loans it is first group by loan type then with a breakdown for each employee
+16. PDF Print for Remittance Records.
+17. *To do: The Others in OTHER PAYABLES for remittance don't have functionality yet.
+    Must include and group those others with each of them has breakdown for per employee.
+    e.g. PhilAm Life iNs., PMGEA dues and other deductions that belongs to OTHER PAYABLES but is not classified as LOANS.
+18. *DB has new column for payroll_entries table, period_lock or locked_period - OK
+19. PAYSLIP Generation - OK
+20. Under Review - Remittance History for Others -> Needed to solve the breakdown of each Others
+21. DONE! {To do - Printing of Generated Payslip}
