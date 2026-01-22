@@ -164,10 +164,11 @@ $(document).on('click', '#btnGenerateRemittance', function () {
                 $('#loansTable').append(`
                     <tr>
                         <td>${row.deduct_title}</td>
-                        <td class="text-right">${row.total_loan_amount}</td>
+                        <td class="text-right">${formatMoney(parseFloat(row.total_loan_amount))}</td>
                         <td class="text-center">
                             <button class="btn btn-sm btn-info view-breakdown" 
-                                    data-loanid="${row.loan_id}" 
+                                    data-breakdown-type="loan"
+                                    data-deduction-id="${row.loan_id}" 
                                     data-title="${row.deduct_title}">
                                 <i class="fas fa-search"></i> View Breakdown
                             </button>
@@ -181,10 +182,11 @@ $(document).on('click', '#btnGenerateRemittance', function () {
                 $('#othersTable').append(`
                     <tr>
                         <td>${row.deduct_title}</td>
-                        <td class="text-right">${row.total_amount}</td>
+                        <td class="text-right">${formatMoney(parseFloat(row.total_amount))}</td>
                         <td class="text-center">
                             <button class="btn btn-sm btn-info view-breakdown" 
-                                    data-loanid="${row.config_deduction_id}"
+                                    data-breakdown-type="other"
+                                    data-deduction-id="${row.config_deduction_id}"
                                     data-title="${row.deduct_title}">
                                 <i class="fas fa-search"></i> View Breakdown
                             </button>
@@ -208,46 +210,72 @@ $(document).on('click', '#btnGenerateRemittance', function () {
     });
 });
 
-// Handle Breakdown Button Click
+// Handle Breakdown Button Click (Enhanced for Loans AND Others)
 $(document).on('click', '.view-breakdown', function() {
-    let loanId = $(this).data('loanid');
+    let breakdownType = $(this).data('breakdown-type') || 'loan';
+    let deductionId = $(this).data('deduction-id') || $(this).data('loanid');
     let title = $(this).data('title');
-    var action = 'get_loan_breakdown';
+    let period = $('#remitPeriod').val();
 
-    $('#loanBreakdownModal .modal-title').text(`${title} - Breakdown`);
+    if (!period) {
+        alert("Please select a remittance period first.");
+        return;
+    }
 
-    // Clear old data
-    $('#loanBreakdownTable tbody').empty();
+    let targetModalId = breakdownType === 'other' ? '#othersRemitBreakdownModal' : '#loanBreakdownModal';
+    let targetModalTitle = `${targetModalId} .modal-title`;
+    let targetModalTableBody = `${targetModalId} table tbody`;
 
-    // AJAX call to fetch breakdown
+    $(targetModalTitle).text(`${title} - Breakdown`);
+    $(targetModalTableBody).empty();
+    $(targetModalTableBody).append('<tr><td colspan="3" class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>');
+
     $.ajax({
-        url: 'remittance_handler.php',  // <- create backend PHP to fetch per-employee details
+        url: 'remittance_handler.php',
         method: 'POST',
-        data: { loan_id: loanId, pay_period: $('#remitPeriod').val(), dept: $('#remitDept').val(), action: action },
+        data: { 
+            loan_id: deductionId,
+            pay_period: period, 
+            action: 'get_loan_breakdown'
+        },
         success: function(res) {
-            let data = JSON.parse(res);
-            if (data.length > 0) {
-                var grand_total = 0;
-                data.forEach(emp => {
-                    $('#loanBreakdownTable tbody').append(`
-                        <tr>
-                            <td>${emp.employee_name}</td>
-                            <td>${emp.position_title.split('(')[0].trim()}</td>
-                            <td class="text-right">${emp.total_deduction}</td>
+            try {
+                let data = JSON.parse(res);
+                if (data.length > 0) {
+                    var grand_total = 0;
+                    $(targetModalTableBody).empty();
+                    
+                    data.forEach(emp => {
+                        $(targetModalTableBody).append(`
+                            <tr>
+                                <td>${emp.employee_name}</td>
+                                <td>${emp.position_title.split('(')[0].trim()}</td>
+                                <td class="text-right">${formatMoney(parseFloat(emp.total_deduction))}</td>
+                            </tr>
+                        `);
+                        grand_total += parseFloat(emp.total_deduction);
+                    });
+                    
+                    $(targetModalTableBody).append(`
+                        <tr class="font-weight-bold bg-light">
+                            <td colspan="2" class="text-right">GRAND TOTAL:</td>
+                            <td class="text-right">${formatMoney(grand_total)}</td>
                         </tr>
                     `);
-                    grand_total += parseFloat(emp.total_deduction);
-                });
-                $('#loanBreakdownTable tbody').append(`
-                    <tr class="font-weight-bold">
-                        <td colspan="2" class="text-right">GRAND TOTAL:</td>
-                        <td class="text-right">${formatMoney(grand_total)}</td>
-                    </tr>
-                `);
-            } else {
-                $('#loanBreakdownTable tbody').append('<tr><td colspan="2" class="text-center">No data found</td></tr>');
+                } else {
+                    $(targetModalTableBody).html('<tr><td colspan="3" class="text-center text-muted">No data found for this period</td></tr>');
+                }
+            } catch (e) {
+                console.error("JSON Parse Error:", e);
+                $(targetModalTableBody).html('<tr><td colspan="3" class="text-center text-danger">Error loading data</td></tr>');
             }
-            $('#loanBreakdownModal').modal('show');
+            
+            $(targetModalId).modal('show');
+        },
+        error: function(xhr, status, error) {
+            console.error("AJAX Error:", error);
+            $(targetModalTableBody).html('<tr><td colspan="3" class="text-center text-danger">Failed to load breakdown data</td></tr>');
+            $(targetModalId).modal('show');
         }
     });
 });
@@ -514,8 +542,8 @@ $(document).on('click', '.viewOtherRemittanceBreakdown', function() {
     $('#btnPrintOthersRemitBreakdown').data('others_breakdown', JSON.stringify(employees));
     $('#btnPrintOthersRemitBreakdown').data('breakdown_period', period);
     $('#othersRemitBreakdownTitle').text(deductTitle);
-    $('#othersRemitBreakdownPeriodLabel').text('For the Period: ' + period.split('_').join(' to '));
-    $('#othersRemitBreakdownTable tbody').html(detailRows);
+    $('#othersRemitBreakdownPeriodLabel span').text(period.split('_').join(' to '));
+    $('#othersRemitBreakdownTableBody').html(detailRows);
     $('#othersRemitBreakdownModal').modal('show');
 });
 

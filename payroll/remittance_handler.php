@@ -435,6 +435,81 @@ if($action = isset($_POST['action'])?$_POST['action']:'') {
             ]);
             break;
 
+        case 'get_others_remittance_details':
+            /**
+             * Fetch all Other Payables deductions for a specific remittance record
+             * Used in remittance history to show breakdown of what others were included
+             */
+            $Remittance = new Remittance();
+            
+            $remittanceId = $_POST['remittance_id'] ?? null;
+            $period = $_POST['period'] ?? null;
+            
+            if (!$remittanceId || !$period) {
+                header('Content-Type: application/json');
+                echo json_encode([]);
+                break;
+            }
+            
+            list($startDate, $endDate) = explode("_", $period);
+            
+            // Get all others payables for this period from the remittance record
+            $othersData = $Remittance->GetRemittanceOthers(date('Y', strtotime($startDate)), $period);
+            
+            header('Content-Type: application/json');
+            if ($othersData) {
+                echo json_encode($othersData);
+            } else {
+                echo json_encode([]);
+            }
+            break;
+
+        case 'get_remittance_history':
+            /**
+             * Get remittance history records filtered by year and type
+             * Supports: tax, gsis, gsis_ecc, philhealth, pagibig, sss, loans, others
+             */
+            $Remittance = new Remittance();
+            
+            $year = $_POST['year'] ?? null;
+            $remittanceType = $_POST['remittance_type'] ?? null;
+            
+            if (!$year || !$remittanceType) {
+                header('Content-Type: application/json');
+                echo json_encode([]);
+                break;
+            }
+            
+            // Get remittance records from database
+            $sql = "SELECT 
+                        r.remittance_id,
+                        r.remittance_type,
+                        r.period,
+                        r.status,
+                        r.or_number,
+                        r.reference_no,
+                        r.employee_share,
+                        r.employer_share,
+                        r.total_amount,
+                        r.created_at
+                    FROM remittances r
+                    WHERE YEAR(r.period_start) = '$year'
+                    AND r.remittance_type = '$remittanceType'
+                    ORDER BY r.period_start DESC";
+            
+            $result = $Remittance->db->query($sql);
+            $records = [];
+            
+            if ($result && $Remittance->db->num_rows($result) > 0) {
+                while ($row = $Remittance->db->fetch_array($result)) {
+                    $records[] = $row;
+                }
+            }
+            
+            header('Content-Type: application/json');
+            echo json_encode($records);
+            break;
+
         default:
             # code...
             break;

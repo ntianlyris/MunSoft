@@ -278,14 +278,18 @@ body {
                           <label for="remitType" class="mr-2">Remittance Type:</label>
                           <select id="remitType" class="form-control form-control-sm mr-3">
                             <option value="" hidden>Select Type...</option>
-                            <option value="tax">Withholding Tax</option>
-                            <option value="gsis">GSIS (L/R)</option>
-                            <option value="gsis_ecc">GSIS (ECC)</option>
-                            <option value="philhealth">PhilHealth</option>
-                            <option value="pagibig">Pag-IBIG</option>
-                            <option value="sss">SSS</option>
-                            <option value="loans">Loans</option>
-                            <option value="others">Others</option>
+                            <optgroup label="Government Remittances">
+                              <option value="tax">Withholding Tax (BIR)</option>
+                              <option value="gsis">GSIS (L/R)</option>
+                              <option value="gsis_ecc">GSIS (ECC)</option>
+                              <option value="philhealth">PhilHealth</option>
+                              <option value="pagibig">Pag-IBIG</option>
+                              <option value="sss">SSS</option>
+                            </optgroup>
+                            <optgroup label="Payroll Deductions">
+                              <option value="loans">Loans</option>
+                              <option value="others">Other Payables</option>
+                            </optgroup>
                           </select>
 
                           <button type="button" class="btn btn-primary btn-sm" id="btnViewRemittances">
@@ -495,45 +499,54 @@ body {
 <div class="modal fade" id="remittanceOthersDetailsModal" tabindex="-1" role="dialog" aria-labelledby="remittanceOthersDetailsModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-xl" role="document">
     <div class="modal-content">
-      <div class="modal-header bg-info text-white">
-        <h5 class="modal-title" id="remittanceOthersDetailsModalLabel">Others Remittance Details</h5>
+      <div class="modal-header bg-warning text-white">
+        <h5 class="modal-title" id="remittanceOthersDetailsModalLabel">
+          <i class="fas fa-file-invoice-dollar"></i> Other Payables Remittance Details
+        </h5>
         <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-          <span>&times;</span>
+          <span aria-hidden="true">&times;</span>
         </button>
       </div>
       <div class="modal-body">
         
-        <div class="row">
+        <div class="row mb-3">
           <div class="col-md-6">
-            <h6 class="ml-4" id="remittanceOthersPeriodLabel"></h6>
+            <h6 class="text-muted" id="remittanceOthersPeriodLabel">
+              <i class="fas fa-calendar-alt"></i> Period: <span></span>
+            </h6>
           </div>
           <div class="col-md-6 text-right">
-            <!-- Print Button -->
-            <div class="d-flex justify-content-end">
-              <button type="button" class="btn btn-primary btn-sm mb-3" id="btnPrintOthersRemittanceDetails" data-others_remit_id="">
-                <i class="fas fa-print"></i> Print Remittance Others Details
+            <!-- Export and Print Buttons -->
+            <div class="d-flex justify-content-end gap-2">
+              <button type="button" class="btn btn-secondary btn-sm" id="btnExportOthersRemittanceDetails" title="Export to CSV">
+                <i class="fas fa-download"></i> Export CSV
+              </button>
+              <button type="button" class="btn btn-primary btn-sm" id="btnPrintOthersRemittanceDetails" data-others_remit_id="" title="Print Details">
+                <i class="fas fa-print"></i> Print
               </button>
             </div>
           </div>
         </div>
 
-        <div id="remittanceOthersDetailsTable">
-          <table class="table table-bordered table-sm">
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover table-sm">
             <thead class="thead-light">
               <tr>
-                <th>Particulars</th>
-                <th>Total Deductions</th>
-                <th class="text-center">Action</th>
+                <th width="50%"><i class="fas fa-file-invoice"></i> Deduction Type</th>
+                <th width="30%" class="text-right"><i class="fas fa-dollar-sign"></i> Total Amount</th>
+                <th width="20%" class="text-center"><i class="fas fa-cogs"></i> Action</th>
               </tr>
             </thead>
             <tbody id="remittanceOthersDetailsBody">
-              <tr><td colspan="3" class="text-center text-muted">No data available</td></tr>
+              <tr><td colspan="3" class="text-center text-muted"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>
             </tbody>
           </table>
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal"><i class="fas fa-times-circle"></i> Close</button>
+        <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">
+          <i class="fas fa-times-circle"></i> Close
+        </button>
       </div>
     </div>
   </div>
@@ -541,46 +554,51 @@ body {
 
 <!-- Modal for Remittance Others Breakdown details -->
 <div class="modal fade" id="othersRemitBreakdownModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-xl" role="document">
+    <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="othersRemitBreakdownTitle"></h5>
-                <button type="button" class="close" data-dismiss="modal">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="othersRemitBreakdownTitle">
+                  <i class="fas fa-users"></i> Employee Breakdown
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body">
                 
-                <div class="row">
+                <div class="row mb-3">
                   <div class="col-md-6">
-                    <h6 class="ml-4" id="othersRemitBreakdownPeriodLabel"></h6>
+                    <h6 class="text-muted" id="othersRemitBreakdownPeriodLabel">
+                      <i class="fas fa-calendar-alt"></i> Period: <span></span>
+                    </h6>
                   </div>
                   <div class="col-md-6 text-right">
                     <!-- Print Button -->
-                    <div class="d-flex justify-content-end mb-3">
-                        <button type="button" class="btn btn-primary btn-sm" id="btnPrintOthersRemitBreakdown" data-others_breakdown="" data-breakdown_period="">
-                            <i class="fas fa-print"></i> Print Others Remittance Breakdown
+                    <div class="d-flex justify-content-end">
+                        <button type="button" class="btn btn-primary btn-sm" id="btnPrintOthersRemitBreakdown" data-others_breakdown="" data-breakdown_period="" title="Print Breakdown">
+                            <i class="fas fa-print"></i> Print Breakdown
                         </button>
                     </div>
                   </div>
                 </div>
 
-                <div id="othersRemitBreakdownTable">
-                  <!-- Others Remittance Breakdown Table -->
-                  <table class="table table-bordered table-striped" id="othersRemitBreakdownTable">
-                      <thead>
+                <div class="table-responsive">
+                  <table class="table table-bordered table-striped table-hover table-sm">
+                      <thead class="thead-light">
                           <tr>
-                              <th>Employee Name</th>
-                              <th>Position</th>
-                              <th class="text-right">Amount</th>
+                              <th width="40%"><i class="fas fa-user-tie"></i> Employee Name</th>
+                              <th width="40%"><i class="fas fa-briefcase"></i> Position</th>
+                              <th width="20%" class="text-right"><i class="fas fa-dollar-sign"></i> Amount</th>
                           </tr>
                       </thead>
-                      <tbody></tbody>
+                      <tbody id="othersRemitBreakdownTableBody"></tbody>
                   </table>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal"><i class="fas fa-times-circle"></i> Close</button>
+                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">
+                  <i class="fas fa-times-circle"></i> Close
+                </button>
             </div>
         </div>
     </div>
