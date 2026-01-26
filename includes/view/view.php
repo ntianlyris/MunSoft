@@ -1151,4 +1151,228 @@ function BuildLeaveTypesDropdown(){
 }
 ##-------------------------------##
 
+// ====================================================================
+// PAYROLL DASHBOARD SUMMARY FUNCTIONS
+// ====================================================================
+
+/**
+ * Get total count of active employees included in payroll
+ */
+function ViewPayrollActiveEmployeesCount(){
+    include_once('../includes/class/DB_conn.php');
+    $db = new DB_conn();
+    
+    $query = "SELECT COUNT(a.employee_id) as total_count
+              FROM employees_tbl a
+              INNER JOIN employee_employments_tbl b
+              ON a.employee_id = b.employee_id
+              WHERE b.employment_status = 1 
+              AND a.include_in_payroll = 1";
+    
+    $result = $db->query($query);
+    if ($result && $result->num_rows > 0) {
+        $row = $db->fetch_array($result);
+        return $row['total_count'] ?? 0;
+    }
+    return 0;
+}
+
+/**
+ * Get count of pending payroll records for current period
+ */
+function ViewPendingPayrollsCount(){
+    include_once('../includes/class/DB_conn.php');
+    $db = new DB_conn();
+    
+    // Get current active payroll period
+    $query = "SELECT payroll_period_id FROM payroll_periods 
+              WHERE date_start <= CURDATE() 
+              AND date_end >= CURDATE()
+              ORDER BY payroll_period_id DESC LIMIT 1";
+    
+    $result = $db->query($query);
+    if (!$result || $result->num_rows == 0) {
+        return 0;
+    }
+    
+    $current_period = $db->fetch_array($result);
+    $period_id = $current_period['payroll_period_id'];
+    
+    // Count employees not yet in payroll for this period
+    $query = "SELECT COUNT(DISTINCT a.employee_id) as pending_count
+              FROM employees_tbl a
+              INNER JOIN employee_employments_tbl b
+              ON a.employee_id = b.employee_id
+              WHERE b.employment_status = 1 
+              AND a.include_in_payroll = 1
+              AND a.employee_id NOT IN (
+                  SELECT DISTINCT employee_id FROM payroll_entries 
+                  WHERE payroll_period_id = $period_id
+              )";
+    
+    $result = $db->query($query);
+    if ($result && $result->num_rows > 0) {
+        $row = $db->fetch_array($result);
+        return $row['pending_count'] ?? 0;
+    }
+    return 0;
+}
+
+/**
+ * Get count of processed payrolls for current period
+ */
+function ViewProcessedPayrollsCount(){
+    include_once('../includes/class/DB_conn.php');
+    $db = new DB_conn();
+    
+    // Get current active payroll period
+    $query = "SELECT payroll_period_id FROM payroll_periods 
+              WHERE date_start <= CURDATE() 
+              AND date_end >= CURDATE()
+              ORDER BY payroll_period_id DESC LIMIT 1";
+    
+    $result = $db->query($query);
+    if (!$result || $result->num_rows == 0) {
+        return 0;
+    }
+    
+    $current_period = $db->fetch_array($result);
+    $period_id = $current_period['payroll_period_id'];
+    
+    // Count processed payroll entries
+    $query = "SELECT COUNT(*) as processed_count
+              FROM payroll_entries
+              WHERE payroll_period_id = $period_id";
+    
+    $result = $db->query($query);
+    if ($result && $result->num_rows > 0) {
+        $row = $db->fetch_array($result);
+        return $row['processed_count'] ?? 0;
+    }
+    return 0;
+}
+
+/**
+ * Get total payroll cost for current period (sum of net pay)
+ */
+function ViewTotalPayrollCost(){
+    include_once('../includes/class/DB_conn.php');
+    $db = new DB_conn();
+    
+    // Get current active payroll period
+    $query = "SELECT payroll_period_id FROM payroll_periods 
+              WHERE date_start <= CURDATE() 
+              AND date_end >= CURDATE()
+              ORDER BY payroll_period_id DESC LIMIT 1";
+    
+    $result = $db->query($query);
+    if (!$result || $result->num_rows == 0) {
+        return 0;
+    }
+    
+    $current_period = $db->fetch_array($result);
+    $period_id = $current_period['payroll_period_id'];
+    
+    // Sum of net pay for all payroll entries
+    $query = "SELECT COALESCE(SUM(net_pay), 0) as total_cost
+              FROM payroll_entries
+              WHERE payroll_period_id = $period_id";
+    
+    $result = $db->query($query);
+    if ($result && $result->num_rows > 0) {
+        $row = $db->fetch_array($result);
+        return $row['total_cost'] ?? 0;
+    }
+    return 0;
+}
+
+/**
+ * Get total gross pay for current period
+ */
+function ViewTotalGrossPayroll(){
+    include_once('../includes/class/DB_conn.php');
+    $db = new DB_conn();
+    
+    // Get current active payroll period
+    $query = "SELECT payroll_period_id FROM payroll_periods 
+              WHERE date_start <= CURDATE() 
+              AND date_end >= CURDATE()
+              ORDER BY payroll_period_id DESC LIMIT 1";
+    
+    $result = $db->query($query);
+    if (!$result || $result->num_rows == 0) {
+        return 0;
+    }
+    
+    $current_period = $db->fetch_array($result);
+    $period_id = $current_period['payroll_period_id'];
+    
+    // Sum of gross pay for all payroll entries
+    $query = "SELECT COALESCE(SUM(gross), 0) as total_gross
+              FROM payroll_entries
+              WHERE payroll_period_id = $period_id";
+    
+    $result = $db->query($query);
+    if ($result && $result->num_rows > 0) {
+        $row = $db->fetch_array($result);
+        return $row['total_gross'] ?? 0;
+    }
+    return 0;
+}
+
+/**
+ * Get total deductions for current period
+ */
+function ViewTotalPayrollDeductions(){
+    include_once('../includes/class/DB_conn.php');
+    $db = new DB_conn();
+    
+    // Get current active payroll period
+    $query = "SELECT payroll_period_id FROM payroll_periods 
+              WHERE date_start <= CURDATE() 
+              AND date_end >= CURDATE()
+              ORDER BY payroll_period_id DESC LIMIT 1";
+    
+    $result = $db->query($query);
+    if (!$result || $result->num_rows == 0) {
+        return 0;
+    }
+    
+    $current_period = $db->fetch_array($result);
+    $period_id = $current_period['payroll_period_id'];
+    
+    // Sum of total deductions for all payroll entries
+    $query = "SELECT COALESCE(SUM(total_deductions), 0) as total_deductions
+              FROM payroll_entries
+              WHERE payroll_period_id = $period_id";
+    
+    $result = $db->query($query);
+    if ($result && $result->num_rows > 0) {
+        $row = $db->fetch_array($result);
+        return $row['total_deductions'] ?? 0;
+    }
+    return 0;
+}
+
+/**
+ * Get current payroll period information
+ */
+function GetCurrentPayrollPeriod(){
+    include_once('../includes/class/DB_conn.php');
+    $db = new DB_conn();
+    
+    $query = "SELECT * FROM payroll_periods 
+              WHERE date_start <= CURDATE() 
+              AND date_end >= CURDATE()
+              ORDER BY payroll_period_id DESC LIMIT 1";
+    
+    $result = $db->query($query);
+    if ($result && $result->num_rows > 0) {
+        return $db->fetch_array($result);
+    }
+    return null;
+}
+
+##-------------------------------##
+
 
