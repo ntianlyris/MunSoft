@@ -814,6 +814,46 @@ class Payroll {
         else {return false;}
     }
 
+    /**
+     * Get employee's payroll records for the current active year
+     * @param int $employee_id
+     * @param int $limit
+     * @return array
+     */
+    public function getEmployeePayrollRecords($employee_id, $limit = 5) {
+        $employee_id = intval($employee_id);
+        
+        // Determine the active year (same logic as GetPayPeriods)
+        $currentYear = date('Y');
+        $lastYear = $currentYear - 1;
+        $useYear = $currentYear;
+        
+        $lastYear_isClosed = $this->CheckLastYearIsClosed($lastYear);
+        if (!$lastYear_isClosed || $lastYear_isClosed['is_closed'] == 0) {
+            $useYear = $lastYear;
+        }
+        
+        $query = "SELECT pe.payroll_entry_id, pe.employee_id, pe.gross, pe.total_deductions, pe.net_pay,
+                         pp.period_label, pp.date_start, pp.date_end, YEAR(pp.date_start) as year
+                  FROM payroll_entries pe
+                  INNER JOIN payroll_periods pp ON pe.payroll_period_id = pp.payroll_period_id
+                  WHERE pe.employee_id = $employee_id
+                  AND YEAR(pp.date_start) = $useYear
+                  ORDER BY pp.date_start DESC
+                  LIMIT $limit";
+        
+        $result = $this->db->query($query) or die($this->db->error);
+        
+        $payrolls = [];
+        if ($this->db->num_rows($result) > 0) {
+            while ($row = $this->db->fetch_array($result)) {
+                $payrolls[] = $row;
+            }
+        }
+        
+        return $payrolls;
+    }
+
 }
 
 ?>

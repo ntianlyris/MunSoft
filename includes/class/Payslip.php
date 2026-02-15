@@ -175,6 +175,33 @@ class Payslip extends Payroll {
         $final['total_deductions'] = $total_deductions;
         return $final;
     }
+
+    /**
+     * Get employee payslip history
+     */
+    function getEmployeePayslipHistory($employee_id, $limit = 6){
+        include_once('../includes/class/DB_conn.php');
+        $db = new DB_conn();
+        
+        $employee_id = $db->escape_string($employee_id);
+        $query = "SELECT pe.payroll_entry_id, pe.employee_id, pe.gross, pe.total_deductions, pe.net_pay,
+                pp.period_label, pp.date_start, pp.date_end, YEAR(pp.date_start) as year
+                FROM payroll_entries pe
+                INNER JOIN payroll_periods pp ON pe.payroll_period_id = pp.payroll_period_id
+                WHERE pe.employee_id = '$employee_id'
+                ORDER BY pp.date_start DESC
+                LIMIT $limit";
+        
+        $result = $db->query($query);
+        if ($result && $result->num_rows > 0) {
+            $payslips = [];
+            while ($row = $db->fetch_array($result)) {
+                $payslips[] = $row;
+            }
+            return $payslips;
+        }
+        return null;
+    }
     
 }
 

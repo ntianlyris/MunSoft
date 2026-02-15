@@ -7,6 +7,7 @@
     $user_id = $MyAdmin->getSessionUID();
     $roles = $MyAdmin->initRoles($user_id);
     $role = "";
+    $perms = [];  // Initialize as empty array
     
     foreach ($roles as $key => $value) {
         $role = $key;
@@ -21,6 +22,16 @@
 
     if(in_array('Manage System', $admin_perms, true)){ $manage_system = true; }
     if(in_array('Update Data', $admin_perms, true)){ $update_data = true; }
+
+// Store user role in a global variable for JavaScript access through HTML data attribute
+// This will be used to hide action buttons based on user role
+$GLOBALS['user_role_for_js'] = isset($role) ? $role : 'Guest';
+?>
+<script>
+  // Set the global user role variable that head.php checks
+  window.currentUserRole = '<?php echo htmlspecialchars(isset($GLOBALS['user_role_for_js']) ? $GLOBALS['user_role_for_js'] : 'Guest', ENT_QUOTES, 'UTF-8'); ?>';
+</script>
+<?php
 
 ##-----Render View of Sidebar links according to user permissions-----##
 function ViewSideBarLink($link_name){
@@ -53,6 +64,54 @@ function ViewSideBarLink($link_name){
                                     <i class="nav-icon fas fa-user"></i>
                                     <p>
                                         Profile
+                                    </p>
+                                    </a>
+                                </li>';
+                }
+            break;
+        case 'employment':
+                if($user_role == "Employee"){
+                    include_once '../includes/class/Employee.php';
+                    $MyEmployee = new Employee();
+                    $employee_id = "";
+                    $employee_id = $MyEmployee->getEmployeeIDByUserId($user_id);
+                    $link_text = '<li class="nav-item">
+                                    <a href="employment.php?emp_id='.$employee_id.'" class="nav-link" id="employment">
+                                    <i class="nav-icon fas fa-id-card"></i>
+                                    <p>
+                                        Employment
+                                    </p>
+                                    </a>
+                                </li>';
+                }
+            break;
+        case 'payroll':
+                if($user_role == "Employee"){
+                    include_once '../includes/class/Employee.php';
+                    $MyEmployee = new Employee();
+                    $employee_id = "";
+                    $employee_id = $MyEmployee->getEmployeeIDByUserId($user_id);
+                    $link_text = '<li class="nav-item">
+                                    <a href="payroll.php?emp_id='.$employee_id.'" class="nav-link" id="payroll">
+                                    <i class="nav-icon fas fa-money-bill-wave"></i>
+                                    <p>
+                                        Payroll
+                                    </p>
+                                    </a>
+                                </li>';
+                }
+            break;
+        case 'employee_payslip':
+                if($user_role == "Employee"){
+                    include_once '../includes/class/Employee.php';
+                    $MyEmployee = new Employee();
+                    $employee_id = "";
+                    $employee_id = $MyEmployee->getEmployeeIDByUserId($user_id);
+                    $link_text = '<li class="nav-item">
+                                    <a href="employee_payslip.php?emp_id='.$employee_id.'" class="nav-link" id="employee_payslip">
+                                    <i class="nav-icon fas fa-file-invoice-dollar"></i>
+                                    <p>
+                                        Payslip
                                     </p>
                                     </a>
                                 </li>';
@@ -363,13 +422,13 @@ function ViewDepartments(){
         $count = 0;
         foreach($departments as $key => $value) {
             $count++;
-            echo '<tr>
+                echo '<tr id="employment_row_'. $value['employment_id'] .'" class="employment-row">
                     <td>' . $count . '</td>
                     <td>' . $value['dept_code'] . '</td>
                     <td>' . $value['dept_title'] . '</td>
                     <td>' . $value['dept_name'] . '</td>
                     <td class="text-center">
-                        <div class="btn-group">
+                        <div class="btn-group action-buttons-group">
                             <button class="btn btn-default btn-sm" onclick="GetDepartmentDetails('.$value["dept_id"].')" data-toggle="modal" data-target="#department_modal">
                                 <i class="fa fa-edit"></i> Edit
                             </button>
@@ -402,7 +461,7 @@ function ViewPositions(){
                     <td>' . $value['dept_name'] . '</td>
                     <td>' . $MyPosition->returnPositionStatus($value['position_status']) . '</td>
                     <td class="text-center">
-                        <div class="btn-group">
+                        <div class="btn-group action-buttons-group">
                             <button class="btn btn-default btn-sm" onclick="GetPositionDetails('.$value["position_id"].')" data-toggle="modal" data-target="#position_modal">
                                 <i class="fa fa-edit"></i> Edit
                             </button>
@@ -471,8 +530,8 @@ function ViewEmployeeEmployments($employee_id){
                     <td>' . $value['employment_particulars'] . '</td>
                     <td>' . OutputMoney($value['rate']) . '</td>
                     <td>' . ($value['employment_status'] == 1 ? 'Active' : 'Inactive') . '</td>
-                    <td class="text-center">
-                        <div class="btn-group">
+                    <td class="text-center action-column">
+                        <div class="btn-group action-buttons-group">
                             <button class="btn btn-primary btn-sm" onclick="GetEmploymentDetails('.$value["employee_id"].','.$value["employment_id"].')" data-toggle="modal" data-target="#employment_modal">
                                 <span data-toggle="tooltip" title="Edit" data-placement="bottom"><i class="fa fa-edit"></i></span>
                             </button>
@@ -501,7 +560,7 @@ function ViewUserEmployees(){
                     <td>' . $value['mobile'] . '</td>
                     <td><a href="employee_profile.php?emp_id='.$value['employee_id'].'">' . $value['firstname'] . " " . $value['middlename'] . " " . $value['lastname'] . " " . $value['extension'] . '</a></td>
                     <td class="text-center">
-                        <div class="btn-group">
+                        <div class="btn-group action-buttons-group">
                             <button class="btn btn-warning btn-sm" onclick="UnlinkUser('.$value['employee_id'].','.$value['userID'].')" data-toggle="tooltip" title="Unlink User" data-placement="bottom">
                                 <i class="fa fa-user-minus"></i> Unlink
                             </button>
@@ -564,7 +623,7 @@ function ViewEarningConfigs(){
                     <td>' . $value['earning_code'] . '</td>
                     <td>' . $value['earning_title'] . '</td>
                     <td class="text-center">
-                        <div class="btn-group">
+                        <div class="btn-group action-buttons-group">
                             <button class="btn btn-default btn-sm" onclick="GetEarningConfigDetails('.$value["config_earning_id"].')" data-toggle="modal" data-target="#config_earnings_modal">
                                 <i class="fa fa-edit"></i> Edit
                             </button>
@@ -596,7 +655,7 @@ function ViewDeductionConfigs(){
                     <td>' . ($value['is_employee_share'] == 1 ? 'YES' : 'NO') . '</td>
                     <td>' . $value['deduct_category'] . '</td>
                     <td class="text-center">
-                        <div class="btn-group">
+                        <div class="btn-group action-buttons-group">
                             <button class="btn btn-default btn-sm" onclick="GetDeductionConfigDetails('.$value["config_deduction_id"].')" data-toggle="modal" data-target="#config_deductions_modal">
                                 <i class="fa fa-edit"></i> Edit
                             </button>
@@ -629,7 +688,7 @@ function ViewGovShares(){
                     <td>' . ($value['is_percentage'] == 1 ? 'Percentage' : 'Fixed Amount') . '</td>
                     <td>' . ($value['active'] == 1 ? 'active' : 'inactive') . '</td>
                     <td class="text-center">
-                        <div class="btn-group">
+                        <div class="btn-group action-buttons-group">
                             <button class="btn btn-default btn-sm edit-btn" data-govshare-id="'.$value['govshare_id'].'" data-toggle="modal" data-target="#config_deductions_modal">
                                 <i class="fa fa-edit"></i> Edit
                             </button>
@@ -786,7 +845,7 @@ function ViewSignatoriesList(){
                     <td>' . $value['sign_particulars'] . '</td>
                     <td class="text-center">' . ($value['is_active'] == 1 ? '<span class="badge badge-success">active</span>' : '<span class="badge badge-danger">inactive</span>') . '</td>
                     <td class="text-center">
-                        <div class="btn-group">
+                        <div class="btn-group action-buttons-group">
                             <button class="btn btn-default btn-sm" onclick="GetSignatoryDetails('.$value["signatory_id"].')" data-toggle="modal" data-target="#signatory_modal">
                                 <i class="fa fa-edit"></i> Edit
                             </button>
@@ -878,7 +937,7 @@ function ViewAllLeaveApplications(){
                     <td class="text-center">' . count($value['dates']) . '</td>
                     <td class="text-center">' . $badge . '</td>
                     <td class="text-center">
-                        <div class="btn-group">
+                        <div class="btn-group action-buttons-group">
                             <button class="btn btn-success btn-sm btnApproveLeave" data-leaveApp-id="'.$value['leave_application_id'].'">
                                 <i class="fa fa-check"></i> Approve
                             </button>
@@ -917,7 +976,7 @@ function ViewLeaveTypes(){
                                 : '<span class="badge badge-secondary">Inactive</span>') . 
                     '</td>
                     <td class="text-center">
-                        <div class="btn-group">
+                        <div class="btn-group action-buttons-group">
                             <button class="btn btn-default btn-sm" onclick="GetLeaveTypeDetails('.$value["leave_type_id"].')" data-toggle="modal" data-target="#leaveTypeModal">
                                 <i class="fa fa-edit"></i> Edit
                             </button>
@@ -1149,6 +1208,79 @@ function BuildLeaveTypesDropdown(){
     }
     return $rendered_leaveTypes_drpdwn;                                            
 }
+
+
+/**
+ * Get employee's leave balance
+ */
+function GetEmployeeLeaveBalance($employee_id){
+    include_once('../includes/class/DB_conn.php');
+    $db = new DB_conn();
+    
+    $employee_id = $db->escape_string($employee_id);
+    $query = "SELECT lt.leave_name, mlc.credits_given, 
+              COALESCE(SUM(la.days), 0) as used_days,
+              (mlc.credits_given - COALESCE(SUM(la.days), 0)) as balance
+              FROM manage_leave_credits mlc
+              INNER JOIN leave_types lt ON mlc.leave_type_id = lt.leave_type_id
+              LEFT JOIN leave_applications la ON mlc.employee_id = la.employee_id 
+                AND mlc.leave_type_id = la.leave_type_id
+                AND YEAR(la.date_filed) = YEAR(CURDATE())
+                AND la.status = 'Approved'
+              WHERE mlc.employee_id = '$employee_id'
+              AND YEAR(mlc.year_date) = YEAR(CURDATE())
+              GROUP BY mlc.leave_credit_id";
+    
+    $result = $db->query($query);
+    if ($result && $result->num_rows > 0) {
+        $leaves = [];
+        while ($row = $db->fetch_array($result)) {
+            $leaves[] = $row;
+        }
+        return $leaves;
+    }
+    return null;
+}
+
+/**
+ * Get employee's leave applications
+ */
+function GetEmployeeLeaveApplications($employee_id, $limit = 3){
+    include_once('../includes/class/DB_conn.php');
+    $db = new DB_conn();
+    
+    $employee_id = $db->escape_string($employee_id);
+    $query = "SELECT la.*, lt.leave_name, DATE(la.date_filed) as filed_date
+              FROM leave_applications la
+              INNER JOIN leave_types lt ON la.leave_type_id = lt.leave_type_id
+              WHERE la.employee_id = '$employee_id'
+              ORDER BY la.date_filed DESC
+              LIMIT $limit";
+    
+    $result = $db->query($query);
+    if ($result && $result->num_rows > 0) {
+        $applications = [];
+        while ($row = $db->fetch_array($result)) {
+            $applications[] = $row;
+        }
+        return $applications;
+    }
+    return null;
+}
+
+/**
+ * Get employee profile summary
+ */
+function GetEmployeeProfileSummary($employee_id){
+    include_once('../includes/class/DB_conn.php');
+    include_once('../includes/class/Employee.php');
+    
+    $Employee = new Employee();
+    $profile = $Employee->GetEmployeeDetails($employee_id);
+    
+    return $profile;
+}
+
 ##-------------------------------##
 
 // ====================================================================
@@ -1241,6 +1373,30 @@ function GetCurrentPayrollPeriod(){
         return $db->fetch_array($result);
     }
     return null;
+}
+
+/**
+ * Get total remittances for the current year (only remitted status)
+ */
+function ViewTotalRemittances(){
+    include_once('../includes/class/DB_conn.php');
+    $db = new DB_conn();
+    
+    // Get current year
+    $current_year = date('Y');
+    
+    // Sum all remitted remittance amounts for the current year
+    $query = "SELECT COALESCE(SUM(total_amount), 0) as total_remittances
+              FROM remittances
+              WHERE YEAR(created_at) = $current_year
+              AND status = 'Remitted'";
+    
+    $result = $db->query($query);
+    if ($result && $result->num_rows > 0) {
+        $row = $db->fetch_array($result);
+        return $row['total_remittances'] ?? 0;
+    }
+    return 0;
 }
 
 ##-------------------------------##

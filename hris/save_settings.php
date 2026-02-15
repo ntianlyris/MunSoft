@@ -1,10 +1,39 @@
 <?php
 
+// ===== SECURITY: Check user role for edit/delete operations =====
+include_once '../includes/class/Admin.php';
+$Admin = new Admin();
+$current_user_id = $Admin->getSessionUID();
+$user_roles = $Admin->initRoles($current_user_id);
+$current_user_role = '';
+foreach ($user_roles as $role) {
+    $current_user_role = $role >= 0 ? array_key_first($user_roles) : '';
+    break;
+}
+
+// Function to check if user has permission for data modification
+function CheckModifyPermission($action = 'modify') {
+    global $current_user_role;
+    
+    // Employee users cannot modify/delete data
+    if ($current_user_role === 'Employee') {
+        $json_data = '{"result":"error", "message":"Access Denied: You do not have permission to modify data."}';
+        http_response_code(403);
+        return false;
+    }
+    return true;
+}
+
 if (isset($_POST['submit'])){
 	$setting_name = $_POST['submit'];
 
 	switch ($setting_name) {
 		case 'SaveDepartment':
+			// Security check for modify operations
+			if (!CheckModifyPermission('modify')) {
+				echo '{"result":"error", "message":"Access Denied"}';
+				exit;
+			}
 			include_once '../includes/class/Department.php';
 			$dept_id = $_POST['dept_id'];
     		$dept_code = $_POST['dept_code'];
@@ -29,6 +58,11 @@ if (isset($_POST['submit'])){
 			break;
 
 		case 'delete_dept':
+			// Security check for delete operations
+			if (!CheckModifyPermission('delete')) {
+				echo '{"result":"error", "message":"Access Denied"}';
+				exit;
+			}
 			include_once '../includes/class/Department.php';
             $Department = new Department();
             $json_data = "";
@@ -79,6 +113,11 @@ if (isset($_POST['submit'])){
 			break;
 		
 		case 'delete_position':
+			// Security check for delete operations
+			if (!CheckModifyPermission('delete')) {
+				echo '{"result":"error", "message":"Access Denied"}';
+				exit;
+			}
 			include_once '../includes/class/Position.php';
 			$MyPosition = new Position();
 			$json_data = "";
@@ -143,6 +182,11 @@ if (isset($_POST['submit'])){
 				break;
 	
 		case 'delete_user':
+					// Security check for delete operations
+					if (!CheckModifyPermission('delete')) {
+						echo '{"result":"error", "message":"Access Denied"}';
+						exit;
+					}
 					include_once('../includes/class/Admin.php');
 					$DeletedUser = new Admin();
 	

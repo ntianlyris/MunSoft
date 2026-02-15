@@ -123,7 +123,10 @@
                 </div>
                 <div class="modal-footer justify-content-between">
                     <button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fas fa-times-circle"></i> Close</button>
-                    <button type="button" class="btn btn-primary" id="btnSaveEmployment"><i class="fas fa-save"></i> Save changes</button>
+                    <?php
+                        $hideSaveBtn = (isset($GLOBALS['user_role_for_js']) && $GLOBALS['user_role_for_js'] === 'Employee') ? 'style="display:none;"' : '';
+                    ?>
+                    <button type="button" class="btn btn-primary" id="btnSaveEmployment" <?php echo $hideSaveBtn; ?>><i class="fas fa-save"></i> Save changes</button>
                 </div>
             </form>
         </div>

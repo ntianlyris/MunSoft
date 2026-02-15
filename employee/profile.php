@@ -165,45 +165,6 @@
             </div>
           </div>
           <!-- /.col -->
-          <div class="col-12">
-            <div class="card card-primary card-outline">
-              <div class="card-header" style="width: 100%;">
-                <div class="row">
-                  <div class="col-6">
-                    Employment Details
-                  </div>
-                  <div class="col-6">
-                    <button type="button" class="btn btn-primary btn-flat btn-sm" style="float:right;" onclick="GetEmployeeDetailsForEmployment(<?php echo $employee_id; ?>)" data-toggle="modal" data-target="#employment_modal"><i class="fas fa-plus-circle"></i> Add Employment</button>
-                  </div>
-                </div>
-              </div>
-              <div class="card-body">
-                  
-                  <table id="example1" class="table table-bordered table-hover">
-                      <thead>
-                          <tr>
-                              <th class="text-center">No.</th>
-                              <th class="text-center">Employment Type</th>
-                              <th class="text-center">Reference No.</th>
-                              <th class="text-center">Start of Employment</th>
-                              <th class="text-center">End of Employment</th>
-                              <th class="text-center">Position</th>
-                              <th class="text-center">Department</th>
-                              <th class="text-center">Office Assignment</th>
-                              <th class="text-center">Designation</th>
-                              <th class="text-center">Work Nature</th>
-                              <th class="text-center">Work Specifics</th>
-                              <th class="text-center">Rate</th>
-                              <th class="text-center">Status</th>
-                          </tr>
-                      </thead>
-                      <tbody>
-                          <?php ViewEmployeeEmployments($employee_id); ?>
-                      </tbody>
-                  </table>
-              </div>
-            </div>
-          </div>
         </div>
         <!-- /.row -->
       </div>
@@ -211,7 +172,6 @@
 
       <!-- Modals -->
       <?php ShowEmployeeModal(); ?>
-      <?php ShowEmploymentModal(); ?>
       
       <!-- Modal for Employee Photo Upload -->
       <div class="modal fade" id="photoUploadModal" tabindex="-1" role="dialog" aria-labelledby="photoUploadModalLabel" aria-hidden="true">
@@ -472,51 +432,4 @@ $('#formPhotoUpload').on('submit', function(e) {
         LoadEmployeePhoto(employee_id);
   });
 </script>
-<script type="text/javascript">
-    $("#cmbEmpType").change(function(){
-        var employment_type = $("#cmbEmpType").find('option:selected').val(); 
-        if(employment_type == "Regular" || employment_type == "Casual"){
-          $('#cmbPosition').removeAttr('disabled');
-          $("#cmbDepartment").removeAttr('disabled');
-        }
-        else{
-          $("#cmbPosition").val("");
-          $("#cmbDepartment").val("");
-          $("#cmbPosition").attr('disabled','disabled'); 
-          $("#cmbDepartment").attr('disabled','disabled'); 
-        }
-    });
-</script>
-<script type="text/javascript">
-    $("#cmbPosition").change(function(){
-        var position_item_id = $("#cmbPosition").find('option:selected').val(); 
-        var action = 'get_position_details';
-
-        $.ajax({
-            type: "GET",
-            url: "get.php",
-            data: {"action" : action, "position_id" : position_item_id},
-            success: function(data) {
-                    var obj = $.parseJSON(data);
-                    $('#cmbDepartment').val(obj['dept_id']);
-            }
-        });
-    });
-</script>
-<script>
-  $(function () {
-    $("#example1").DataTable({
-      //"order": [[ 2, "desc" ]],
-      "responsive": false, 
-      "lengthChange": false, 
-      "autoWidth": false,
-      "paging": true,
-      "searching": true,
-      "scrollX": true,
-      "buttons": ["excel", "pdf", "print"]
-    }).buttons().container().appendTo('#example1_wrapper .col-md-6:eq(0)');
-  });
-</script>
-</body>
-</html>
 
