@@ -41,7 +41,7 @@
               <div class="icon">
                 <i class="fas fa-users"></i>
               </div>
-              <a href="../hris/employees.php" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+              <a href="employees.php" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
             </div>
           </div>
           <!-- ./col -->
@@ -54,24 +54,9 @@
                 <p>Processed Payrolls</p>
               </div>
               <div class="icon">
-                <i class="fas fa-file-check"></i>
+                <i class="fas fa-file-invoice"></i>
               </div>
-              <a href="payrolls.php" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
-            </div>
-          </div>
-          <!-- ./col -->
-          <div class="col-lg-3 col-6">
-            <!-- small box -->
-            <div class="small-box bg-warning">
-              <div class="inner">
-                <h3><?php echo ViewPendingPayrollsCount(); ?></h3>
-
-                <p>Pending Payrolls</p>
-              </div>
-              <div class="icon">
-                <i class="fas fa-hourglass-half"></i>
-              </div>
-              <a href="payrolls.php" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+              <a href="payroll_records.php" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
             </div>
           </div>
           <!-- ./col -->
@@ -94,38 +79,8 @@
         </div>
         <!-- /.row -->
 
-        <!-- Additional Summary Row -->
+        <!-- Current Period Info Box -->
         <div class="row mt-3">
-          <div class="col-lg-3 col-6">
-            <!-- small box -->
-            <div class="small-box bg-primary">
-              <div class="inner">
-                <h3>₱<?php echo number_format(ViewTotalGrossPayroll(), 2); ?></h3>
-
-                <p>Total Gross Pay</p>
-              </div>
-              <div class="icon">
-                <i class="fas fa-wallet"></i>
-              </div>
-              <a href="payrolls.php" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
-            </div>
-          </div>
-          <!-- ./col -->
-          <div class="col-lg-3 col-6">
-            <!-- small box -->
-            <div class="small-box bg-secondary">
-              <div class="inner">
-                <h3>₱<?php echo number_format(ViewTotalPayrollDeductions(), 2); ?></h3>
-
-                <p>Total Deductions</p>
-              </div>
-              <div class="icon">
-                <i class="fas fa-cut"></i>
-              </div>
-              <a href="employee_deductions.php" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
-            </div>
-          </div>
-          <!-- ./col -->
           <div class="col-lg-6">
             <!-- Info box showing current payroll period -->
             <div class="info-box">

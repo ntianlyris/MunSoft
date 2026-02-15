@@ -134,7 +134,7 @@
       "responsive": false, 
       "lengthChange": false, 
       "autoWidth": false,
-      "paging": true,
+      "paging": false,
       "searching": true,
       "scrollX": true,
       "buttons": ["excel", "pdf", "print"]

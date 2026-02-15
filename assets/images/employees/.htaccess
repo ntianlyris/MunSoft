@@ -1,0 +1,24 @@
+# Prevent PHP execution in this directory
+AddType text/plain .php .phtml .php3 .php4 .php5 .php6 .shtml .pht .phar
+
+# Allow image files through
+<FilesMatch "\.(jpg|jpeg|png|gif)$">
+  Allow from all
+</FilesMatch>
+
+# Disable directory listing
+Options -Indexes
+
+# Disable script execution
+<IfModule mod_php5.c>
+    php_flag engine off
+</IfModule>
+
+# Default deny access
+Order deny,allow
+Deny from all
+
+# Allow only image files
+<FilesMatch "\.(jpg|jpeg|png|gif)$">
+    Allow from all
+</FilesMatch>
