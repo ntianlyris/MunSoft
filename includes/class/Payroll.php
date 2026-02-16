@@ -374,6 +374,47 @@ class Payroll {
         return $periods;
     }
 
+    public function GetAvailableYearsByEmployee($employee_id, $frequency = 'monthly') {
+        $employee_id = $this->db->escape_string($employee_id);
+        $frequency = $this->db->escape_string($frequency);
+        
+        // First, try with the provided frequency
+        $query = "SELECT DISTINCT YEAR(pp.date_start) as year 
+                  FROM payroll_entries pe
+                  INNER JOIN payroll_periods pp ON pe.payroll_period_id = pp.payroll_period_id
+                  WHERE pe.employee_id = '$employee_id'
+                  AND pp.frequency = '$frequency'
+                  ORDER BY year DESC";
+        
+        $result = $this->db->query($query);
+        $years = [];
+        
+        if ($this->db->num_rows($result) > 0) {
+            while ($row = $this->db->fetch_array($result)) {
+                $years[] = $row['year'];
+            }
+            return $years;
+        }
+        
+        // If no results with 'monthly', try without frequency filter
+        // This will get ALL available years regardless of frequency
+        $query_fallback = "SELECT DISTINCT YEAR(pp.date_start) as year 
+                          FROM payroll_entries pe
+                          INNER JOIN payroll_periods pp ON pe.payroll_period_id = pp.payroll_period_id
+                          WHERE pe.employee_id = '$employee_id'
+                          ORDER BY year DESC";
+        
+        $result_fallback = $this->db->query($query_fallback);
+        
+        if ($this->db->num_rows($result_fallback) > 0) {
+            while ($row = $this->db->fetch_array($result_fallback)) {
+                $years[] = $row['year'];
+            }
+        }
+        
+        return $years;
+    }
+
     public function GetPeriodDatesByID($payroll_period_id) {
         $query = "SELECT date_start, date_end FROM payroll_periods WHERE payroll_period_id = '$payroll_period_id' LIMIT 1";
         $result = $this->db->query($query) or die($this->db->error);
@@ -852,6 +893,55 @@ class Payroll {
         }
         
         return $payrolls;
+    }
+
+    /**
+     * Get employee's current payroll totals (latest payroll entry)
+     * Returns the most recent gross pay, deductions, and net pay
+     * @param int $employee_id
+     * @return array|bool Returns associative array with total_gross, total_deductions, total_net_pay or false
+     */
+    public function getPayrollSummaryByEmployee($employee_id) {
+        $employee_id = intval($employee_id);
+        
+        // Determine the active year (same logic as GetPayPeriods)
+        $currentYear = date('Y');
+        $lastYear = $currentYear - 1;
+        $useYear = $currentYear;
+        
+        $lastYear_isClosed = $this->CheckLastYearIsClosed($lastYear);
+        if (!$lastYear_isClosed || $lastYear_isClosed['is_closed'] == 0) {
+            $useYear = $lastYear;
+        }
+        
+        // Get the LATEST payroll entry (current), not accumulated
+        $query = "SELECT pe.gross as total_gross,
+                         pe.total_deductions as total_deductions,
+                         pe.net_pay as total_net_pay,
+                         pp.period_label
+                  FROM payroll_entries pe
+                  INNER JOIN payroll_periods pp ON pe.payroll_period_id = pp.payroll_period_id
+                  WHERE pe.employee_id = $employee_id
+                  AND pe.locked_period = 1
+                  AND YEAR(pp.date_start) = $useYear
+                  ORDER BY pp.date_start DESC
+                  LIMIT 1";
+        
+        $result = $this->db->query($query) or die($this->db->error);
+        $count_row = $this->db->num_rows($result);
+        
+        if ($count_row == 1) {
+            $row = $this->db->fetch_array($result);
+            return [
+                'total_gross' => floatval($row['total_gross'] ?? 0),
+                'total_deductions' => floatval($row['total_deductions'] ?? 0),
+                'total_net_pay' => floatval($row['total_net_pay'] ?? 0),
+                'period_label' => $row['period_label'] ?? 'N/A'
+            ];
+        }
+        else {
+            return false;
+        }
     }
 
 }

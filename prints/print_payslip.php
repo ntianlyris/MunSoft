@@ -5,27 +5,70 @@ require_once '..//includes/class/Payslip.php';
 require_once '..//includes/class/Employee.php';
 require_once '..//includes/class/Employment.php';
 
-// Get parameters
+// Get parameters - support both employee_id (from payroll side) and user_id (from employee side)
 $employee_id = isset($_POST['employee_id']) ? $_POST['employee_id'] : (isset($_GET['employee_id']) ? $_GET['employee_id'] : '');
+$user_id = isset($_POST['user_id']) ? $_POST['user_id'] : (isset($_GET['user_id']) ? $_GET['user_id'] : '');
 $year = isset($_POST['year']) ? $_POST['year'] : (isset($_GET['year']) ? $_GET['year'] : '');
 $payroll_period = isset($_POST['payroll_period']) ? $_POST['payroll_period'] : (isset($_GET['payroll_period']) ? $_GET['payroll_period'] : '');
 
+// If user_id is provided instead of employee_id, convert it
+if (!empty($user_id) && empty($employee_id)) {
+    $Employee = new Employee();
+    $employee_id = $Employee->getEmployeeIDByUserId($user_id);
+    if (!$employee_id) {
+        die('Error: Could not find employee record for the logged-in user.');
+    }
+}
+
 // Validate parameters
 if (empty($employee_id) || empty($year) || empty($payroll_period)) {
-    die('Invalid parameters. Please provide employee_id, year, and payroll_period.');
+    die('Invalid parameters. Please provide employee_id (or user_id), year, and payroll_period.');
+}
+
+// Validate payroll_period format
+$period_parts = explode('_', $payroll_period);
+if (count($period_parts) < 2) {
+    die('Invalid payroll_period format. Expected format: YYYY-MM-DD_YYYY-MM-DD (e.g., 2026-03-16_2026-03-31)');
 }
 
 // Generate payslip data
-$PaySlip = new Payslip();
-$payslip = $PaySlip->GeneratePayslip($employee_id, $year, $payroll_period);
-$start_coverage = explode('|', $payslip['coverage'])[0];
-$end_coverage = explode('|', $payslip['coverage'])[1];
+try {
+    $PaySlip = new Payslip();
+    $payslip = $PaySlip->GeneratePayslip($employee_id, $year, $payroll_period);
+} catch (Exception $e) {
+    die('Error generating payslip: ' . htmlspecialchars($e->getMessage()));
+}
 
-$start_coverage = DateTime::createFromFormat('m-d-Y', $start_coverage)->format("m/d/Y");
-$end_coverage = DateTime::createFromFormat('m-d-Y', $end_coverage)->format("m/d/Y");
+// Validate payslip coverage data exists
+if (empty($payslip) || !isset($payslip['coverage'])) {
+    die('Unable to generate payslip. Missing coverage information.');
+}
+
+$coverage_parts = explode('|', $payslip['coverage']);
+if (count($coverage_parts) < 2) {
+    die('Invalid coverage format in payslip data.');
+}
+
+$start_coverage = trim($coverage_parts[0]);
+$end_coverage = trim($coverage_parts[1]);
+
+// Parse coverage dates with error handling
+$start_date_obj = DateTime::createFromFormat('m-d-Y', $start_coverage);
+$end_date_obj = DateTime::createFromFormat('m-d-Y', $end_coverage);
+
+if ($start_date_obj === false || $end_date_obj === false) {
+    die('Error parsing coverage dates from payslip data.');
+}
+
+$start_coverage = $start_date_obj->format("m/d/Y");
+$end_coverage = $end_date_obj->format("m/d/Y");
 
 $date_issued = date('m-d-Y');
-$date_issued_formatted = DateTime::createFromFormat('m-d-Y', $date_issued)->format("m/d/Y");
+$date_issued_obj = DateTime::createFromFormat('m-d-Y', $date_issued);
+if ($date_issued_obj === false) {
+    die('Error formatting current date.');
+}
+$date_issued_formatted = $date_issued_obj->format("m/d/Y");
 
 // Check if payslip data is valid
 if (empty($payslip) || !isset($payslip['employee_num'])) {
