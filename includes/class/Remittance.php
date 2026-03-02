@@ -497,7 +497,7 @@ class Remittance {
                 AND pp.date_start >= '$start_date'
                 AND pp.date_end <= '$end_date'
                 AND e.deduct_category = 'OTHER'
-                AND f.deduction_type_code = 'OTHERS'
+                /*AND f.deduction_type_code = 'OTHERS'*/    -- IF Want to not explicitly include only OTHERS
                 AND e.deduct_code NOT LIKE '%SSS%'  -- Exclude SSS tagged under OTHERS
                 
                 GROUP BY e.config_deduction_id, e.deduct_code, e.deduct_title
