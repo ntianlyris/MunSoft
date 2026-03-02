@@ -422,7 +422,8 @@ function ViewDepartments(){
         $count = 0;
         foreach($departments as $key => $value) {
             $count++;
-                echo '<tr id="employment_row_'. $value['employment_id'] .'" class="employment-row">
+                //echo '<tr id="employment_row_'. $value['employment_id'] .'" class="employment-row">   -- 
+                echo '<tr id="dept_row_'. $value['dept_id'] .'" class="dept-row">
                     <td>' . $count . '</td>
                     <td>' . $value['dept_code'] . '</td>
                     <td>' . $value['dept_title'] . '</td>

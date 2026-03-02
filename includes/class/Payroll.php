@@ -580,7 +580,8 @@ class Payroll {
 
             // Compute net pay
             if ($payroll_frequency == 'semi-monthly') {
-                $net = ($gross - $total_deductions) / 2;
+                //$net = ($gross - $total_deductions) / 2;              // this will not round off the net pay to 2 decimal places which may cause issues in payroll reports and payslip display, so we will round it off to 2 decimal places
+                $net = round(($gross - $total_deductions) / 2, 2);      // for semi-monthly, divide the net pay by 2 and round to 2 decimal places
             } else {
                 $net = $gross - $total_deductions;
             }
