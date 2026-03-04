@@ -11,8 +11,9 @@ if($action = isset($_REQUEST['action'])?$_REQUEST['action']:'') {
             $sign_order  = $_POST['sign_order']  ?? '';
             $report_type = $_POST['report_code'] ?? '';
             $signatory_id = $_POST['signatory_id'] ?? null;
+            $dept_id = $_POST['dept_id'] ?? null;
 
-            $exists = $Signatory->checkSignatoryOrderExistsForReport($report_type, $sign_order, $signatory_id);
+            $exists = $Signatory->checkSignatoryOrderExistsForReport($report_type, $sign_order, $signatory_id, $dept_id);
             if ($exists) {
                 echo json_encode(['status' => 'error', 'message' => 'Signatory order already exists for this report type']);
                 exit;
