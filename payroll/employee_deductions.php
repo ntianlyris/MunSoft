@@ -119,7 +119,12 @@
     // 5. Remove validation states and messages (optional)
     $('#formEmployeeDeduction .is-invalid').removeClass('is-invalid');
     $('#formEmployeeDeduction .invalid-feedback').remove();
-  });
+    // re-enable employee selector and reinitialize select2 for modal context
+    $('#cmbEmployee').prop('disabled', false);
+    $('#cmbEmployee').select2({
+        dropdownParent: $('#employee_deductions_modal'),
+        width: '100%'
+    });  });
 </script>
 <script>
   $(function () {
