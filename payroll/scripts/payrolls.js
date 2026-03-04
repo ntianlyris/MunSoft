@@ -141,13 +141,41 @@ function RetrievePayroll() {
         dataType: "json",
         beforeSend: function () {
             $("#payrollTable tbody").html(
-                `<tr><td colspan="8" class="text-center">Loading payroll data...</td></tr>`
+                `<tr><td colspan="9" class="text-center">Loading payroll data...</td></tr>`
             );
         },
         success: function (response) {
             let rows = "";
             if (Array.isArray(response) && response.length > 0) {
                 $.each(response, function (index, emp) {
+                    // Determine status badge color
+                    let statusBadgeClass = 'badge-secondary';
+                    if (emp.status === 'DRAFT') statusBadgeClass = 'badge-warning';
+                    else if (emp.status === 'SUBMITTED') statusBadgeClass = 'badge-info';
+                    else if (emp.status === 'APPROVED') statusBadgeClass = 'badge-success';
+                    else if (emp.status === 'PAID') statusBadgeClass = 'badge-success';
+                    else if (emp.status === 'LOCKED') statusBadgeClass = 'badge-danger';
+
+                    // Build action buttons - only View Details button per row
+                    let actionButtons = `
+                      <button class="btn btn-sm btn-info" onclick='viewPayrollBreakdown(this)' 
+                        data-employee='${JSON.stringify({
+                          payroll_entry_id: emp.payroll_entry_id || 0,
+                          id_num: emp.id_num || "",
+                          name: emp.full_name || "",
+                          position: emp.position_title || "",
+                          gross: emp.gross || 0,
+                          deductions: emp.total_deductions || 0,
+                          net: emp.net_pay || 0,
+                          status: emp.status || "DRAFT",
+                          govshares_list: emp.govshares_breakdown ? JSON.parse(emp.govshares_breakdown) : [],
+                          earnings: emp.earnings_breakdown ? JSON.parse(emp.earnings_breakdown) : [],
+                          deductions_list: emp.deductions_breakdown ? JSON.parse(emp.deductions_breakdown) : []
+                        })}' title="View Payroll Details">
+                        <i class="fas fa-search"></i> View
+                      </button>
+                    `;
+
                     rows += `
                       <tr>
                         <td class="text-center">${index + 1}</td>
@@ -156,40 +184,35 @@ function RetrievePayroll() {
                         <td>${emp.position_title ? emp.position_title : ""}</td>
                         <td class="text-right">${Number(emp.gross || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                         <td class="text-right">${Number(emp.total_deductions || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                        <td class="text-right font-weight-bold">${Number(emp.net_pay || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                        <td class="text-right font-weight-bold">
+                          ${Number(emp.net_pay || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </td>
                         <td class="text-center">
-                          <button class="btn btn-sm btn-info" onclick='viewPayrollBreakdown(this)' 
-                            data-employee='${JSON.stringify({
-                              id_num: emp.id_num || "",
-                              name: emp.full_name || "",
-                              position: emp.position_title || "",
-                              gross: emp.gross || 0,
-                              deductions: emp.total_deductions || 0,
-                              net: emp.net_pay || 0,
-                              govshares_list: emp.govshares_breakdown ? JSON.parse(emp.govshares_breakdown) : [],
-                              earnings: emp.earnings_breakdown ? JSON.parse(emp.earnings_breakdown) : [],
-                              deductions_list: emp.deductions_breakdown ? JSON.parse(emp.deductions_breakdown) : []
-                            })}'>
-                            <i class="fas fa-search"></i> View Details
-                          </button>
+                          <span class="badge ${statusBadgeClass}" style="font-size: 0.85rem;">${emp.status || 'DRAFT'}</span>
+                        </td>
+                        <td class="text-center" style="white-space: nowrap;">
+                          ${actionButtons}
                         </td>
                       </tr>
                     `;
                 });
                 $("#payrollTable tbody").html(rows);
                 $("#printPayrollBtn").removeClass("d-none");
+                $("#deletePayrollRecordsBtn").removeClass("d-none");
             } else {
                 $("#payrollTable tbody").html(
-                    `<tr><td colspan="8" class="text-center">No payroll data found.</td></tr>`
+                    `<tr><td colspan="9" class="text-center">No payroll data found.</td></tr>`
                 );
                 $("#printPayrollBtn").addClass("d-none");
+                $("#deletePayrollRecordsBtn").addClass("d-none");
             }
         },
         error: function () {
             $("#payrollTable tbody").html(
-                `<tr><td colspan="8" class="text-center text-danger">Error fetching payroll data.</td></tr>`
+                `<tr><td colspan="9" class="text-center text-danger">Error fetching payroll data.</td></tr>`
             );
             $("#printPayrollBtn").addClass("d-none");
+            $("#deletePayrollRecordsBtn").addClass("d-none");
         }
     });
 }
@@ -396,3 +419,248 @@ $('#printPayrollBtn').on('click', function() {
     var url = '../prints/print_payroll.php?period=' + encodeURIComponent(period) + '&department=' + encodeURIComponent(department) + '&employment_type=' + encodeURIComponent(employment_type);
     window.open(url, '_blank');
 });
+
+/**
+ * Change payroll status (workflow)
+ */
+function changePayrollStatus(payrollId, newStatus) {
+    $.ajax({
+        url: 'payroll_handler.php',
+        type: 'POST',
+        dataType: 'json',
+        data: {
+            payroll_entry_id: payrollId,
+            status: newStatus,
+            action: 'update_payroll_status'
+        },
+        error: function(xhr, status, error) {
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: "Failed to update payroll status.",
+                confirmButtonColor: '#dc3545',
+            });
+        },
+        success: function(response) {
+            if (response.status === 'success') {
+                Swal.fire({
+                    icon: "success",
+                    title: "Success",
+                    text: response.message,
+                    confirmButtonColor: '#28a745',
+                }).then(function() {
+                    RetrievePayroll();
+                });
+            } else {
+                Swal.fire({
+                    icon: "error",
+                    title: "Error",
+                    text: response.message,
+                    confirmButtonColor: '#dc3545',
+                });
+            }
+        }
+    });
+}
+
+/**
+ * View audit trail for payroll entry
+ */
+function viewAuditTrail(payrollId) {
+    $.ajax({
+        url: 'payroll_handler.php',
+        type: 'POST',
+        dataType: 'json',
+        data: {
+            payroll_entry_id: payrollId,
+            limit: 50,
+            action: 'get_payroll_audit_trail'
+        },
+        error: function(xhr, status, error) {
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: "Failed to load audit trail.",
+                confirmButtonColor: '#dc3545',
+            });
+        },
+        success: function(auditTrail) {
+            if (auditTrail && auditTrail.length > 0) {
+                let auditHtml = '<div style="text-align: left; max-height: 400px; overflow-y: auto;">';
+                auditHtml += '<table class="table table-sm">';
+                auditHtml += '<thead><tr><th>Action</th><th>User</th><th>Date</th></tr></thead><tbody>';
+                
+                auditTrail.forEach(function(audit) {
+                    const actionDate = new Date(audit.action_date).toLocaleString();
+                    auditHtml += '<tr>';
+                    auditHtml += '<td><strong>' + audit.action + '</strong></td>';
+                    auditHtml += '<td>' + audit.changed_by + '</td>';
+                    auditHtml += '<td>' + actionDate + '</td>';
+                    auditHtml += '</tr>';
+                });
+                
+                auditHtml += '</tbody></table></div>';
+                
+                Swal.fire({
+                    title: 'Audit Trail',
+                    html: auditHtml,
+                    icon: 'info',
+                    width: '80%',
+                    confirmButtonColor: '#3085d6',
+                });
+            } else {
+                Swal.fire({
+                    title: 'Audit Trail',
+                    text: 'No audit trail records found.',
+                    icon: 'info',
+                });
+            }
+        }
+    });
+}
+
+/**
+ * BULK DELETE: Delete DRAFT payroll records for the selected period and department
+ * SECURITY: ONLY deletes DRAFT status entries - locked/approved/paid entries are protected
+ * Requires explicit user confirmation before deletion
+ */
+function deleteAllPayrollRecords() {
+    // Get current selection values
+    const payroll_period_id = $('#payrollPeriodYearDropdown').val();
+    const dept_id = $('#department').val();
+    const emp_type_stamp = $('#employment_type').val();
+
+    // Validate selections
+    if (!payroll_period_id || !dept_id || !emp_type_stamp) {
+        Swal.fire({
+            icon: "warning",
+            title: "Missing Information",
+            text: "Please select Period, Department, and Employment Type before deleting.",
+            confirmButtonColor: '#ffc107',
+        });
+        return;
+    }
+
+    // Get friendly display values for confirmation message
+    const period_label = $('#payrollPeriodYearDropdown option:selected').text();
+    const dept_label = $('#department option:selected').text();
+
+    // SECURITY: Double confirmation - show warning first
+    Swal.fire({
+        title: 'Delete DRAFT Payroll Records?',
+        html: `
+            <p><strong style="color: red;">⚠️ WARNING: This action cannot be undone!</strong></p>
+            <p>You are about to delete ALL <strong>DRAFT</strong> payroll records for:</p>
+            <ul style="text-align: left;">
+                <li><strong>Period:</strong> ${period_label}</li>
+                <li><strong>Department:</strong> ${dept_label}</li>
+                <li><strong>Type:</strong> ${emp_type_stamp}</li>
+            </ul>
+            <p style="background-color: #fff3cd; padding: 10px; border-radius: 4px; margin: 10px 0;">
+                <strong>✓ PROTECTED:</strong> Payroll records with status SUBMITTED, APPROVED, PAID, or LOCKED will <strong>NOT</strong> be deleted.
+            </p>
+            <p>Deleted records will include:</p>
+            <ul style="text-align: left;">
+                <li>All payroll entry records with DRAFT status</li>
+                <li>Associated deductions for each deleted entry</li>
+                <li>Associated government shares for each deleted entry</li>
+            </ul>
+            <p style="color: red;"><strong>🔒 This action is PERMANENT and will be logged for audit purposes.</strong></p>
+        `,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, Delete DRAFT Records Only',
+        cancelButtonText: 'Cancel'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Show loader
+            $('#Loader').fadeIn();
+
+            // Send AJAX request for bulk deletion
+            $.ajax({
+                url: 'payroll_handler.php',
+                type: 'POST',
+                dataType: 'json',
+                data: {
+                    payroll_period_id: payroll_period_id,
+                    dept_id: dept_id,
+                    emp_type_stamp: emp_type_stamp,
+                    action: 'delete_payroll_records'
+                },
+                success: function(response) {
+                    $('#Loader').fadeOut();
+
+                    if (response.status === 'success') {
+                        let summaryHtml = `<p>${response.message}</p>`;
+                        summaryHtml += '<div style="text-align: left; margin-top: 15px;">';
+                        summaryHtml += '<p><strong>📊 Deletion Summary:</strong></p>';
+                        summaryHtml += '<ul>';
+                        summaryHtml += `<li>✓ Payroll Entries Deleted: <strong>${response.deleted_entries}</strong></li>`;
+                        summaryHtml += `<li>✓ Deductions Deleted: <strong>${response.deleted_deductions}</strong></li>`;
+                        summaryHtml += `<li>✓ Government Shares Deleted: <strong>${response.deleted_govshares}</strong></li>`;
+                        summaryHtml += `<li>💰 Total Gross Amount Deleted: <strong>₱${Number(response.total_gross_deleted).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></li>`;
+                        
+                        if (response.non_draft_protected > 0) {
+                            summaryHtml += `<li style="background-color: #d4edda; padding: 5px; margin-top: 10px;">🛡️ <strong>Protected Records (NOT deleted):</strong> ${response.non_draft_protected}</li>`;
+                        }
+                        
+                        summaryHtml += '</ul>';
+                        summaryHtml += '</div>';
+                        
+                        Swal.fire({
+                            icon: "success",
+                            title: "Deletion Successful",
+                            html: summaryHtml,
+                            confirmButtonColor: '#28a745',
+                        }).then(() => {
+                            // Clear the table after successful deletion
+                            $('#payrollTable tbody').html(`
+                                <tr>
+                                    <td colspan="9" class="text-center text-muted">No payroll data available. Please retrieve again.</td>
+                                </tr>
+                            `);
+                            // Hide the delete button
+                            $('#deletePayrollRecordsBtn').addClass('d-none');
+                            $('#printPayrollBtn').addClass('d-none');
+                        });
+                    } else if (response.status === 'warning') {
+                        Swal.fire({
+                            icon: "warning",
+                            title: "No DRAFT Records Found",
+                            html: `
+                                <p>${response.message}</p>
+                                ${response.non_draft_count > 0 ? `<p style="background-color: #d4edda; padding: 10px; margin-top: 10px;">🛡️ <strong>${response.non_draft_count} non-DRAFT record(s) are protected and cannot be deleted.</strong></p>` : ''}
+                            `,
+                            confirmButtonColor: '#ffc107',
+                        });
+                    } else if (response.status === 'info') {
+                        Swal.fire({
+                            icon: "info",
+                            title: "No Records Found",
+                            text: response.message,
+                            confirmButtonColor: '#17a2b8',
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Deletion Failed",
+                            text: response.message,
+                            confirmButtonColor: '#dc3545',
+                        });
+                    }
+                },
+                error: function(xhr, status, error) {
+                    $('#Loader').fadeOut();
+                    Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text: "An error occurred during deletion. Please try again.",
+                        confirmButtonColor: '#dc3545',
+                    });
+                }
+            });
+        }
+    });
+}
