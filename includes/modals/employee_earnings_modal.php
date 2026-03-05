@@ -49,6 +49,7 @@
                             <div class="row">
                                 <input type="hidden" id="txtEmployeeEarningID" name="employee_earning_id">
                                 <input type="hidden" id="txtEmployeeEmploymentID" name="employment_id">
+                                <input type="hidden" id="txtEmployeeID" name="employee_id">
                                 <div class="col-md-6">
                                     <div class="form-group row">
                                         <div class="col-3">

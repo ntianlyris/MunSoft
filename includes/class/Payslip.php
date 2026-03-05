@@ -38,10 +38,25 @@ class Payslip extends Payroll {
         $department = $employment_details['dept_name'] ?: '';
 
         // Fetch Payslip Details from Payroll Entry Details
-        $start_date = explode('_', $payroll_period)[0] ?: '';
-        $end_date = explode('_', $payroll_period)[1] ?: '';
+        // Parse payroll_period in format "YYYY-MM-DD_YYYY-MM-DD"
+        $period_parts = explode('_', $payroll_period);
+        
+        // Validate that period has both start and end dates
+        if (count($period_parts) < 2) {
+            throw new Exception('Invalid payroll period format. Expected format: YYYY-MM-DD_YYYY-MM-DD');
+        }
+        
+        $start_date = trim($period_parts[0]) ?: '';
+        $end_date = trim($period_parts[1]) ?: '';
+        
+        // Validate date parsing
         $start = DateTime::createFromFormat('Y-m-d', $start_date);
         $end   = DateTime::createFromFormat('Y-m-d', $end_date);
+        
+        // Check if dates parsed successfully
+        if ($start === false || $end === false) {
+            throw new Exception('Invalid date format in payroll period. Expected Y-m-d format.');
+        }
 
         $period_coverage = $start->format('m-d-Y') . '|' . $end->format('m-d-Y');
 
@@ -52,6 +67,7 @@ class Payslip extends Payroll {
 
         $all_earnings_breakdown = []; // holder for all periods' earnings breakdown
         $all_deductions_breakdown = []; // holder for all periods' deductions breakdown
+        $earnings_breakdown = []; // Initialize to avoid undefined variable warning
         
         $period_ids = $this->GetPeriodsByStartDateAndFrequency($start_date, $frequency);    // array of period ids
         foreach ($period_ids as $period_id) {
@@ -71,6 +87,11 @@ class Payslip extends Payroll {
                 $earnings_breakdown = json_decode($payroll_entry['earnings_breakdown'], true) ?? [];
                 $deductions_breakdown =  json_decode($payroll_entry['deductions_breakdown'], true) ?? [];
 
+                // Add to all_earnings_breakdown array
+                if (is_array($earnings_breakdown)) {
+                    $all_earnings_breakdown[] = $earnings_breakdown;
+                }
+
                 if (is_array($deductions_breakdown)) {
                     $all_deductions_breakdown[] = $deductions_breakdown;
                 }
@@ -79,7 +100,7 @@ class Payslip extends Payroll {
         
 
         // Now pass ALL period earnings breakdowns
-        $final_earnings = $this->SumEarningsBreakdown($earnings_breakdown);
+        $final_earnings = $this->SumEarningsBreakdown($all_earnings_breakdown);
         $total_other_earnings = $final_earnings['total_earnings'] - $basic;
         $final_deductions = $this->SumDeductionsBreakdown($all_deductions_breakdown);
                 
@@ -104,30 +125,51 @@ class Payslip extends Payroll {
     }
 
     public function SumEarningsBreakdown($earnings_breakdown) {
-        // $earnings_periods = array of earning breakdown arrays for each payroll entry
+        // $earnings_breakdown = array of earning breakdown arrays for each payroll entry
         $combined = [];
         $total_earnings = 0;
 
-        // Decode JSON if needed
-        $earnings = $earnings_breakdown;
-
-        foreach ($earnings as $e) {
-            $id = $e['config_earning_id'];
-
-            if (!isset($combined[$id])) {
-                $combined[$id] = [
-                    'config_earning_id' => $id,
-                    'label' => $e['label'],
-                    'amount' => 0
-                ];
-            }
-            // Add the amount
-            $combined[$id]['amount'] += floatval($e['amount']);
-            $total_earnings += floatval($e['amount']);
+        // Handle empty or null input
+        if (!is_array($earnings_breakdown) || empty($earnings_breakdown)) {
+            return ['total_earnings' => 0];
         }
+
+        // Check if this is an array of arrays (multiple periods) or single array (single period)
+        $first_element = reset($earnings_breakdown);
+        $is_multi_period = is_array($first_element) && isset($first_element[0]);
+
+        // If single period, wrap in array to process uniformly
+        if (!$is_multi_period && isset($first_element['config_earning_id'])) {
+            $earnings_breakdown = [$earnings_breakdown];
+        }
+
+        // Process each period's earnings breakdown
+        foreach ($earnings_breakdown as $period_earnings) {
+            if (!is_array($period_earnings)) {
+                continue;
+            }
+
+            foreach ($period_earnings as $e) {
+                if (!isset($e['config_earning_id'])) {
+                    continue;
+                }
+
+                $id = $e['config_earning_id'];
+                if (!isset($combined[$id])) {
+                    $combined[$id] = [
+                        'config_earning_id' => $id,
+                        'label' => isset($e['label']) ? $e['label'] : '',
+                        'amount' => 0
+                    ];
+                }
+                // Add the amount
+                $combined[$id]['amount'] += floatval($e['amount']);
+                $total_earnings += floatval($e['amount']);
+            }
+        }
+
         // Re-index as normal indexed array
         $final = array_values($combined);
-
         // Append total earnings
         $final['total_earnings'] = $total_earnings;
         return $final;
@@ -174,6 +216,33 @@ class Payslip extends Payroll {
         // Append total deductions
         $final['total_deductions'] = $total_deductions;
         return $final;
+    }
+
+    /**
+     * Get employee payslip history
+     */
+    function getEmployeePayslipHistory($employee_id, $limit = 6){
+        include_once('../includes/class/DB_conn.php');
+        $db = new DB_conn();
+        
+        $employee_id = $db->escape_string($employee_id);
+        $query = "SELECT pe.payroll_entry_id, pe.employee_id, pe.gross, pe.total_deductions, pe.net_pay,
+                pp.period_label, pp.date_start, pp.date_end, YEAR(pp.date_start) as year
+                FROM payroll_entries pe
+                INNER JOIN payroll_periods pp ON pe.payroll_period_id = pp.payroll_period_id
+                WHERE pe.employee_id = '$employee_id'
+                ORDER BY pp.date_start DESC
+                LIMIT $limit";
+        
+        $result = $db->query($query);
+        if ($result && $result->num_rows > 0) {
+            $payslips = [];
+            while ($row = $db->fetch_array($result)) {
+                $payslips[] = $row;
+            }
+            return $payslips;
+        }
+        return null;
     }
     
 }

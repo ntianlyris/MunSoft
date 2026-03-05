@@ -74,6 +74,7 @@
                                                 <option value="" selected hidden>Select Category...</option>
                                                 <option value="STATUTORY">STATUTORY</option>
                                                 <option value="LOAN">LOAN</option>
+                                                <option value="UNION">UNION</option>
                                                 <option value="OTHER">OTHER</option>
                                             </select>
                                         </div>

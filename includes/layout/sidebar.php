@@ -48,6 +48,9 @@
           <?php echo ViewSideBarLink('users'); ?>
           <?php echo ViewSideBarLink('employees'); ?>
           <?php echo ViewSideBarLink('profile'); ?>
+          <?php echo ViewSideBarLink('employment'); ?>
+          <?php echo ViewSideBarLink('payroll'); ?>
+          <?php echo ViewSideBarLink('employee_payslip'); ?>
           <?php echo ViewSideBarLink('leave_application'); ?>
           <?php echo ViewSideBarLink('admin_settings'); ?>
           <?php echo ViewSideBarLink('employee_earnings'); ?>
@@ -58,19 +61,21 @@
           <?php echo ViewSideBarLink('remittance'); ?>
           <?php echo ViewSideBarLink('leave_applications'); ?>
           <?php echo ViewSideBarLink('manage_leave_credits'); ?>
-          <li class="nav-item">
-            <a href="#" class="nav-link">
-              <i class="nav-icon fas fa-chart-line"></i>
-              <p>
+            <?php if ($role !== 'Employee') { ?>
+              <li class="nav-item">
+              <a href="#" class="nav-link">
+                <i class="nav-icon fas fa-chart-line"></i>
+                <p>
                 Reports
                 <i class="right fas fa-angle-left"></i>
-              </p>
-            </a>
-            <ul class="nav nav-treeview">
-              <?php echo ViewSideBarLink('journal_entry'); ?>
-              <?php echo ViewSideBarLink('payslip'); ?>
-            </ul>
-          </li>
+                </p>
+              </a>
+              <ul class="nav nav-treeview">
+                <?php echo ViewSideBarLink('journal_entry'); ?>
+                <?php echo ViewSideBarLink('payslip'); ?>
+              </ul>
+              </li>
+            <?php } ?>
           <li class="nav-item">
             <a href="#" class="nav-link">
               <i class="nav-icon fas fa-cogs"></i>

@@ -131,7 +131,7 @@ if($action = isset($_POST['action'])?$_POST['action']:'') {
             echo json_encode($enhanced_payroll_data);
             break;
 
-        case 'toggle_include_payroll': 
+        case 'toggle_include_payroll':
             $Payroll = new Payroll();
             $employee_id = intval($_POST['employee_id']);
             $include_in_payroll = intval($_POST['include_in_payroll']);
@@ -144,6 +144,100 @@ if($action = isset($_POST['action'])?$_POST['action']:'') {
                 header('Content-Type: application/json');
                 echo json_encode(['status' => 'error']);
             }
+            break;
+
+        case 'get_payroll_entry':
+            // SECURITY: Validate user session exists
+            session_start();
+            if (!isset($_SESSION['uid'])) {
+                http_response_code(401);
+                echo json_encode(['status' => 'error', 'message' => 'Unauthorized - please login']);
+                exit;
+            }
+            
+            $Payroll = new Payroll();
+            $payroll_entry_id = intval($_POST['payroll_entry_id'] ?? 0);
+            
+            // SECURITY: Validate input
+            if ($payroll_entry_id <= 0) {
+                http_response_code(400);
+                echo json_encode(['status' => 'error', 'message' => 'Invalid payroll entry ID']);
+                exit;
+            }
+            
+            $payroll = $Payroll->GetPayrollEntryByID($payroll_entry_id);
+            
+            if ($payroll) {
+                // Parse JSON breakdown data
+                $payroll['earnings'] = json_decode($payroll['earnings_breakdown'] ?? '[]', true);
+                $payroll['deductions_list'] = json_decode($payroll['deductions_breakdown'] ?? '[]', true);
+                $payroll['govshares_list'] = json_decode($payroll['govshares_breakdown'] ?? '[]', true);
+            }
+            
+            header('Content-Type: application/json');
+            echo json_encode($payroll);
+            break;
+        case 'get_payroll_audit_trail':
+            // SECURITY: Validate user session exists
+            session_start();
+            if (!isset($_SESSION['uid'])) {
+                http_response_code(401);
+                echo json_encode(['status' => 'error', 'message' => 'Unauthorized - please login']);
+                exit;
+            }
+            
+            $Payroll = new Payroll();
+            $payroll_entry_id = intval($_POST['payroll_entry_id'] ?? 0);
+            $limit = intval($_POST['limit'] ?? 50);
+            
+            // SECURITY: Validate input
+            if ($payroll_entry_id <= 0) {
+                http_response_code(400);
+                echo json_encode(['status' => 'error', 'message' => 'Invalid payroll entry ID']);
+                exit;
+            }
+            
+            if ($limit <= 0 || $limit > 100) {
+                $limit = 50;
+            }
+            
+            $audit_trail = $Payroll->GetPayrollAuditTrail($payroll_entry_id, $limit);
+            
+            header('Content-Type: application/json');
+            echo json_encode($audit_trail);
+            break;
+
+        case 'delete_payroll_records':
+            // BULK DELETE: Delete DRAFT payroll records for a department and period
+            // SECURITY: Requires session validation and confirmation
+            session_start();
+            
+            if (!isset($_SESSION['uid'])) {
+                http_response_code(401);
+                echo json_encode(['status' => 'error', 'message' => 'Unauthorized - please login']);
+                exit;
+            }
+            
+            $Payroll = new Payroll();
+            $payroll_period_id = intval($_POST['payroll_period_id'] ?? 0);
+            $dept_id = intval($_POST['dept_id'] ?? 0);
+            $emp_type_stamp = $_POST['emp_type_stamp'] ?? 'Regular';
+            $emp_type_stamp = ($emp_type_stamp === 'Casual') ? 'Casual' : 'Regular';  // Validate against known values
+            $user_id = intval($_SESSION['uid']);
+            
+            // SECURITY: Validate input
+            if ($payroll_period_id <= 0 || $dept_id <= 0) {
+                http_response_code(400);
+                echo json_encode(['status' => 'error', 'message' => 'Invalid payroll period or department ID']);
+                exit;
+            }
+            
+            // Call bulk delete method
+            $result = $Payroll->DeleteAllPayrollRecordsForPeriodAndDept($payroll_period_id, $dept_id, $emp_type_stamp, $user_id);
+            
+            header('Content-Type: application/json');
+            http_response_code($result['status'] === 'success' ? 200 : 400);
+            echo json_encode($result);
             break;
 
         default:

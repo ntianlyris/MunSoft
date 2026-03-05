@@ -34,9 +34,9 @@
             <!-- small box -->
             <div class="small-box bg-info">
               <div class="inner">
-                <h3><?php //echo ViewClientsCount(); ?></h3>
+                <h3><?php echo ViewPayrollActiveEmployeesCount(); ?></h3>
 
-                <p>Employees</p>
+                <p>Active Employees</p>
               </div>
               <div class="icon">
                 <i class="fas fa-users"></i>
@@ -49,29 +49,14 @@
             <!-- small box -->
             <div class="small-box bg-success">
               <div class="inner">
-                <h3><?php //echo ViewBeneficiariesCount(); ?></h3>
+                <h3><?php echo ViewProcessedPayrollsCount(); ?></h3>
 
-                <p>Earnings</p>
+                <p>Processed Payrolls</p>
               </div>
               <div class="icon">
-                <i class="fas fa-money-bill-wave"></i>
+                <i class="fas fa-file-invoice"></i>
               </div>
-              <a href="employee_earnings.php" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
-            </div>
-          </div>
-          <!-- ./col -->
-          <div class="col-lg-3 col-6">
-            <!-- small box -->
-            <div class="small-box bg-warning">
-              <div class="inner">
-                <h3><?php //echo ViewPendingAssessmentsCount(); ?></h3>
-
-                <p>Deductions</p>
-              </div>
-              <div class="icon">
-                <i class="fas fa-tasks"></i>
-              </div>
-              <a href="employee_deductions.php" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+              <a href="payroll_records.php" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
             </div>
           </div>
           <!-- ./col -->
@@ -79,21 +64,54 @@
             <!-- small box -->
             <div class="small-box bg-danger">
               <div class="inner">
-                <h3><?php //echo ViewGrantedAssistanceCount(); ?></h3>
+                <h3>₱<?php echo number_format(ViewTotalPayrollCost(), 2); ?></h3>
 
-                <p>Payrolls</p>
+                <p>Total Net Pay</p>
               </div>
               <div class="icon">
-                <i class="fas fa-file-invoice"></i>
+                <i class="fas fa-money-bill-wave"></i>
               </div>
               <a href="payrolls.php" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
             </div>
           </div>
           <!-- ./col -->
-          
-          <!-- Line Chart -->
-          <?php //include_once '../includes/view/line_chart.php'; ?>
+          <div class="col-lg-3 col-6">
+            <!-- small box -->
+            <div class="small-box bg-warning">
+              <div class="inner">
+                <h3>₱<?php echo number_format(ViewTotalRemittances(), 2); ?></h3>
 
+                <p>Total Remittances</p>
+              </div>
+              <div class="icon">
+                <i class="fas fa-file-invoice-dollar"></i>
+              </div>
+              <a href="remittance.php" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+            </div>
+          </div>
+          <!-- ./col -->
+
+        </div>
+        <!-- /.row -->
+
+        <!-- Current Period Info Box -->
+        <div class="row mt-3">
+          <div class="col-lg-6">
+            <!-- Info box showing current payroll period -->
+            <div class="info-box">
+              <span class="info-box-icon bg-lightblue"><i class="fas fa-calendar-alt"></i></span>
+              <div class="info-box-content">
+                <span class="info-box-text">Current Payroll Period</span>
+                <span class="info-box-number">
+                  <?php 
+                    $current_period = GetCurrentPayrollPeriod();
+                    echo $current_period ? $current_period['period_label'] : 'No Active Period'; 
+                  ?>
+                </span>
+              </div>
+            </div>
+          </div>
+          <!-- ./col -->
         </div>
         <!-- /.row -->
         

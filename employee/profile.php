@@ -41,15 +41,18 @@
               <div class="card-body box-profile">
                 <div class="text-center">
                   <img class="profile-user-img img-fluid img-circle"
+                       id="employeePhotoImg"
                        src="../includes/images/avatar.jpg"
-                       alt="User profile picture">
+                       alt="User profile picture"
+                       style="cursor: pointer;" 
+                       title="Click to view full size">
                 </div>
 
                 <h3 class="profile-username text-center"><span id="lblDisplayName"></span></h3>
 
-                <p class="text-muted text-center"><span id="lblProfExpertise">Software Engineer</p>
+                <p class="text-muted text-center"><span id="lblProfExpertise">Software Engineer</span></p>
                 <div class="text-center">
-                  <button class="btn btn-primary btn-sm btn-flat"><i class="fas fa-upload"></i> Upload Photo</button>
+                  <button type="button" class="btn btn-primary btn-sm btn-flat" data-toggle="modal" data-target="#photoUploadModal"><i class="fas fa-upload"></i> Upload Photo</button>
                 </div>
                 <hr>
                 <span>Status</span>
@@ -162,45 +165,6 @@
             </div>
           </div>
           <!-- /.col -->
-          <div class="col-12">
-            <div class="card card-primary card-outline">
-              <div class="card-header" style="width: 100%;">
-                <div class="row">
-                  <div class="col-6">
-                    Employment Details
-                  </div>
-                  <div class="col-6">
-                    <button type="button" class="btn btn-primary btn-flat btn-sm" style="float:right;" onclick="GetEmployeeDetailsForEmployment(<?php echo $employee_id; ?>)" data-toggle="modal" data-target="#employment_modal"><i class="fas fa-plus-circle"></i> Add Employment</button>
-                  </div>
-                </div>
-              </div>
-              <div class="card-body">
-                  
-                  <table id="example1" class="table table-bordered table-hover">
-                      <thead>
-                          <tr>
-                              <th class="text-center">No.</th>
-                              <th class="text-center">Employment Type</th>
-                              <th class="text-center">Reference No.</th>
-                              <th class="text-center">Start of Employment</th>
-                              <th class="text-center">End of Employment</th>
-                              <th class="text-center">Position</th>
-                              <th class="text-center">Department</th>
-                              <th class="text-center">Office Assignment</th>
-                              <th class="text-center">Designation</th>
-                              <th class="text-center">Work Nature</th>
-                              <th class="text-center">Work Specifics</th>
-                              <th class="text-center">Rate</th>
-                              <th class="text-center">Status</th>
-                          </tr>
-                      </thead>
-                      <tbody>
-                          <?php ViewEmployeeEmployments($employee_id); ?>
-                      </tbody>
-                  </table>
-              </div>
-            </div>
-          </div>
         </div>
         <!-- /.row -->
       </div>
@@ -208,7 +172,63 @@
 
       <!-- Modals -->
       <?php ShowEmployeeModal(); ?>
-      <?php ShowEmploymentModal(); ?>
+      
+      <!-- Modal for Employee Photo Upload -->
+      <div class="modal fade" id="photoUploadModal" tabindex="-1" role="dialog" aria-labelledby="photoUploadModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+              <h5 class="modal-title" id="photoUploadModalLabel">Upload Employee Photo</h5>
+              <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <form id="formPhotoUpload" enctype="multipart/form-data">
+              <div class="modal-body">
+                <div class="text-center" id="photoPreviewContainer" style="margin-bottom: 20px;">
+                  <img id="photoPreview" src="" alt="Preview" style="max-width: 250px; max-height: 250px; display: none;">
+                  <p id="previewText" style="color: #999; font-size: 14px;">Image preview will appear here</p>
+                </div>
+                <div class="form-group">
+                  <label for="fileEmployeePhoto">Select Photo:</label>
+                  <div class="custom-file">
+                    <input type="file" class="custom-file-input" id="fileEmployeePhoto" name="employee_photo" accept="image/jpeg,image/png,image/gif" required>
+                    <label class="custom-file-label" for="fileEmployeePhoto">Choose file...</label>
+                  </div>
+                  <small class="form-text text-muted">
+                    Supported formats: JPG, PNG, GIF (Max 5MB). Image will be automatically cropped to a perfect square and resized for circular display.
+                  </small>
+                </div>
+              </div>
+              <div class="modal-footer justify-content-between">
+                <button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fas fa-times-circle"></i> Close</button>
+                <button type="submit" class="btn btn-primary"><i class="fas fa-upload"></i> Upload Photo</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Modal for Full-Size Photo View -->
+      <div class="modal fade" id="photoViewModal" tabindex="-1" role="dialog" aria-labelledby="photoViewModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+          <div class="modal-content bg-dark">
+            <div class="modal-header bg-dark border-0">
+              <h5 class="modal-title text-white" id="photoViewModalLabel">Employee Photo</h5>
+              <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body text-center bg-dark" style="padding: 30px;">
+              <img id="photoViewImage" src="" alt="Employee Photo" style="max-width: 100%; max-height: 600px; border-radius: 8px;">
+            </div>
+            <div class="modal-footer bg-dark border-0">
+              <a id="photoDownloadBtn" href="#" download class="btn btn-primary btn-sm"><i class="fas fa-download"></i> Download</a>
+              <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal"><i class="fas fa-times-circle"></i> Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
 
     </section>
     <!-- /.content -->
@@ -242,7 +262,142 @@
 <!-- AdminLTE for demo purposes -->
 <script src="../dist/js/demo.js"></script>
 <!-- Employees Engine -->
-<script src="../hris/scripts/employees.js"></script>
+<script src="scripts/employees.js"></script>
+<!-- Employee Photo Upload Script -->
+<script>
+// Load employee photo on page load
+function LoadEmployeePhoto(employee_id) {
+    $.ajax({
+        type: "POST",
+        url: "../admin/upload_employee_photo.php",
+        data: {
+            action: "get_photo",
+            employee_id: employee_id
+        },
+        dataType: "json",
+        success: function(response) {
+            if (response.status && response.photo_path) {
+                $('#employeePhotoImg').attr('src', '../' + response.photo_path);
+                // Store the photo path for full-size view
+                $('#employeePhotoImg').attr('data-photo-path', '../' + response.photo_path);
+            }
+        }
+    });
+}
+
+// Handle employee photo click to view full-size
+$('#employeePhotoImg').on('click', function() {
+    var photoPath = $(this).attr('src');
+    if (photoPath && photoPath !== '../includes/images/avatar.jpg') {
+        $('#photoViewImage').attr('src', photoPath);
+        $('#photoDownloadBtn').attr('href', photoPath).attr('download', 'employee_photo.jpg');
+        $('#photoViewModal').modal('show');
+    }
+});
+
+// Handle photo file selection and preview
+$('#fileEmployeePhoto').on('change', function(e) {
+    var file = e.target.files[0];
+    var fileSize = (file.size / 1024 / 1024).toFixed(2); // Convert to MB
+    
+    // Update label
+    $(this).siblings('.custom-file-label').html(file.name);
+    
+    // Check file size
+    if (fileSize > 5) {
+        Swal.fire({
+            title: 'File Too Large',
+            text: 'File size exceeds 5MB limit. Please select a smaller image.',
+            icon: 'error',
+            confirmButtonColor: '#dc3545',
+            confirmButtonText: 'Ok'
+        });
+        $(this).val('');
+        $('#photoPreview').hide();
+        $('#previewText').show();
+        return;
+    }
+    
+    // Preview image
+    var reader = new FileReader();
+    reader.onload = function(e) {
+        $('#photoPreview').attr('src', e.target.result).show();
+        $('#previewText').hide();
+    };
+    reader.readAsDataURL(file);
+});
+
+// Handle photo upload form submission
+$('#formPhotoUpload').on('submit', function(e) {
+    e.preventDefault();
+    
+    var fileInput = $('#fileEmployeePhoto')[0];
+    if (!fileInput.files.length) {
+        Swal.fire({
+            title: 'No File Selected',
+            text: 'Please select a file to upload.',
+            icon: 'warning',
+            confirmButtonColor: '#ffc107',
+            confirmButtonText: 'Ok'
+        });
+        return;
+    }
+    
+    var query = getQuery();
+    var employee_id = query.emp_id;
+    
+    var formData = new FormData();
+    formData.append('action', 'upload_photo');
+    formData.append('employee_id', employee_id);
+    formData.append('employee_photo', fileInput.files[0]);
+    
+    $.ajax({
+        type: "POST",
+        url: "../admin/upload_employee_photo.php",
+        data: formData,
+        processData: false,
+        contentType: false,
+        dataType: "json",
+        success: function(response) {
+            if (response.status) {
+                Swal.fire({
+                    title: 'Success',
+                    text: 'Photo uploaded successfully!',
+                    icon: 'success',
+                    confirmButtonColor: '#28a745',
+                    confirmButtonText: 'Ok'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $('#photoUploadModal').modal('hide');
+                        $('#formPhotoUpload')[0].reset();
+                        $('.custom-file-label').html('Choose file...');
+                        $('#photoPreview').hide();
+                        $('#previewText').show();
+                        LoadEmployeePhoto(employee_id);
+                    }
+                });
+            } else {
+                Swal.fire({
+                    title: 'Upload Failed',
+                    text: 'Error: ' + response.message,
+                    icon: 'error',
+                    confirmButtonColor: '#dc3545',
+                    confirmButtonText: 'Ok'
+                });
+            }
+        },
+        error: function() {
+            Swal.fire({
+                title: 'Error',
+                text: 'An error occurred during upload. Please try again.',
+                icon: 'error',
+                confirmButtonColor: '#dc3545',
+                confirmButtonText: 'Ok'
+            });
+        }
+    });
+});
+</script>
 <script src="system.js"></script>
 
 <script type="text/javascript">
@@ -250,6 +405,8 @@
     var query = getQuery();
         var employee_id = query.emp_id;
         var action = 'get_employee_details';
+        
+        // Load employee details
         $.ajax({
             type: "GET",
             url: "../hris/get.php",
@@ -270,53 +427,9 @@
                     $('#lblProfExpertise').html(obj['prof_expertise']);
             }
         });
+        
+        // Load employee photo
+        LoadEmployeePhoto(employee_id);
   });
 </script>
-<script type="text/javascript">
-    $("#cmbEmpType").change(function(){
-        var employment_type = $("#cmbEmpType").find('option:selected').val(); 
-        if(employment_type == "Regular" || employment_type == "Casual"){
-          $('#cmbPosition').removeAttr('disabled');
-          $("#cmbDepartment").removeAttr('disabled');
-        }
-        else{
-          $("#cmbPosition").val("");
-          $("#cmbDepartment").val("");
-          $("#cmbPosition").attr('disabled','disabled'); 
-          $("#cmbDepartment").attr('disabled','disabled'); 
-        }
-    });
-</script>
-<script type="text/javascript">
-    $("#cmbPosition").change(function(){
-        var position_item_id = $("#cmbPosition").find('option:selected').val(); 
-        var action = 'get_position_details';
-
-        $.ajax({
-            type: "GET",
-            url: "get.php",
-            data: {"action" : action, "position_id" : position_item_id},
-            success: function(data) {
-                    var obj = $.parseJSON(data);
-                    $('#cmbDepartment').val(obj['dept_id']);
-            }
-        });
-    });
-</script>
-<script>
-  $(function () {
-    $("#example1").DataTable({
-      //"order": [[ 2, "desc" ]],
-      "responsive": false, 
-      "lengthChange": false, 
-      "autoWidth": false,
-      "paging": true,
-      "searching": true,
-      "scrollX": true,
-      "buttons": ["excel", "pdf", "print"]
-    }).buttons().container().appendTo('#example1_wrapper .col-md-6:eq(0)');
-  });
-</script>
-</body>
-</html>
 

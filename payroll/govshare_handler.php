@@ -1,6 +1,7 @@
 <?php
 require_once '../includes/class/GovShare.php';
 require_once '../includes/class/Employee.php';
+require_once '../includes/class/Payroll.php';
 
 if($action = isset($_REQUEST['action'])?$_REQUEST['action']:'') {
     switch ($action) {
@@ -183,11 +184,30 @@ if($action = isset($_REQUEST['action'])?$_REQUEST['action']:'') {
         
         case 'save_employee_govshares':
 
-            $employee_id = $_POST['employee_id'];
+            $employee_id = isset($_POST['employee_id']) ? $_POST['employee_id'] : '';
             $employee_rate = str_replace(',', '', $_POST['monthly_rate']);
             $employee_rate = floatval($employee_rate);
             $govshare_ids = $_POST['govshare_id'] ?? [];   ## array of govshare ids
             $govshare_amts = $_POST['govshare_amount'] ?? [];  ## array of govshare amounts
+
+            // Check if edit should be blocked for semi-monthly payroll when in first half of month
+            $Payroll = new Payroll();
+            $last_locked_period = $Payroll->GetLastLockedPayrollPeriodByEmployee($employee_id);
+            $locked_start_date = $last_locked_period['date_start'] ?? null;
+            
+            $active_frequency = $Payroll->GetCurrentActiveFrequency();
+            $frequency = $active_frequency['freq_code'] ?? 'monthly';
+
+            if($frequency == 'semi-monthly' && $locked_start_date){
+                $is_second_half = $Payroll->IsSecondHalfOfMonth($locked_start_date);
+                if(!$is_second_half){
+                    echo json_encode([
+                        'status' => 'block_edit',
+                        'message' => 'Cannot save/modify government shares. Employee government shares are already applied in the previous (1st-half) locked payroll period.'
+                    ]);
+                    exit;
+                }
+            }
 
             if (!empty($govshare_ids) && !empty($govshare_amts)) {
                 for ($i=0; $i < count($govshare_ids) ; $i++) { 

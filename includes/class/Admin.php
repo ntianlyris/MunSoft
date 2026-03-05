@@ -215,7 +215,14 @@
             if($query){
                 include_once 'Role.php';
                 if(Role::deleteUserRoles($user_id)){
-                    return true;
+                    // Delete user account from users_tbl
+                    $sql_user = "DELETE FROM users_tbl WHERE userID = '$user_id'";
+                    $query_user = $this->db->query($sql_user) or die($this->db->error);
+                    
+                    if($query_user){
+                        return true;
+                    }
+                    else{return false;}
                 }
                 else{return false;}
             }

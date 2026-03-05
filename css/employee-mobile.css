@@ -1,0 +1,396 @@
+/* MunSoft Employee Mobile-First UI/UX Stylesheet */
+
+/* ===== ROOT VARIABLES ===== */
+:root {
+  --primary-color: #007bff;
+  --secondary-color: #6c757d;
+  --success-color: #28a745;
+  --warning-color: #ffc107;
+  --danger-color: #dc3545;
+  --info-color: #17a2b8;
+  --light-bg: #f8f9fa;
+  --border-radius: 0.5rem;
+  --transition: all 0.3s ease;
+}
+
+/* ===== MOBILE-FIRST BASE STYLES ===== */
+* {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+/* Touch-friendly button sizing for mobile */
+@media (max-width: 768px) {
+  .btn {
+    min-height: 44px !important; /* iOS minimum touch target */
+    min-width: 44px !important;
+    padding: 0.75rem 1rem !important;
+    font-size: 1rem !important;
+  }
+
+  .btn-sm {
+    min-height: 40px !important;
+    padding: 0.5rem 0.75rem !important;
+  }
+
+  /* Full-width buttons on mobile */
+  .d-grid > .btn {
+    width: 100%;
+  }
+}
+
+/* ===== CARD STYLES ===== */
+.card {
+  border: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: var(--transition);
+  margin-bottom: 1rem;
+}
+
+.card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.card-header {
+  background-color: transparent;
+  border-bottom: 2px solid #f0f0f0;
+  font-weight: 600;
+}
+
+.card-body {
+  padding: 1.5rem;
+}
+
+@media (max-width: 576px) {
+  .card-body {
+    padding: 1rem;
+  }
+
+  .card {
+    margin-bottom: 0.75rem;
+  }
+}
+
+/* ===== CLICKABLE CARD ENHANCEMENT ===== */
+.clickable-card {
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.clickable-card:active {
+  transform: translateY(2px);
+}
+
+/* ===== GRID RESPONSIVE ADJUSTMENTS ===== */
+.row {
+  margin-right: -0.5rem;
+  margin-left: -0.5rem;
+}
+
+.col-12, .col-6, .col-sm-6, .col-md-6, .col-lg-3 {
+  padding-right: 0.5rem;
+  padding-left: 0.5rem;
+}
+
+@media (max-width: 576px) {
+  /* Single column on mobile */
+  .col-12,
+  .col-sm-6,
+  .col-md-6,
+  .col-lg-3 {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+}
+
+/* ===== TYPOGRAPHY FOR MOBILE ===== */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+}
+
+@media (max-width: 576px) {
+  h1 {
+    font-size: 1.5rem;
+  }
+
+  h3 {
+    font-size: 1.1rem;
+  }
+
+  h5 {
+    font-size: 1rem;
+  }
+
+  .small {
+    font-size: 0.8rem;
+  }
+}
+
+/* ===== LIST GROUP MOBILE OPTIMIZATION ===== */
+.list-group-item {
+  padding: 1rem;
+  border-color: #e0e0e0;
+}
+
+@media (max-width: 576px) {
+  .list-group-item {
+    padding: 0.75rem;
+  }
+}
+
+/* ===== MODAL MOBILE STYLES ===== */
+@media (max-width: 576px) {
+  .modal-dialog {
+    margin: 0 !important;
+    width: 100% !important;
+    height: 100%;
+    max-width: 100%;
+    display: flex;
+    align-items: flex-end;
+  }
+
+  .modal-content {
+    border-radius: 1rem 1rem 0 0;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .modal-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+  }
+}
+
+/* Large modals stay centered on desktop */
+@media (min-width: 577px) {
+  .modal-dialog.modal-lg {
+    max-width: 800px;
+  }
+}
+
+/* ===== TABLE RESPONSIVE ===== */
+.table-responsive {
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+}
+
+.table {
+  font-size: 0.875rem;
+}
+
+@media (max-width: 576px) {
+  .table {
+    font-size: 0.75rem;
+  }
+
+  .table th,
+  .table td {
+    padding: 0.5rem 0.25rem;
+  }
+}
+
+/* ===== QUICK ACTIONS GRID ===== */
+.quick-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+  gap: 0.5rem;
+}
+
+@media (max-width: 576px) {
+  .quick-actions-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+}
+
+/* Touch-friendly quick action buttons */
+.quick-actions-grid .btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: auto;
+  padding: 1rem 0.5rem;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  white-space: normal;
+  text-align: center;
+}
+
+.quick-actions-grid .btn i {
+  margin-bottom: 0.5rem;
+}
+
+/* ===== BADGE AND STATUS STYLES ===== */
+.badge {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.75rem;
+  border-radius: 0.25rem;
+}
+
+@media (max-width: 576px) {
+  .badge {
+    font-size: 0.7rem;
+    padding: 0.35rem 0.5rem;
+  }
+}
+
+/* ===== CONTENT HEADER MOBILE ===== */
+.content-header {
+  background-color: #fff;
+  /*border-bottom: 1px solid #e0e0e0;*/
+  padding: 1rem 0;
+}
+
+@media (max-width: 576px) {
+  .content-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .breadcrumb {
+    font-size: 0.8rem;
+    padding: 0;
+    margin-bottom: 0;
+  }
+}
+
+/* ===== UTILITY SPACING MOBILE ===== */
+@media (max-width: 576px) {
+  .mb-3 {
+    margin-bottom: 0.75rem !important;
+  }
+
+  .mt-4 {
+    margin-top: 0.75rem !important;
+  }
+
+  .py-4 {
+    padding-top: 0.75rem !important;
+    padding-bottom: 0.75rem !important;
+  }
+
+  .p-3 {
+    padding: 0.75rem !important;
+  }
+}
+
+/* ===== ICON SIZING ===== */
+.fa-3x {
+  font-size: 2rem;
+}
+
+@media (max-width: 576px) {
+  .fa-3x {
+    font-size: 1.5rem;
+  }
+
+  .fa-2x {
+    font-size: 1.25rem;
+  }
+}
+
+/* ===== NAVBAR MOBILE OPTIMIZATION ===== */
+.navbar {
+  padding: 0.5rem 0;
+}
+
+@media (max-width: 576px) {
+  .navbar-brand {
+    font-size: 1rem;
+  }
+}
+
+/* ===== SCROLLBAR ENHANCEMENT ===== */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* ===== FOCUS AND ACTIVE STATES ===== */
+.btn:focus,
+.btn:active,
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+}
+
+/* ===== FORM ELEMENTS MOBILE ===== */
+@media (max-width: 576px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="date"],
+  select,
+  textarea {
+    min-height: 44px;
+    font-size: 16px; /* Prevent zoom on iOS */
+  }
+}
+
+/* ===== ANIMATION AND TRANSITION ===== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ===== PRINT STYLES ===== */
+@media print {
+  .navbar,
+  .sidebar,
+  .content-header,
+  .btn,
+  .modal {
+    display: none;
+  }
+
+  .content-wrapper {
+    margin-left: 0;
+    padding: 0;
+  }
+}
+
+/* ===== ACCESSIBILITY IMPROVEMENTS ===== */
+/* High contrast mode support */
+@media (prefers-contrast: more) {
+  .card {
+    border: 2px solid currentColor;
+  }
+
+  .btn {
+    border-width: 2px;
+  }
+}
+
+/* ===== LANDSCAPE MODE OPTIMIZATION ===== */
+@media (max-height: 600px) and (orientation: landscape) {
+  .content-header {
+    padding: 0.5rem 0;
+  }
+
+  .card-body {
+    padding: 0.75rem;
+  }
+
+  h1, h2, h3 {
+    margin-bottom: 0.25rem;
+  }
+}

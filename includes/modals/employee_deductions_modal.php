@@ -44,6 +44,7 @@
                         <!--Client Details-->
                         <div class="col-sm-10 offset-1">
                             <input type="hidden" id="txtEmployeeDeductionID" name="employee_deduction_id">
+                            <input type="hidden" id="txtEmployeeID" name="employee_id">
                             <div class="form-group row">
                                 <div class="col-3">
                                     <label for="cmbEmployee">Employee</label>

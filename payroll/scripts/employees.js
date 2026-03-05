@@ -454,6 +454,10 @@ function GetEmploymentDetails(employee_id,employment_id){
                 $('#cmbWorkSpecifics').val(obj['work_specifics']);
                 $('#txtEmploymentParticulars').val(obj['employment_particulars']);
                 $('#txtRate').val(obj['rate']).prop('disabled', true);
+            // Show employment modal after fields populated
+            if (typeof $('#employment_modal').modal === 'function') {
+                $('#employment_modal').modal('show');
+            }
         }
     });
 }
