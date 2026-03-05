@@ -26,7 +26,7 @@ Development Notes:
     e.g. PhilAm Life iNs., PMGEA dues and other deductions that belongs to OTHER PAYABLES but is not classified as LOANS.
 18. *DB has new column for payroll_entries table, period_lock or locked_period - OK
 19. PAYSLIP Generation - OK
-20. Under Review - Remittance History for Others -> Needed to solve the breakdown of each Others
+20. Under Review - Remittance History for Others -> Needed to solve the breakdown of each Others - DOne refer below
 21. DONE! {To do - Printing of Generated Payslip}
 
 ===================================

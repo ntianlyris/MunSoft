@@ -1,11 +1,14 @@
 <?php
-require_once('..//includes/tcpdf/tcpdf.php'); // Make sure TCPDF is installed and required
-require_once('..//includes/view/functions.php');
-require_once('..//includes/class/Payroll.php');
-require_once('..//includes/class/Department.php');
-require_once('..//includes/class/Employee.php');
-require_once('..//includes/class/Employment.php');
-require_once('..//includes/class/Signatory.php');
+// ==========================================================
+// INITIALIZATION & DATA FETCHING (Logic remains same)
+// ==========================================================
+require_once('../includes/tcpdf/tcpdf.php'); 
+require_once('../includes/view/functions.php');
+require_once('../includes/class/Payroll.php');
+require_once('../includes/class/Department.php');
+require_once('../includes/class/Employee.php');
+require_once('../includes/class/Employment.php');
+require_once('../includes/class/Signatory.php');
 
 $Payroll = new Payroll();
 $Department = new Department();
@@ -13,43 +16,24 @@ $Employee = new Employee();
 $Employment = new Employment();
 $Payroll_Signatory = new Signatory();
 
-// ==========================================================
-// GET parameters and Initialization
-// ==========================================================
 $period = $_GET['period'] ?? '';
 $dept_id = $_GET['department'] ?? '';
 $employment_type = $_GET['employment_type'] ?? '';
-$start_date = '';
-$end_date = '';
-$results = [];
-$department_name = '';
-$pay_period_start = '';
-$pay_period_end = '';
 
 if (!$period || !$dept_id || !$employment_type) {
     die("Missing required parameters.");
 }
 
+// ... (Date processing logic)
 if (strpos($period, '_') !== false) {
-    // Period is a date range (e.g., "2025-08-01_2025-08-15")
     list($start_date, $end_date) = explode('_', $period);
     $payroll_period_id = $Payroll->GetPayrollPeriodByDates($start_date, $end_date)['payroll_period_id'];
-} 
-else {
-    // Period is already a payroll_period_id
+} else {
     $payroll_period_id = $period;
     $period_dates = $Payroll->GetPeriodDatesByID($payroll_period_id);
-    if ($period_dates) {
-        $start_date = $period_dates['date_start'];
-        $end_date = $period_dates['date_end'];
-    } else {
-        die("Invalid payroll period ID.");
-    }
+    $start_date = $period_dates['date_start'];
+    $end_date = $period_dates['date_end'];
 }
-
-// ==========================================================
-// FETCH PAYROLL DATA ENTRIES
-// ==========================================================
 
 $department_name = $Department->GetDepartmentDetails($dept_id)['dept_name'];
 $pay_period_start = OutputDate($start_date);
@@ -60,47 +44,24 @@ $configured_deductions = $Payroll->FetchConfigDeductionsIDandCode();
 $configured_govshares = $Payroll->FetchGovSharesIDandCode();
 
 $deduction_headers = [];
-foreach ($configured_deductions as $deduct) {
-    $deduction_headers[] = $deduct['deduct_code'];
-}
-$deduction_headers[] = 'TOTAL'; // Add total deductions column
+foreach ($configured_deductions as $deduct) { $deduction_headers[] = $deduct['deduct_code']; }
+$deduction_headers[] = 'TOTAL';
 
 $payroll_entries = $Payroll->FetchPayrollByPayPeriodAndDept($payroll_period_id, $dept_id, $employment_type);
 
-
-//echo '<pre>';
-//print_r($configured_earnings);
-//echo '</pre>';
-
-// ==========================================================
-// BUILD PAYROLL DATA
-// ==========================================================
-
+// Build Payroll Data Object
 $payrollData = [];
-
 foreach ($payroll_entries as $row) {
-    // Fetch employee full name and position
-    $position_full = $Employment->FetchEmployeeEmploymentDetailsByIDs($row['employee_id'], $row['employment_id'])['position_title'];
-    $position_title = strpos($position_full, '(') !== false ? substr($position_full, 0, strpos($position_full, '(')) : $position_full;
+    $pos = $Employment->FetchEmployeeEmploymentDetailsByIDs($row['employee_id'], $row['employment_id'])['position_title'];
+    $position_title = strpos($pos, '(') !== false ? substr($pos, 0, strpos($pos, '(')) : $pos;
     $employee_name = $Employee->GetEmployeeFullNameByID($row['employee_id'])['full_name'];
 
-    // Decode JSON breakdowns safely
-    $earnings = json_decode($row['earnings_breakdown'], true) ?? [];
-    $deductions = json_decode($row['deductions_breakdown'], true) ?? [];
-    $govshares = json_decode($row['govshares_breakdown'], true) ?? [];
-
-    // Map detailed arrays
-    $earningsArr = buildEarningsArray($configured_earnings, $earnings);
-    $deductionsArr = buildDeductionsArray($configured_deductions, $deductions);
-    $govsharesArr = buildGovSharesArray($configured_govshares, $govshares);
-
-    // Build structured payroll entry
     $payrollData[] = [
         'name' => strtoupper($employee_name),
         'designation' => trim($position_title),
-        'earnings' => $earningsArr,
-        'deductions' => $deductionsArr,
-        'govshares' => $govsharesArr,
+        'earnings' => buildEarningsArray($configured_earnings, json_decode($row['earnings_breakdown'], true) ?? []),
+        'deductions' => buildDeductionsArray($configured_deductions, json_decode($row['deductions_breakdown'], true) ?? []),
+        'govshares' => buildGovSharesArray($configured_govshares, json_decode($row['govshares_breakdown'], true) ?? []),
         'net' => (float)$row['net_pay']
     ];
 }
@@ -201,291 +162,184 @@ function buildGovSharesArray($configured_govshares, $govshares) {
 }
 
 // ==========================================================
-// DEFINE DYNAMIC HEADER STRUCTURE
-// ==========================================================
-
-// Group headers
-$name_width = 11;
-$earnings_width = 14;
-$deductions_width = 56;
-$govshares_width = 12;
-$net_width = 4;
-$signature_width = 4;
-
-$headerGroups = [
-    ['label' => 'EMPLOYEE', 'colspan' => 1, 'rowspan' => 2, 'width' => $name_width],
-    ['label' => 'EARNINGS', 'colspan' => 4, 'width' => $earnings_width],
-    ['label' => 'DEDUCTIONS', 'colspan' => count($deduction_headers) , 'width' => $deductions_width],
-    ['label' => 'GOV SHARES', 'colspan' => 4, 'width' => $govshares_width],
-    ['label' => 'NET AMOUNT', 'colspan' => 1, 'rowspan' => 2, 'width' => $net_width],
-    ['label' => 'SIGNATURE', 'colspan' => 1, 'rowspan' => 2, 'width' => $signature_width],
-];
-
-// Subheaders (single-level now)
-$subHeader = [
-    'EARNINGS' => ['Basic', 'PERA', 'Others', 'Gross'],
-    'DEDUCTIONS' => $deduction_headers,
-    'GOVSHARES' => ['L/R', 'HDMF', 'PHIC', 'ECC']
-];
-
-// ==========================================================
-// TCPDF SETTINGS
+// TCPDF EXTENSION
 // ==========================================================
 class MYPDF extends TCPDF {
-
     protected $customHeaderData = [];
+    public function setCustomHeaderData($data) { $this->customHeaderData = $data; }
 
-    public function setCustomHeaderData($data) {
-        $this->customHeaderData = $data;
-    }
-
-    // Page header
     public function Header() {
-        // Path to the logo file
-        $image_file = '../includes/images/polanco_logo.jpg'; // fixed double slashes
-
-        // Add logo (x=15mm, y=8mm, width=20mm)
+        $image_file = '../includes/images/polanco_logo.jpg';
         if (file_exists($image_file)) {
             $this->Image($image_file, 135, 5, 18, '', 'JPEG', '', 'T', false, 300); 
         }
-
-        // Move down a bit after logo
         $this->SetY(7);
-        $this->SetFont('arialnarrow', '', 9);
-
-        // Safely fetch header data
-        $pay_period_start = isset($this->customHeaderData['pay_period_start']) ? $this->customHeaderData['pay_period_start'] : '';
-        $pay_period_end   = isset($this->customHeaderData['pay_period_end']) ? $this->customHeaderData['pay_period_end'] : '';
-        $department_name  = isset($this->customHeaderData['department_name']) ? $this->customHeaderData['department_name'] : '';
-
-        // HTML header content
-        $html = '
-        <div style="text-align:center; line-height:1.4;">
-            <span>Republic of the Philippines</span><br>
-            <span>Province of Zamboanga del Norte</span><br>
-            <span style="font-size:10px; font-weight:bold;">MUNICIPALITY OF POLANCO</span><br><br>
-            <span style="font-size:10px;">GENERAL PAYROLL</span><br>
-            <span>Payroll Period: ' . htmlspecialchars($pay_period_start) . ' to ' . htmlspecialchars($pay_period_end) . '</span><br>
-            <span>Department: ' . htmlspecialchars($department_name) . '</span>
-        </div>';
-
+        $this->SetFont('helvetica', '', 9);
+        $html = '<div style="text-align:center;">
+                    <span>Republic of the Philippines</span><br>
+                    <span>Province of Zamboanga del Norte</span><br>
+                    <strong style="font-size:11px;">MUNICIPALITY OF POLANCO</strong><br><br>
+                    <strong style="font-size:10px;">GENERAL PAYROLL</strong><br>
+                    <span>Period: '.$this->customHeaderData['pay_period_start'].' to '.$this->customHeaderData['pay_period_end'].'</span><br>
+                    <span>Dept: '.$this->customHeaderData['department_name'].'</span>
+                </div>';
         $this->writeHTMLCell(0, 0, '', '', $html, 0, 1, 0, true, 'C', true);
     }
 
-    // Optional Footer
     public function Footer() {
-        $this->SetY(-10);
-        $this->SetFont('arialnarrow', 'I', 7);
+        $this->SetY(-15);
+        $this->SetFont('helvetica', 'I', 7);
         $this->Cell(0, 10, 'Page ' . $this->getAliasNumPage() . ' of ' . $this->getAliasNbPages(), 0, 0, 'C');
     }
 }
 
-$pdf = new MYPDF('L', 'mm', 'LEGAL', true, 'UTF-8', false);
-$pdf->SetCreator(PDF_CREATOR);
-$pdf->SetAuthor('Municipality of Polanco');
-$pdf->SetTitle('POLANCO MUNICIPAL PAYROLL');
-$pdf->SetMargins(5, 30, 5);    // left, top, right
-$pdf->SetAutoPageBreak(TRUE, 10);
+// ==========================================================
+// PDF CONFIGURATION
+// ==========================================================
+// Custom "Super Wide" paper size: 17in x 8.5in (431.8mm x 215.9mm)
+$custom_paper_size = array(431.8, 215.9);
+$pdf = new MYPDF('L', 'mm', $custom_paper_size, true, 'UTF-8', false); 
+$pdf->SetMargins(2, 40, 5); 
+$pdf->SetHeaderMargin(5);
+$pdf->SetFooterMargin(15);
+$pdf->SetAutoPageBreak(TRUE, 25); 
 $pdf->setCustomHeaderData([
     'pay_period_start' => $pay_period_start,
     'pay_period_end' => $pay_period_end,
     'department_name' => $department_name
 ]);
-
 $pdf->AddPage();
 
+// Layout Constants
+$name_w = 7; 
+$earn_w = 11.5; 
+$ded_w = 63; 
+$gov_w = 12; 
+$net_w = 4; 
+$sig_w = 3.5;
+
+$earn_sub_w = $earn_w / 4;
+$ded_sub_w = $ded_w / count($deduction_headers);
+$gov_sub_w = $gov_w / 4;
 
 // ==========================================================
-// HEADER / TITLE
+// HTML TABLE GENERATION
 // ==========================================================
-$html = '<p style="font-size:9px;">We acknowledge receipt of the sum shown opposite our names as full compensation for services rendered for the period stated.
-        </p><br>';
-
-// ==========================================================
-// TABLE STRUCTURE
-// ==========================================================
-$html .= '<style>
-            table { border: 1px solid black; border-collapse: collapse; width:100%;}
-            th, td { border: 1px solid black; padding: 4px; }
-          </style>
-        <table cellspacing="0" cellpadding="2">';
-
-// === TOP HEADER ROW (Group Headers) ===
-$html .= '<tr style="font-weight:bold;">';
-foreach ($headerGroups as $group) {
-    $rowspan = isset($group['rowspan']) ? ' rowspan="'.$group['rowspan'].'"' : '';
-    $colspan = isset($group['colspan']) ? ' colspan="'.$group['colspan'].'"' : '';
-    $width = isset($group['width']) ? 'width:'.$group['width'].'%;' : ''; // ✅ fixed syntax
-    $html .= '<th'.$rowspan.$colspan.' style="text-align:center;'.$width.'">'.strtoupper($group['label']).'</th>';
-}
-$html .= '</tr>';
-
-// === SECOND HEADER ROW (Subheaders) ===
-$html .= '<tr style="font-weight:bold; background-color:#fafafa;">';
-foreach ($subHeader['EARNINGS'] as $sub) {
-    $html .= '<th style="text-align:center;">'.strtoupper($sub).'</th>';
-}
-foreach ($subHeader['DEDUCTIONS'] as $sub) {
-    $html .= '<th style="text-align:center;">'.strtoupper($sub).'</th>';
-}
-foreach ($subHeader['GOVSHARES'] as $sub) {
-    $html .= '<th style="text-align:center;">'.strtoupper($sub).'</th>';
-}
-$html .= '</tr>';
-
-// ==========================================================
-// TABLE BODY (Single row per employee)
-// ==========================================================
-$count = 0;
-$total_basic = 0;
-$total_gross = 0;
-$total_deductions = 0;
-foreach ($payrollData as $row) {
-    $count++;
-    $html .= '<tr>';
-    $html .= '<td style="text-align:left; font-size:7px; width:'.$name_width.'%;">'
-                .$count.'.) <strong> '.htmlspecialchars($row['name']).'</strong><br>
-                <span style="font-size:8px;"> '.' '.htmlspecialchars($row['designation']).'</span>
-              </td>';
-
-    foreach ($row['earnings'] as $val) {
-        $html .= '<td style="text-align:right;">' . ($val['amount'] != 0 ? number_format($val['amount'], 2) : '-') . '</td>';
-        $total_basic += $val['label'] === 'Basic' ? $val['amount'] : 0;
-        $total_gross += $val['label'] === 'Gross' ? $val['amount'] : 0;
-    }
-    foreach ($row['deductions'] as $val) {
-        $html .= '<td style="text-align:right;">' . ($val['amount'] != 0 ? number_format($val['amount'], 2) : '-') . '</td>';
-        $total_deductions += $val['label'] === 'Total' ? $val['amount'] : 0;
-    }
-    foreach ($row['govshares'] as $val) {
-        $html .= '<td style="text-align:right;">' . ($val['amount'] !== 0 ? number_format($val['amount'],2) : '-') . '</td>';
-    }
-    $html .= '<td style="text-align:right; font-weight:bold;">'.($row['net'] !== 0 ? number_format($row['net'],2) : '-') .'</td>';
-    $html .= '<td>'.$count.'.)</td>';
-    $html .= '</tr>';
-}
-
-// ==========================================================
-// TOTAL ROW
-// ==========================================================
-
-$totalNet = array_sum(array_column($payrollData, 'net'));
-
-$html .= '<tr style="font-weight:bold;">';
-$html .= '<td style="text-align:right;">TOTAL</td>';
-foreach ($headerGroups as $group) {
-    if ($group['label'] === 'EARNINGS') {
-        // Earnings total
-        $html .= '<td style="text-align:right;">' . ($total_gross != 0 ? number_format($total_basic, 2) : '-') . '</td>'; // Basic
-        $html .= '<td style="text-align:right;">-</td>'; // PERA (not totaled here)
-        $html .= '<td style="text-align:right;">-</td>'; // Others (not totaled here)
-        $html .= '<td style="text-align:right;">' . ($total_gross != 0 ? number_format($total_gross, 2) : '-') . '</td>'; // Gross
-    } 
-    elseif ($group['label'] === 'DEDUCTIONS') {
-        // Deductions total
-        foreach ($deduction_headers as $deduct) {
-            if ($deduct === 'TOTAL') {
-                $html .= '<td style="text-align:right;">' . ($total_deductions != 0 ? number_format($total_deductions, 2) : '-') . '</td>';
-            } else {
-                $html .= '<td style="text-align:right;">-</td>'; // Individual deductions not totaled here
+$html = '
+<style>
+    table { border-collapse: collapse; width: 100%; }
+    th { border: 0.5pt solid black; background-color: #f2f2f2; font-weight: bold; text-align: center; vertical-align: middle; font-size: 8pt; }
+    td { border: 0.5pt solid black; vertical-align: middle; }
+    .sub-header { font-size: 6pt; font-weight: normal; background-color: #fafafa; }
+    .text-right { text-align: right; }
+    .text-center { text-align: center; }
+    .total-row { font-weight: bold; background-color: #eeeeee; font-size: 5pt; }
+</style>
+<table cellpadding="2">
+    <thead>
+        <tr>
+            <th rowspan="2" width="'.$name_w.'%">EMPLOYEE</th>
+            <th colspan="4" width="'.$earn_w.'%">EARNINGS</th>
+            <th colspan="'.count($deduction_headers).'" width="'.$ded_w.'%">DEDUCTIONS</th>
+            <th colspan="4" width="'.$gov_w.'%">GOV SHARES</th>
+            <th rowspan="2" width="'.$net_w.'%">NET</th>
+            <th rowspan="2" width="'.$sig_w.'%"><span style="font-size: 5pt;">SIGNATURE</span></th>
+        </tr>
+        <tr>
+            <th class="sub-header" width="'.$earn_sub_w.'%">Basic</th>
+            <th class="sub-header" width="'.$earn_sub_w.'%">PERA</th>
+            <th class="sub-header" width="'.$earn_sub_w.'%">Others</th>
+            <th class="sub-header" width="'.$earn_sub_w.'%">Gross</th>';
+            foreach($deduction_headers as $h) {
+                $html .= '<th class="sub-header" width="'.$ded_sub_w.'%">'.strtoupper($h).'</th>';
             }
-        }
-    } 
-    elseif ($group['label'] === 'GOV SHARES') {
-        // Gov shares total (not calculated here)
-        for ($i = 0; $i < count($subHeader['GOVSHARES']); $i++) {
-            $html .= '<td style="text-align:right;">-</td>';
-        }
-    }
-}
-$html .= '<td style="text-align:right;">' . ($totalNet != 0 ? number_format($totalNet, 2) : '-') . '</td>';
-$html .= '<td></td>';
-$html .= '</tr>';
-$html .= '</table>';
+            $html .= '
+            <th class="sub-header" width="'.$gov_sub_w.'%">L/R</th>
+            <th class="sub-header" width="'.$gov_sub_w.'%">HDMF</th>
+            <th class="sub-header" width="'.$gov_sub_w.'%">PHIC</th>
+            <th class="sub-header" width="'.$gov_sub_w.'%">ECC</th>
+        </tr>
+    </thead>
+    <tbody>';
 
-// ==========================================================
-// OUTPUT PDF
-// ==========================================================
-$pdf->SetXY(5, $pdf->GetY() + 12);
-$pdf->SetFont('arialnarrow', '', 7);
+$total_basic = 0; $total_pera = 0; $total_others = 0; $total_gross = 0; 
+$total_ded_cols = array_fill(0, count($deduction_headers), 0);
+$total_gov_cols = array_fill(0, 4, 0);
+$total_net = 0;
+
+foreach ($payrollData as $index => $row) {
+    $count = $index + 1;
+    $html .= '<tr nobr="true">
+                <td width="'.$name_w.'%" style="font-size:6pt;">'.$count.'.) <b>'.$row['name'].'</b><br><i style="font-size:6pt;">'.$row['designation'].'</i></td>';
+    
+    // Earnings
+    foreach ($row['earnings'] as $ei => $val) {
+        $html .= '<td class="text-right" width="'.$earn_sub_w.'%" style="font-size:6pt;">' . ($val['amount'] != 0 ? number_format($val['amount'], 2) : '-') . '</td>';
+        if($val['label'] == 'Basic') $total_basic += $val['amount'];
+        if($val['label'] == 'PERA') $total_pera += $val['amount'];
+        if($val['label'] == 'Others') $total_others += $val['amount'];
+        if($val['label'] == 'Gross') $total_gross += $val['amount'];
+    }
+    // Deductions
+    foreach ($row['deductions'] as $di => $val) {
+        $html .= '<td class="text-right" width="'.$ded_sub_w.'%" style="font-size:6pt;">' . ($val['amount'] != 0 ? number_format($val['amount'], 2) : '-') . '</td>';
+        $total_ded_cols[$di] += $val['amount'];
+    }
+    // Gov Shares
+    foreach ($row['govshares'] as $gi => $val) {
+        $html .= '<td class="text-right" width="'.$gov_sub_w.'%" style="font-size:6pt;">' . ($val['amount'] != 0 ? number_format($val['amount'], 2) : '-') . '</td>';
+        $total_gov_cols[$gi] += $val['amount'];
+    }
+    
+    $total_net += $row['net'];
+    $html .= '<td class="text-right" width="'.$net_w.'%" style="font-size:6pt;"><b>'.number_format($row['net'], 2).'</b></td>
+              <td width="'.$sig_w.'%" class="text-left" style="font-size:6pt;">'.$count.'.)</td>
+            </tr>';
+}
+
+// TOTAL ROW - Aligned by using exact width variables
+$html .= '<tr class="total-row">
+            <td class="text-right" width="'.$name_w.'%">TOTAL</td>
+            <td class="text-right" width="'.$earn_sub_w.'%">'.number_format($total_basic, 2).'</td>
+            <td class="text-right" width="'.$earn_sub_w.'%">'.number_format($total_pera, 2).'</td>
+            <td class="text-right" width="'.$earn_sub_w.'%">'.number_format($total_others, 2).'</td>
+            <td class="text-right" width="'.$earn_sub_w.'%">'.number_format($total_gross, 2).'</td>';
+            foreach($total_ded_cols as $val) {
+                $html .= '<td class="text-right" width="'.$ded_sub_w.'%">'.($val != 0 ? number_format($val, 2) : '-').'</td>';
+            }
+            foreach($total_gov_cols as $val) {
+                $html .= '<td class="text-right" width="'.$gov_sub_w.'%">'.($val != 0 ? number_format($val, 2) : '-').'</td>';
+            }
+$html .= '  <td class="text-right" width="'.$net_w.'%">'.number_format($total_net, 2).'</td>
+            <td width="'.$sig_w.'%"></td>
+          </tr>';
+
+$html .= '</tbody></table>';
+
 $pdf->writeHTML($html, true, false, true, false, '');
 
-
 // ==========================================================
-// SIGNATORIES FOOTER
+// SIGNATORIES
 // ==========================================================
+$pdf->Ln(5);
+if($pdf->GetY() > 160) { $pdf->AddPage(); }
 
-// Footer for signatories
-//$pdf->Ln(1); // Space before footer
-$pdf->SetFont('arialnarrow', '', 9);
-
-// Get active signatories for payroll
 $signatories = $Payroll_Signatory->FetchActiveSignatoriesByReportType('PAYROLL');
-$filtered_signatories = array();
-
-// Filter signatories based on role and department
+$sig_html = '<table border="0" cellpadding="5" cellspacing="0" width="100%"><tr>';
+$col_count = 0;
 foreach ($signatories as $sign) {
-    // Include non-department head signatories
-    if ($sign['role_type'] !== 'HEAD') {
-        $filtered_signatories[] = $sign;
-        continue;
-    }
-    
-    // For department heads, only include if department matches
-    if ($sign['role_type'] === 'HEAD' && $sign['dept_id'] == $dept_id) {
-        $filtered_signatories[] = $sign;
-    }
+    if ($sign['role_type'] === 'HEAD' && $sign['dept_id'] != $dept_id) continue;
+    if ($col_count > 0 && $col_count % 4 == 0) $sig_html .= '</tr><tr><td colspan="4" height="15"></td></tr><tr>';
+    $sig_html .= '<td width="25%" align="center">
+                    <span style="font-size:8pt;">'.$sign['sign_particulars'].'</span><br><br><br>
+                    <span style="font-size:10pt;"><b>'.$sign['full_name'].'</b></span><br>
+                    <span style="font-size:8pt;">'.$sign['position_title'].'</span>
+                  </td>';
+    $col_count++;
 }
-
-// Calculate rows needed (4 signatories per row)
-$signatories_per_row = 4;
-$total_signatories = count($filtered_signatories);
-$total_rows = ceil($total_signatories / $signatories_per_row);
-
-// Build signatory table with multiple rows
-$signatory_table = '<table border="0" cellpadding="4" cellspacing="0" width="100%">';
-
-for ($row = 0; $row < $total_rows; $row++) {
-    $signatory_table .= '<tr>';
-    
-    // Calculate start and end index for current row
-    $start_index = $row * $signatories_per_row;
-    $end_index = min(($row + 1) * $signatories_per_row, $total_signatories);
-    
-    // Add cells for current row
-    for ($i = $start_index; $i < $end_index; $i++) {
-        $sign = $filtered_signatories[$i];
-        $signatory_table .= '
-            <td width="25%" align="center">
-                ' . $sign['sign_particulars'] . '<br>
-                <br><br>
-                <span style="font-size:10px;";><b>' . $sign['full_name'] . '</b></span><br>
-                ' . $sign['position_title'] . '
-            </td>';
-    }
-    
-    // Fill remaining cells in the last row if needed
-    $remaining_cells = $signatories_per_row - ($end_index - $start_index);
-    for ($i = 0; $i < $remaining_cells; $i++) {
-        $signatory_table .= '<td width="25%"></td>';
-    }
-    
-    $signatory_table .= '</tr>';
-}
-
-$signatory_table .= '</table>';
-
-// Add some spacing between rows
-$signatory_table = str_replace('</tr>', '</tr><tr><td colspan="4" height="10"></td></tr>', $signatory_table);
-
-$pdf->writeHTML($signatory_table, true, false, true, false, '');
-
-
-//debugger
-//echo '<pre>';
-//print_r($earningsArr);
-//echo '</pre>';
-
+while($col_count % 4 != 0) { $sig_html .= '<td width="25%"></td>'; $col_count++; }
+$sig_html .= '</tr></table>';
+$pdf->writeHTML($sig_html, true, false, true, false, '');
 
 ob_end_clean();
 $pdf->Output('municipal_payroll.pdf', 'I');

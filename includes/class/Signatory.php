@@ -132,13 +132,14 @@
             }
         }
 
-        public function checkSignatoryOrderExistsForReport($report_type, $sign_order, $exclude_id = null) {
+        public function checkSignatoryOrderExistsForReport($report_type, $sign_order, $exclude_id = null, $dept_id = null) {
             $sign_order = $this->db->escape_string($sign_order);
             $report_type = $this->db->escape_string($report_type);
 
             $sql = "SELECT COUNT(*) AS cnt FROM signatories 
                     WHERE sign_order = '{$sign_order}' 
-                    AND report_type = '{$report_type}'";
+                    AND report_type = '{$report_type}'
+                    AND (dept_id = '{$dept_id}' OR dept_id IS NULL)";
             if ($exclude_id !== null) {
                 $sql .= " AND signatory_id != " . intval($exclude_id);
             }
