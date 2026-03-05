@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>HRMS | Login</title>
+  <title>MunSoft | Login</title>
 
   <link rel="icon" href="includes/images/polanco_logo.png" type="image/png" />
 	<link rel="shortcut icon" href="includes/images/polanco_logo.png" type="image/png" />
@@ -23,7 +23,7 @@
             height: 100%;
             min-height: auto;
             text-align: center;
-            background-image: linear-gradient( rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.5) ), url('./includes/images/bg3.jpg');
+            background-image: linear-gradient( rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.5) ), url('./includes/images/background_1.png');
             background-position: center;
             background-attachment: fixed;
             background-size: cover;
@@ -57,7 +57,7 @@
   <!-- /.login-logo -->
   <div class="card card-outline card-primary">
     <div class="card-header text-center">
-      <a class="h1"><b>HR</b>MS</a>
+      <a class="h1"><b>MUN</b>SOFT</a>
     </div>
     <div class="card-body login-card-body">
       <p class="login-box-msg">Sign in to start your session</p>
