@@ -368,6 +368,7 @@ $(document).on('click', '.viewRemittance', function() {
             dataType: 'json',
             beforeSend: function() {
                 $('#btnPrintRemittanceDetails').data('remit_id', remittanceId);
+                $('#btnExportRemittanceDetails').data('remit_id', remittanceId);
                 $('#remittanceDetailsBody').html('<tr><td colspan="4" class="text-center text-muted">Loading...</td></tr>');
                 $('#remittanceDetailsModalLabel').text(remittanceType.toUpperCase() + ' Remittance Details');
                 $('#remittancePeriodLabel').text('For the Period: ' + period.split('_').join(' to '));
@@ -412,6 +413,7 @@ $(document).on('click', '.viewRemittance', function() {
             },
             beforeSend: function() {
                 $('#btnPrintLoansRemittanceDetails').data('loan_remit_id', remittanceId);
+                $('#btnExportLoansRemittanceDetails').data('loan_remit_id', remittanceId);
                 $('#remittanceLoansDetailsBody').html('<tr><td colspan="3" class="text-center text-muted">Loading...</td></tr>');
                 $('#remittanceLoansDetailsModal').modal('show');
             },
@@ -446,6 +448,7 @@ $(document).on('click', '.viewRemittance', function() {
             dataType: 'json',
             beforeSend: function() {
                 $('#btnPrintOthersRemittanceDetails').data('remit_id', remittanceId);
+                $('#btnExportOthersRemittanceDetails').data('remit_id', remittanceId);
                 $('#remittanceOthersDetailsBody').html('<tr><td colspan="4" class="text-center text-muted">Loading...</td></tr>');
                 $('#remittanceOthersPeriodLabel').text('For the Period: ' + period.split('_').join(' to '));
                 $('#remittanceOthersDetailsModal').modal('show');
@@ -504,7 +507,9 @@ $(document).on('click', '.viewLoanRemittanceBreakdown', function() {
     `;
 
     $('#btnPrintLoanRemitBreakdown').data('loans_breakdown', JSON.stringify(employees));
+    $('#btnExportLoanRemitBreakdown').data('loans_breakdown', JSON.stringify(employees));
     $('#btnPrintLoanRemitBreakdown').data('breakdown_period', period);
+    $('#btnExportLoanRemitBreakdown').data('breakdown_period', period);
     $('#loanRemitBreakdownTitle').text(loanTitle);
     $('#loanRemitBreakdownPeriodLabel').text('For the Period: ' + period.split('_').join(' to '));
     $('#loanRemitBreakdownTable tbody').html(detailRows);
@@ -540,7 +545,9 @@ $(document).on('click', '.viewOtherRemittanceBreakdown', function() {
     `;
 
     $('#btnPrintOthersRemitBreakdown').data('others_breakdown', JSON.stringify(employees));
+    $('#btnExportOthersRemitBreakdown').data('others_breakdown', JSON.stringify(employees));
     $('#btnPrintOthersRemitBreakdown').data('breakdown_period', period);
+    $('#btnExportOthersRemitBreakdown').data('breakdown_period', period);
     $('#othersRemitBreakdownTitle').text(deductTitle);
     $('#othersRemitBreakdownPeriodLabel span').text(period.split('_').join(' to '));
     $('#othersRemitBreakdownTableBody').html(detailRows);
@@ -650,6 +657,118 @@ $(document).on('click', '#btnPrintOthersRemitBreakdown', function() {
     form.append($('<input>', { type: 'hidden', name: 'deduct_title', value: deduct_title }));
     form.append($('<input>', { type: 'hidden', name: 'print_type', value: print_type }));
     form.append($('<input>', { type: 'hidden', name: 'period', value: breakdown_period }));
+    $('body').append(form);
+    form.submit();
+    form.remove();
+});
+
+// ==============================================
+// ========== EXPORT EXCEL HANDLERS ==========
+// ==============================================
+
+// === 1. Standard Remittance Export ===
+$(document).on('click', '#btnExportRemittanceDetails', function() {
+    let remittance_id = $(this).data('remit_id');
+
+    // Create a form dynamically
+    let form = $('<form>', {
+        action: '../prints/export_remit_details_excel.php',
+        method: 'POST',
+        target: '_blank' // open in new tab
+    });
+
+    // Append your POST variables
+    form.append($('<input>', {type: 'hidden', name: 'remittance_id', value: remittance_id}));
+
+    // Append form to body and submit
+    $('body').append(form);
+    form.submit();
+    form.remove(); // clean up
+});
+
+// === 2. Loans Remittance Export ===
+$(document).on('click', '#btnExportLoansRemittanceDetails', function() {
+    let remittance_id = $(this).data('loan_remit_id');
+    let print_type = 'loans';
+
+    // Create and submit form
+    let form = $('<form>', {
+        action: '../prints/export_remit_details_excel.php',
+        method: 'POST',
+        target: '_blank'
+    });
+
+    form.append($('<input>', { type: 'hidden', name: 'remittance_id', value: remittance_id }));
+    form.append($('<input>', { type: 'hidden', name: 'print_type', value: print_type }));
+
+    $('body').append(form);
+    form.submit();
+    form.remove();
+});
+
+// === 3. Others Remittance Export ===
+$(document).on('click', '#btnExportOthersRemittanceDetails', function() {
+    let remittance_id = $(this).data('remit_id');
+    let print_type = 'others';
+    
+    // Create and submit form
+    let form = $('<form>', {
+        action: '../prints/export_remit_details_excel.php',
+        method: 'POST',
+        target: '_blank'
+    });
+    
+    form.append($('<input>', { type: 'hidden', name: 'remittance_id', value: remittance_id }));
+    form.append($('<input>', { type: 'hidden', name: 'print_type', value: print_type }));
+
+    $('body').append(form);
+    form.submit();
+    form.remove();
+});
+
+// === 4. Loan Remittance Breakdown Export ===
+$(document).on('click', '#btnExportLoanRemitBreakdown', function() {
+    let loans_breakdown = $(this).data('loans_breakdown');
+    let breakdown_period = $(this).data('breakdown_period');
+    let loan_title = $('#loanRemitBreakdownTitle').text();
+    let print_type = 'loans_breakdown';
+
+    // Create and submit form
+    let form = $('<form>', {
+        action: '../prints/export_remit_details_excel.php',
+        method: 'POST',
+        target: '_blank'
+    });
+
+    form.append($('<input>', { type: 'hidden', name: 'breakdown', value: loans_breakdown }));
+    form.append($('<input>', { type: 'hidden', name: 'loan_title', value: loan_title }));
+    form.append($('<input>', { type: 'hidden', name: 'print_type', value: print_type }));
+    form.append($('<input>', { type: 'hidden', name: 'period', value: breakdown_period }));
+
+    $('body').append(form);
+    form.submit();
+    form.remove();
+});
+
+// === 5. Other Deduction Remittance Breakdown Export ===
+$(document).on('click', '#btnExportOthersRemitBreakdown', function() {
+    let others_breakdown = $(this).data('others_breakdown');
+    let breakdown_period = $(this).data('breakdown_period');
+    let deduct_title = $('#othersRemitBreakdownTitle').text();
+    let print_type = 'others_breakdown';
+    
+    // Create and submit form
+    let form = $('<form>', {
+        action: '../prints/export_remit_details_excel.php',
+        method: 'POST',
+        target: '_blank'
+    });
+    
+    form.append($('<input>', { type: 'hidden', name: 'breakdown', value: others_breakdown }));
+    form.append($('<input>', { type: 'hidden', name: 'deduct_title', value: deduct_title }));
+    form.append($('<input>', { type: 'hidden', name: 'print_type', value: print_type }));
+    form.append($('<input>', { type: 'hidden', name: 'period', value: breakdown_period }));
+    
     $('body').append(form);
     form.submit();
     form.remove();
