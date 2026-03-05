@@ -118,6 +118,29 @@
   </div>
 </div>
 
+<!-- Status Badge Styles -->
+<style>
+  .badge-secondary {
+    background-color: #6c757d; /* Gray - DRAFT */
+  }
+  .badge-warning {
+    background-color: #ffc107; /* Yellow - REVIEW */
+    color: #000;
+  }
+  .badge-info {
+    background-color: #17a2b8; /* Cyan - APPROVED */
+  }
+  .badge-success {
+    background-color: #28a745; /* Green - PAID */
+  }
+  
+  /* Workflow buttons styling */
+  .btn-workflow {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+  }
+</style>
+
 <!-- jQuery -->
 <script src="../plugins/jquery/jquery.min.js"></script>
 <!-- Bootstrap 4 -->

@@ -190,23 +190,33 @@ if($action = isset($_REQUEST['action'])?$_REQUEST['action']:'') {
             $govshare_ids = $_POST['govshare_id'] ?? [];   ## array of govshare ids
             $govshare_amts = $_POST['govshare_amount'] ?? [];  ## array of govshare amounts
 
-            // Check if edit should be blocked for semi-monthly payroll when in first half of month
+            // ========== TWO-LAYER BLOCKING SYSTEM ==========
+            // Layer 1: Period-based (1st/2nd half semi-monthly consistency)
+            // Layer 2: Status-based (workflow state protection)
+            
             $Payroll = new Payroll();
             $last_locked_period = $Payroll->GetLastLockedPayrollPeriodByEmployee($employee_id);
+            $payroll_status = $last_locked_period['status'] ?? null;
             $locked_start_date = $last_locked_period['date_start'] ?? null;
             
-            $active_frequency = $Payroll->GetCurrentActiveFrequency();
-            $frequency = $active_frequency['freq_code'] ?? 'monthly';
+            // LAYER 2: Check status-based blocking (workflow state protection)
+            // Additional checkpoint: Block non-DRAFT status regardless of period
+            if($last_locked_period && $payroll_status !== 'DRAFT'){
+                echo json_encode([
+                    'status' => 'block_edit',
+                    'reason' => 'status',
+                    'message' => 'Cannot save/modify government shares. Payroll is in '.$payroll_status.' status. Please backtrack to DRAFT status first to make changes.'
+                ]);
+                exit;
+            }
 
-            if($frequency == 'semi-monthly' && $locked_start_date){
-                $is_second_half = $Payroll->IsSecondHalfOfMonth($locked_start_date);
-                if(!$is_second_half){
-                    echo json_encode([
-                        'status' => 'block_edit',
-                        'message' => 'Cannot save/modify government shares. Employee government shares are already applied in the previous (1st-half) locked payroll period.'
-                    ]);
-                    exit;
-                }
+            // LAYER 1: Check period-based blocking (1st/2nd half semi-monthly consistency)
+            // Block edits to deductions for 2nd half of semi-monthly payroll to ensure consistency
+            // Deductions should only be edited in the 1st half of the month for semi-monthly frequencies
+            if($last_locked_period && $Payroll->IsSecondHalfOfMonth($locked_start_date)){
+                $json_data = '{"result":"block_edit","reason":"period","period_type":"2nd_half_semi_monthly","message":"Government shares cannot be edited for the 2nd half of semi-monthly payroll period but on the 1st half of the payroll cycle."}';
+                echo $json_data;
+                exit;
             }
 
             if (!empty($govshare_ids) && !empty($govshare_amts)) {

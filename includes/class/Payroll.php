@@ -439,14 +439,15 @@ class Payroll {
     public function GetLastLockedPayrollPeriodByEmployee($employee_id){
         $employee_id = intval($employee_id);
         
-        // Get the last payroll period where locked_period = 1 AND status is NOT DRAFT
-        // This identifies finalized payroll periods that should block editing
+        // Get the last payroll period where locked_period = 1
+        // locked_period=1 means payroll was already computed and locked for the period
+        // This applies regardless of workflow status (DRAFT, REVIEW, APPROVED, PAID)
+        // to prevent employee config edits that would break payroll calculations
         $query = "SELECT a.*, b.payroll_entry_id, b.status FROM payroll_periods a
                     INNER JOIN payroll_entries b
                     ON a.payroll_period_id = b.payroll_period_id
                     WHERE b.locked_period = 1 
-                    AND b.employee_id = $employee_id 
-                    AND b.status NOT IN ('DRAFT')
+                    AND b.employee_id = $employee_id
                     ORDER BY a.payroll_period_id DESC LIMIT 1";
         $result = $this->db->query($query) or die($this->db->error);
         $count_row = $this->db->num_rows($result);
@@ -466,7 +467,7 @@ class Payroll {
         $period_day = date('d', strtotime($date_start));
         $is_second_half = ($payroll_frequency == 'semi-monthly' && intval($period_day) > 15);
 
-        return $is_second_half;
+        return $is_second_half; // returns true if it's the second half of the month in a semi-monthly frequency, otherwise false
     }
 
     public function GetPeriodsByStartDateAndFrequency($start_date, $frequency) {
@@ -1299,6 +1300,270 @@ class Payroll {
             'deleted_deductions' => 0,
             'deleted_govshares' => 0
         ];
+    }
+
+    // ==========================================================
+    // PAYROLL WORKFLOW STATUS MANAGEMENT (NEW)
+    // ==========================================================
+
+    /**
+     * Validate if status transition is allowed per workflow rules
+     * @param string $current_status Current payroll status
+     * @param string $new_status Desired target status
+     * @return array ['valid' => true/false, 'message' => '...']
+     */
+    public function ValidateStatusTransition($current_status, $new_status) {
+        // Define allowed transitions
+        $allowed_transitions = [
+            'DRAFT' => ['REVIEW'],
+            'REVIEW' => ['APPROVED', 'DRAFT'],
+            'APPROVED' => ['PAID'],
+            'PAID' => []  // No transitions FROM PAID
+        ];
+        
+        // Check if transition exists
+        if (!isset($allowed_transitions[$current_status])) {
+            return ['valid' => false, 'message' => "Invalid current status: $current_status"];
+        }
+        
+        if (!in_array($new_status, $allowed_transitions[$current_status])) {
+            return ['valid' => false, 'message' => "Cannot transition from $current_status to $new_status"];
+        }
+        
+        return ['valid' => true, 'message' => 'Transition allowed'];
+    }
+
+    /**
+     * Bulk update payroll status with workflow validation
+     * SECURITY: Validates all transitions before executing any updates
+     * @param array $payroll_entry_ids Array of payroll entry IDs to update
+     * @param string $new_status Target status (REVIEW, APPROVED, PAID, DRAFT)
+     * @param int $user_id User ID performing the transition
+     * @param string|null $reason Optional reason (e.g., for REVIEW→DRAFT returns)
+     * @return array ['status' => 'success'|'error'|'partial', 'affected' => N, 'succeeded' => [...], 'failed' => [...], 'message' => '...']
+     */
+    public function BulkUpdatePayrollStatus($payroll_entry_ids, $new_status, $user_id, $reason = null) {
+        $payroll_entry_ids = array_map('intval', (array)$payroll_entry_ids);
+        $user_id = intval($user_id);
+        $new_status = strtoupper($this->db->escape_string($new_status));
+        
+        try {
+            // STEP 1: Validate new_status value
+            $valid_statuses = ['DRAFT', 'REVIEW', 'APPROVED', 'PAID'];
+            if (!in_array($new_status, $valid_statuses)) {
+                return [
+                    'status' => 'error',
+                    'message' => "Invalid status: $new_status",
+                    'affected' => 0,
+                    'succeeded' => [],
+                    'failed' => $payroll_entry_ids
+                ];
+            }
+            
+            // STEP 2: Get all payroll entries with their current details
+            if (empty($payroll_entry_ids)) {
+                return [
+                    'status' => 'error',
+                    'message' => 'No payroll entries provided',
+                    'affected' => 0,
+                    'succeeded' => [],
+                    'failed' => []
+                ];
+            }
+            
+            $ids_str = implode(',', $payroll_entry_ids);
+            $query = "SELECT payroll_entry_id, status FROM payroll_entries WHERE payroll_entry_id IN ($ids_str)";
+            $result = $this->db->query($query) or die($this->db->error);
+            
+            $payroll_entries = [];
+            $failed_ids = [];
+            
+            while ($row = $this->db->fetch_array($result)) {
+                $payroll_entries[$row['payroll_entry_id']] = $row['status'];
+            }
+            
+            // STEP 3: Pre-validate all transitions (fail all if any invalid)
+            foreach ($payroll_entry_ids as $id) {
+                if (!isset($payroll_entries[$id])) {
+                    $failed_ids[] = $id;
+                    continue;
+                }
+                
+                $current_status = $payroll_entries[$id];
+                $validation = $this->ValidateStatusTransition($current_status, $new_status);
+                
+                if (!$validation['valid']) {
+                    $failed_ids[] = $id;
+                }
+            }
+            
+            // STEP 4: If any failed pre-validation, return error without updating
+            if (!empty($failed_ids)) {
+                $succeeded_ids = array_diff($payroll_entry_ids, $failed_ids);
+                return [
+                    'status' => 'error',
+                    'message' => "Cannot transition " . count($failed_ids) . " record(s) from their current status to $new_status",
+                    'affected' => 0,
+                    'succeeded' => $succeeded_ids,
+                    'failed' => $failed_ids
+                ];
+            }
+            
+            // STEP 5: All validations passed - proceed with UPDATE
+            $updated_field = '';
+            switch ($new_status) {
+                case 'REVIEW':
+                    $updated_field = "submitted_by = $user_id, submitted_date = NOW()";
+                    break;
+                case 'APPROVED':
+                    $updated_field = "approved_by = $user_id, approved_date = NOW()";
+                    break;
+                case 'PAID':
+                    $updated_field = "marked_paid_by = $user_id, marked_paid_date = NOW()";
+                    break;
+                case 'DRAFT':
+                    $updated_field = "returned_reason = '" . $this->db->escape_string($reason ?? '') . "'";
+                    break;
+            }
+            
+            $update_query = "UPDATE payroll_entries 
+                            SET status = '$new_status', 
+                                $updated_field,
+                                updated_at = NOW() 
+                            WHERE payroll_entry_id IN ($ids_str)";
+            
+            $update_result = $this->db->query($update_query) or die($this->db->error);
+            $affected_count = $this->db->affectedRows();
+            
+            // STEP 6: Log all transitions to workflow_transitions table
+            foreach ($payroll_entry_ids as $id) {
+                $old_status = $payroll_entries[$id];
+                $ip_address = $_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN';
+                $user_agent = substr($_SERVER['HTTP_USER_AGENT'] ?? '', 0, 255);
+                $reason_sql = $reason ? "'" . $this->db->escape_string($reason) . "'" : 'NULL';
+                
+                $log_query = "INSERT INTO payroll_workflow_transitions 
+                             (payroll_entry_id, from_status, to_status, changed_by, changed_date, reason, ip_address, user_agent)
+                             VALUES ($id, '$old_status', '$new_status', $user_id, NOW(), $reason_sql, INET_ATON('$ip_address'), '$user_agent')";
+                
+                $this->db->query($log_query);
+            }
+            
+            // STEP 7: Log to audit trail
+            $this->LogPayrollAudit(
+                $payroll_entry_ids[0],
+                'BULK_STATUS_UPDATE',
+                $user_id,
+                ['from_statuses' => $payroll_entries, 'count' => count($payroll_entry_ids)],
+                ['to_status' => $new_status, 'reason' => $reason, 'affected' => $affected_count]
+            );
+            
+            return [
+                'status' => 'success',
+                'message' => "Successfully updated status of $affected_count payroll record(s) to $new_status",
+                'affected' => $affected_count,
+                'succeeded' => $payroll_entry_ids,
+                'failed' => []
+            ];
+            
+        } catch (Exception $e) {
+            return [
+                'status' => 'error',
+                'message' => 'Error during bulk status update: ' . $e->getMessage(),
+                'affected' => 0,
+                'succeeded' => [],
+                'failed' => $payroll_entry_ids
+            ];
+        }
+    }
+
+    /**
+     * Get payroll status distribution for a period/department
+     * @param int $payroll_period_id
+     * @param int $dept_id
+     * @param string $emp_type
+     * @return array ['DRAFT' => count, 'REVIEW' => count, ...]
+     */
+    public function GetPayrollStatusCounts($payroll_period_id, $dept_id, $emp_type) {
+        $payroll_period_id = intval($payroll_period_id);
+        $dept_id = intval($dept_id);
+        $emp_type = $this->db->escape_string($emp_type);
+        
+        $query = "SELECT status, COUNT(*) as count FROM payroll_entries 
+                 WHERE payroll_period_id = $payroll_period_id 
+                 AND dept_id = $dept_id 
+                 AND emp_type_stamp = '$emp_type'
+                 GROUP BY status";
+        
+        $result = $this->db->query($query) or die($this->db->error);
+        
+        $counts = ['DRAFT' => 0, 'REVIEW' => 0, 'APPROVED' => 0, 'PAID' => 0];
+        
+        while ($row = $this->db->fetch_array($result)) {
+            if (isset($counts[$row['status']])) {
+                $counts[$row['status']] = intval($row['count']);
+            }
+        }
+        
+        return $counts;
+    }
+
+    /**
+     * Get payroll entries filtered by status
+     * @param int $payroll_period_id
+     * @param int $dept_id
+     * @param string $emp_type
+     * @param string $status DRAFT|REVIEW|APPROVED|PAID
+     * @return array
+     */
+    public function GetPayrollsByStatus($payroll_period_id, $dept_id, $emp_type, $status) {
+        $payroll_period_id = intval($payroll_period_id);
+        $dept_id = intval($dept_id);
+        $emp_type = $this->db->escape_string($emp_type);
+        $status = strtoupper($this->db->escape_string($status));
+        
+        $query = "SELECT * FROM payroll_entries 
+                 WHERE payroll_period_id = $payroll_period_id 
+                 AND dept_id = $dept_id 
+                 AND emp_type_stamp = '$emp_type'
+                 AND status = '$status'
+                 ORDER BY payroll_entry_id ASC";
+        
+        $result = $this->db->query($query) or die($this->db->error);
+        
+        $payrolls = [];
+        while ($row = $this->db->fetch_array($result)) {
+            $payrolls[] = $row;
+        }
+        
+        return $payrolls;
+    }
+
+    /**
+     * Get workflow transition history for a payroll entry
+     * @param int $payroll_entry_id
+     * @param int $limit
+     * @return array
+     */
+    public function GetTransitionHistory($payroll_entry_id, $limit = 50) {
+        $payroll_entry_id = intval($payroll_entry_id);
+        $limit = intval($limit);
+        
+        $query = "SELECT t.*, u.username 
+                 FROM payroll_workflow_transitions t
+                 LEFT JOIN admin_users u ON t.changed_by = u.admin_id
+                 WHERE t.payroll_entry_id = $payroll_entry_id
+                 ORDER BY t.changed_date DESC
+                 LIMIT $limit";
+        
+        $result = $this->db->query($query) or die($this->db->error);
+        
+        $transitions = [];
+        while ($row = $this->db->fetch_array($result)) {
+            $transitions[] = $row;
+        }
+        
+        return $transitions;
     }
 
 }

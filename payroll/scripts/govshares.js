@@ -254,9 +254,19 @@ $(function () {
                       }
                 }); 
               } else if (res.status === 'block_edit') {
+                var blockReason = res.reason || 'unknown';
+                var errorTitle = 'Error - Cannot Edit';
+                
+                // Different title/handling based on blocking reason
+                if(blockReason === 'period'){
+                    errorTitle = 'Error - 1st/2nd Half Mismatch';
+                } else if(blockReason === 'status'){
+                    errorTitle = 'Error - Payroll Locked';
+                }
+                
                 Swal.fire({
                   icon: 'error',
-                  title: 'Cannot Save',
+                  title: errorTitle,
                   text: res.message,
                   confirmButtonColor: '#dc3545',
                   confirmButtonText: 'Ok'

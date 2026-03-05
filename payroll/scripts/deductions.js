@@ -91,9 +91,20 @@ function SaveEmployeeDeductions(){
                     });
                 }
                 else if(result == 'block_edit'){
+                    var blockMessage = obj.message || 'Cannot save/edit deductions. Payroll is locked and cannot be modified.';
+                    var blockReason = obj.reason || 'unknown';
+                    var errorTitle = 'Error - Cannot Edit';
+                    
+                    // Different title/handling based on blocking reason
+                    if(blockReason === 'period'){
+                        errorTitle = 'Error - 1st/2nd Half Mismatch';
+                    } else if(blockReason === 'status'){
+                        errorTitle = 'Error - Payroll Locked';
+                    }
+                    
                     Swal.fire({
-                        title: 'Error',
-                        text: 'Cannot save/edit deduction. Employee deduction is already applied in the previous (1st-half) locked payroll period.',
+                        title: errorTitle,
+                        text: blockMessage,
                         icon: 'error',
                         confirmButtonColor: '#dc3545',
                         confirmButtonText: 'Ok'

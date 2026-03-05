@@ -240,6 +240,103 @@ if($action = isset($_POST['action'])?$_POST['action']:'') {
             echo json_encode($result);
             break;
 
+        case 'update_payroll_status_bulk':
+            // BULK UPDATE: Update status for multiple payroll entries with workflow validation
+            // SECURITY: Requires session validation and workflow rule compliance
+            session_start();
+            
+            if (!isset($_SESSION['uid'])) {
+                http_response_code(401);
+                echo json_encode(['status' => 'error', 'message' => 'Unauthorized - please login']);
+                exit;
+            }
+            
+            $Payroll = new Payroll();
+            $payroll_entry_ids = isset($_POST['payroll_entry_ids']) ? 
+                array_map('intval', (array)$_POST['payroll_entry_ids']) : [];
+            $new_status = $_POST['new_status'] ?? '';
+            $reason = isset($_POST['reason']) ? $_POST['reason'] : null;
+            $user_id = intval($_SESSION['uid']);
+            
+            // SECURITY: Validate inputs
+            if (empty($payroll_entry_ids)) {
+                http_response_code(400);
+                echo json_encode(['status' => 'error', 'message' => 'No payroll entries provided']);
+                exit;
+            }
+            
+            $valid_statuses = ['DRAFT', 'REVIEW', 'APPROVED', 'PAID'];
+            if (!in_array($new_status, $valid_statuses)) {
+                http_response_code(400);
+                echo json_encode(['status' => 'error', 'message' => "Invalid status: $new_status"]);
+                exit;
+            }
+            
+            // Call bulk update method
+            $result = $Payroll->BulkUpdatePayrollStatus($payroll_entry_ids, $new_status, $user_id, $reason);
+            
+            header('Content-Type: application/json');
+            http_response_code($result['status'] === 'success' ? 200 : 400);
+            echo json_encode($result);
+            break;
+
+        case 'get_payroll_status_counts':
+            // Get status distribution for dashboard/summary
+            session_start();
+            
+            if (!isset($_SESSION['uid'])) {
+                http_response_code(401);
+                echo json_encode(['status' => 'error', 'message' => 'Unauthorized - please login']);
+                exit;
+            }
+            
+            $Payroll = new Payroll();
+            $payroll_period_id = intval($_POST['payroll_period_id'] ?? 0);
+            $dept_id = intval($_POST['dept_id'] ?? 0);
+            $emp_type = $_POST['emp_type'] ?? 'Regular';
+            
+            if ($payroll_period_id <= 0 || $dept_id <= 0) {
+                http_response_code(400);
+                echo json_encode(['status' => 'error', 'message' => 'Invalid period or department ID']);
+                exit;
+            }
+            
+            $counts = $Payroll->GetPayrollStatusCounts($payroll_period_id, $dept_id, $emp_type);
+            
+            header('Content-Type: application/json');
+            echo json_encode(['status' => 'success', 'counts' => $counts]);
+            break;
+
+        case 'get_transition_history':
+            // Get workflow transition history for a payroll entry
+            session_start();
+            
+            if (!isset($_SESSION['uid'])) {
+                http_response_code(401);
+                echo json_encode(['status' => 'error', 'message' => 'Unauthorized - please login']);
+                exit;
+            }
+            
+            $Payroll = new Payroll();
+            $payroll_entry_id = intval($_POST['payroll_entry_id'] ?? 0);
+            $limit = intval($_POST['limit'] ?? 50);
+            
+            if ($payroll_entry_id <= 0) {
+                http_response_code(400);
+                echo json_encode(['status' => 'error', 'message' => 'Invalid payroll entry ID']);
+                exit;
+            }
+            
+            if ($limit <= 0 || $limit > 100) {
+                $limit = 50;
+            }
+            
+            $transitions = $Payroll->GetTransitionHistory($payroll_entry_id, $limit);
+            
+            header('Content-Type: application/json');
+            echo json_encode(['status' => 'success', 'transitions' => $transitions]);
+            break;
+
         default:
             # code...
             break;

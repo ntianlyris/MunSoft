@@ -5,33 +5,30 @@ require_once '..//includes/class/Payslip.php';
 require_once '..//includes/class/Employee.php';
 require_once '..//includes/class/Employment.php';
 
-// Get parameters - support both employee_id (from payroll side) and user_id (from employee side)
-$employee_id = isset($_POST['employee_id']) ? $_POST['employee_id'] : (isset($_GET['employee_id']) ? $_GET['employee_id'] : '');
-$user_id = isset($_POST['user_id']) ? $_POST['user_id'] : (isset($_GET['user_id']) ? $_GET['user_id'] : '');
-$year = isset($_POST['year']) ? $_POST['year'] : (isset($_GET['year']) ? $_GET['year'] : '');
-$payroll_period = isset($_POST['payroll_period']) ? $_POST['payroll_period'] : (isset($_GET['payroll_period']) ? $_GET['payroll_period'] : '');
+// ── Parameters ────────────────────────────────────────────────────────────────
+$employee_id = $_POST['employee_id'] ?? $_GET['employee_id'] ?? '';
+$user_id     = $_POST['user_id']     ?? $_GET['user_id']     ?? '';
+$year           = $_POST['year']           ?? $_GET['year']           ?? '';
+$payroll_period = $_POST['payroll_period'] ?? $_GET['payroll_period'] ?? '';
 
-// If user_id is provided instead of employee_id, convert it
 if (!empty($user_id) && empty($employee_id)) {
-    $Employee = new Employee();
+    $Employee    = new Employee();
     $employee_id = $Employee->getEmployeeIDByUserId($user_id);
     if (!$employee_id) {
         die('Error: Could not find employee record for the logged-in user.');
     }
 }
 
-// Validate parameters
 if (empty($employee_id) || empty($year) || empty($payroll_period)) {
     die('Invalid parameters. Please provide employee_id (or user_id), year, and payroll_period.');
 }
 
-// Validate payroll_period format
 $period_parts = explode('_', $payroll_period);
 if (count($period_parts) < 2) {
-    die('Invalid payroll_period format. Expected format: YYYY-MM-DD_YYYY-MM-DD (e.g., 2026-03-16_2026-03-31)');
+    die('Invalid payroll_period format. Expected format: YYYY-MM-DD_YYYY-MM-DD');
 }
 
-// Generate payslip data
+// ── Generate payslip data ─────────────────────────────────────────────────────
 try {
     $PaySlip = new Payslip();
     $payslip = $PaySlip->GeneratePayslip($employee_id, $year, $payroll_period);
@@ -39,7 +36,6 @@ try {
     die('Error generating payslip: ' . htmlspecialchars($e->getMessage()));
 }
 
-// Validate payslip coverage data exists
 if (empty($payslip) || !isset($payslip['coverage'])) {
     die('Unable to generate payslip. Missing coverage information.');
 }
@@ -49,221 +45,266 @@ if (count($coverage_parts) < 2) {
     die('Invalid coverage format in payslip data.');
 }
 
-$start_coverage = trim($coverage_parts[0]);
-$end_coverage = trim($coverage_parts[1]);
-
-// Parse coverage dates with error handling
-$start_date_obj = DateTime::createFromFormat('m-d-Y', $start_coverage);
-$end_date_obj = DateTime::createFromFormat('m-d-Y', $end_coverage);
-
-if ($start_date_obj === false || $end_date_obj === false) {
+$start_date_obj = DateTime::createFromFormat('m-d-Y', trim($coverage_parts[0]));
+$end_date_obj   = DateTime::createFromFormat('m-d-Y', trim($coverage_parts[1]));
+if (!$start_date_obj || !$end_date_obj) {
     die('Error parsing coverage dates from payslip data.');
 }
 
-$start_coverage = $start_date_obj->format("m/d/Y");
-$end_coverage = $end_date_obj->format("m/d/Y");
+$start_coverage       = $start_date_obj->format('m/d/Y');
+$end_coverage         = $end_date_obj->format('m/d/Y');
+$date_issued_formatted = date('m/d/Y');
 
-$date_issued = date('m-d-Y');
-$date_issued_obj = DateTime::createFromFormat('m-d-Y', $date_issued);
-if ($date_issued_obj === false) {
-    die('Error formatting current date.');
-}
-$date_issued_formatted = $date_issued_obj->format("m/d/Y");
-
-// Check if payslip data is valid
-if (empty($payslip) || !isset($payslip['employee_num'])) {
+if (empty($payslip['employee_num'])) {
     die('Unable to generate payslip. Please check the provided information.');
 }
 
-// Create new PDF document
-$pdf = new TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
+// ── Layout constants ──────────────────────────────────────────────────────────
+// Page: 215.9 × 330.2 mm  (8.5 × 13 in folio)
+// Margins: L=5 T=3 R=5  → usable width = 205.9 mm
+//
+// Two equal columns: each = 205.9 / 2 = 102.95 mm
+// Left column  starts at x = 5
+// Right column starts at x = 5 + 102.95 = 107.95
+//
+// Amount column width = 22 mm  (fits "999,999.99" at 6pt Helvetica)
+// Label column width  = col_w - AMT_W  = 102.95 - 22 = 80.95 mm
+// (1 mm inner padding already accounted for in Cell rendering)
 
-// Set document information
+define('PAGE_L',   5);       // left margin (mm)
+define('PAGE_R',   210.9);   // right edge = 215.9 - 5
+define('PAGE_T',   3);       // top margin (mm)
+define('COL_W',    102.95);  // each half-width column
+define('COL_R',    107.95);  // x-start of right column  (PAGE_L + COL_W)
+define('AMT_W',    22);      // amount cell width
+define('LBL_W',    COL_W - AMT_W);  // label cell width = 80.95
+define('ROW_H',    3);       // standard row height (mm)
+define('HDR_H',    4);       // section-header row height
+define('SECTION_FONT', 8);
+define('BODY_FONT',    7);
+define('SMALL_FONT',   6);
+define('TINY_FONT',    5);
+
+// ── Colours ───────────────────────────────────────────────────────────────────
+// TCPDF SetFillColor takes R,G,B integers 0-255
+define('FG_GREY_R',  240);  define('FG_GREY_G',  240);  define('FG_GREY_B',  240);  // #F0F0F0
+define('FG_BLUE_R',  100);  define('FG_BLUE_G',  150);  define('FG_BLUE_B',  200);  // #6496C8
+define('FG_BORD_R',  200);  define('FG_BORD_G',  200);  define('FG_BORD_B',  200);  // #C8C8C8
+
+// ── PDF setup ─────────────────────────────────────────────────────────────────
+$pdf = new TCPDF('P', 'mm', [215.9, 330.2], true, 'UTF-8', false);
+
 $pdf->SetCreator('MunSoft Payroll System');
 $pdf->SetAuthor('MunSoft');
 $pdf->SetTitle('Payslip - ' . $payslip['employee_name']);
 $pdf->SetSubject('Employee Payslip');
-
-// Set default monospaced font
 $pdf->SetDefaultMonospacedFont('courier');
 
-// Set margins
-$pdf->SetMargins(10, 5, 10);
-$pdf->SetAutoPageBreak(TRUE, 10);
+$pdf->SetMargins(PAGE_L, PAGE_T, PAGE_L);   // L, T, R — all symmetric
+$pdf->SetAutoPageBreak(true, PAGE_L);
 
-// Add a page
 $pdf->AddPage();
 
-// Set font
-$pdf->SetFont('helvetica', '', 10);
-
-// Company Header
-$pdf->SetFont('helvetica', 'B', 16);
-$pdf->Cell(0, 8, 'PAYSLIP', 0, 1, 'C');
-
-$pdf->SetFont('helvetica', '', 9);
-$pdf->Cell(0, 5, 'MunSoft Payroll System', 0, 1, 'C');
-$pdf->Ln(3);
-
-// Horizontal line
-$pdf->SetDrawColor(0, 0, 0);
-$pdf->Line(10, $pdf->GetY(), 200, $pdf->GetY());
-$pdf->Ln(3);
-
-// Employee Information Section
-$pdf->SetFont('helvetica', 'B', 11);
-$pdf->Cell(0, 6, 'EMPLOYEE INFORMATION', 0, 1, 'L');
-$pdf->SetFont('helvetica', '', 10);
-
-// Left column for employee info
-$leftX = 12;
-$rightX = 105;
-$yStart = $pdf->GetY();
-
-// Employee details in two columns
-$pdf->SetXY($leftX, $yStart);
-$pdf->SetFont('helvetica', 'B', 10);
-$pdf->Cell(35, 5, 'Employee No:', 0, 0, 'L');
-$pdf->SetFont('helvetica', '', 10);
-$pdf->Cell(50, 5, $payslip['employee_num'], 0, 1, 'L');
-
-$pdf->SetXY($leftX, $pdf->GetY());
-$pdf->SetFont('helvetica', 'B', 10);
-$pdf->Cell(35, 5, 'Name:', 0, 0, 'L');
-$pdf->SetFont('helvetica', '', 10);
-$pdf->Cell(50, 5, $payslip['employee_name'], 0, 1, 'L');
-
-$pdf->SetXY($leftX, $pdf->GetY());
-$pdf->SetFont('helvetica', 'B', 10);
-$pdf->Cell(35, 5, 'Position:', 0, 0, 'L');
-$pdf->SetFont('helvetica', '', 10);
-$pdf->Cell(50, 5, $payslip['position'], 0, 1, 'L');
-
-$pdf->SetXY($leftX, $pdf->GetY());
-$pdf->SetFont('helvetica', 'B', 10);
-$pdf->Cell(35, 5, 'Department:', 0, 0, 'L');
-$pdf->SetFont('helvetica', '', 10);
-$pdf->Cell(50, 5, $payslip['department'], 0, 1, 'L');
-
-// Right column for period info
-$pdf->SetFont('helvetica', 'B', 10);
-$pdf->SetXY($rightX, $yStart);
-$pdf->Cell(35, 5, 'Period Coverage:', 0, 0, 'L');
-$pdf->SetFont('helvetica', '', 10);
-$pdf->Cell(50, 5, $start_coverage . ' - ' . $end_coverage, 0, 1, 'L');
-
-$pdf->SetXY($rightX, $pdf->GetY());
-$pdf->SetFont('helvetica', 'B', 10);
-$pdf->Cell(35, 5, 'Date Issued:', 0, 0, 'L');
-$pdf->SetFont('helvetica', '', 10);
-$pdf->Cell(50, 5, $date_issued_formatted, 0, 1, 'L');
-
-$pdf->Ln(10);
-
-// Horizontal line
-$pdf->SetDrawColor(0, 0, 0);
-$pdf->Line(10, $pdf->GetY(), 200, $pdf->GetY());
-$pdf->Ln(3);
-
-// Earnings and Deductions Section
-$leftColWidth = 92;
-$rightColWidth = 92;
-
-// Earnings Table
-$pdf->SetFont('helvetica', 'B', 11);
-$pdf->Cell($leftColWidth, 6, 'EARNINGS', 0, 0, 'L');
-$pdf->Cell($rightColWidth, 6, 'DEDUCTIONS', 0, 1, 'L');
-
-$pdf->SetFont('helvetica', '', 9);
-
-// Earnings content
-$earnings_y = $pdf->GetY();
-
-$pdf->SetXY(12, $earnings_y);
-$pdf->SetDrawColor(200, 200, 200);
-$pdf->Rect(12, $earnings_y, $leftColWidth - 4, 5, 'D');
-$pdf->Cell($leftColWidth - 4, 5, 'Description', 0, 0, 'L');
-
-$pdf->SetXY(105, $earnings_y);
-$pdf->Rect(105, $earnings_y, $rightColWidth - 4, 5, 'D');
-$pdf->Cell($rightColWidth - 4, 5, 'Description', 0, 1, 'L');
-
-// Basic Pay
-$earnings_y += 5;
-$pdf->SetXY(12, $earnings_y);
-$pdf->Cell($leftColWidth - 8, 5, 'BASIC', 0, 0, 'L');
-$pdf->Cell(8, 5, number_format($payslip['basic'], 2), 0, 1, 'R');
-
-// Other Earnings
-$earnings_y = $pdf->GetY();
-if ($payslip['other_earnings'] > 0) {
-    $pdf->SetXY(12, $earnings_y);
-    $pdf->Cell($leftColWidth - 8, 5, 'OTHER INCOME', 0, 0, 'L');
-    $pdf->Cell(8, 5, number_format($payslip['other_earnings'], 2), 0, 1, 'R');
-    $earnings_y = $pdf->GetY();
+// ─────────────────────────────────────────────────────────────────────────────
+// Helper: draw a full-width horizontal rule
+// ─────────────────────────────────────────────────────────────────────────────
+function drawRule($pdf) {
+    $pdf->SetDrawColor(0, 0, 0);
+    $pdf->SetLineWidth(0.2);
+    $pdf->Line(PAGE_L, $pdf->GetY(), PAGE_R, $pdf->GetY());
 }
 
-// Gross Pay
-$pdf->SetXY(12, $earnings_y);
-$pdf->SetFont('helvetica', 'B', 9);
-$pdf->SetFillColor(240, 240, 240);
-$pdf->Cell($leftColWidth - 8, 5, 'GROSS PAY', 0, 0, 'L', true);
-$pdf->Cell(8, 5, number_format($payslip['gross'], 2), 0, 1, 'R', true);
+// ─────────────────────────────────────────────────────────────────────────────
+// PAYSLIP title
+// ─────────────────────────────────────────────────────────────────────────────
+$pdf->SetFont('helvetica', 'B', 10);
+$pdf->Cell(0, 5, 'PAYSLIP', 0, 1, 'C');
 
-// Deductions content
-$deductions_y = $earnings_y - 10;
-$pdf->SetFont('helvetica', '', 9);
-$pdf->SetXY(105, $deductions_y);
-
-$deduction_items = $payslip['deductions'];
-$total_deductions = 0;
-
-if (is_array($deduction_items)) {
-    foreach ($deduction_items as $key => $deduction) {
-        if ($key !== 'total_deductions' && is_array($deduction) && isset($deduction['amount'])) {
-            $pdf->SetXY(105, $deductions_y);
-            $label = isset($deduction['label']) ? $deduction['label'] : '';
-            $amount = floatval($deduction['amount']);
-            $total_deductions += $amount;
-            
-            $pdf->Cell($rightColWidth - 8, 5, $label, 0, 0, 'L');
-            $pdf->Cell(8, 5, number_format($amount, 2), 0, 1, 'R');
-            $deductions_y = $pdf->GetY();
-        }
-    }
-}
-
-// Total Deductions
-$pdf->SetXY(105, $deductions_y);
-$pdf->SetFont('helvetica', 'B', 9);
-$pdf->SetFillColor(240, 240, 240);
-$total_ded = isset($deduction_items['total_deductions']) ? $deduction_items['total_deductions'] : $total_deductions;
-$pdf->Cell($rightColWidth - 8, 5, 'TOTAL DEDUCTIONS', 0, 0, 'L', true);
-$pdf->Cell(8, 5, number_format($total_ded, 2), 0, 1, 'R', true);
-
-$pdf->Ln(2);
-
-// Horizontal line
-$pdf->SetDrawColor(0, 0, 0);
-$pdf->Line(10, $pdf->GetY(), 200, $pdf->GetY());
-$pdf->Ln(3);
-
-// Net Pay Section
-$pdf->SetFont('helvetica', 'B', 12);
-$pdf->SetFillColor(100, 150, 200);
-$pdf->SetTextColor(255, 255, 255);
-$pdf->Cell(0, 10, 'NET PAY: ' . number_format($payslip['net_pay'], 2), 0, 1, 'C', true);
-$pdf->SetTextColor(0, 0, 0);
-
+$pdf->SetFont('helvetica', '', SMALL_FONT);
+$pdf->Cell(0, ROW_H, 'MunSoft Payroll System', 0, 1, 'C');
 $pdf->Ln(1);
 
-// Footer
-$pdf->SetFont('helvetica', '', 7);
-$pdf->SetTextColor(100, 100, 100);
-$pdf->Cell(0, 4, 'This is an electronically generated document. No signature is required.', 0, 1, 'C');
-$pdf->Cell(0, 4, 'Generated on: ' . date('F d, Y h:i A'), 0, 1, 'C');
+// ─────────────────────────────────────────────────────────────────────────────
+// Divider
+// ─────────────────────────────────────────────────────────────────────────────
+drawRule($pdf);
+$pdf->Ln(1);
 
-// Output PDF to browser
+// ─────────────────────────────────────────────────────────────────────────────
+// EMPLOYEE INFORMATION — two equal-width columns
+//
+// Left col  (x=5,    w=102.95):  label 35mm | value 67.95mm
+// Right col (x=107.95, w=102.95): label 35mm | value 67.95mm
+// ─────────────────────────────────────────────────────────────────────────────
+$pdf->SetFont('helvetica', 'B', SECTION_FONT);
+$pdf->Cell(0, HDR_H, 'EMPLOYEE INFORMATION', 0, 1, 'L');
+
+$INFO_LBL_W = 35;
+$INFO_VAL_W = COL_W - $INFO_LBL_W;   // 67.95 mm
+
+$yInfo = $pdf->GetY();
+
+// ── Left column rows ─────────────────────────────────────────────────────────
+$leftRows = [
+    ['Employee No:', $payslip['employee_num']],
+    ['Name:',        $payslip['employee_name']],
+    ['Position:',    $payslip['position']],
+    ['Department:',  $payslip['department']],
+];
+$yL = $yInfo;
+foreach ($leftRows as [$lbl, $val]) {
+    $pdf->SetXY(PAGE_L, $yL);
+    $pdf->SetFont('helvetica', 'B', BODY_FONT);
+    $pdf->Cell($INFO_LBL_W, ROW_H, $lbl, 0, 0, 'L');
+    $pdf->SetFont('helvetica', '', BODY_FONT);
+    $pdf->Cell($INFO_VAL_W, ROW_H, $val, 0, 1, 'L');
+    $yL += ROW_H;
+}
+
+// ── Right column rows ────────────────────────────────────────────────────────
+$rightRows = [
+    ['Period:',      $start_coverage . ' - ' . $end_coverage],
+    ['Date Issued:', $date_issued_formatted],
+];
+$yR = $yInfo;
+foreach ($rightRows as [$lbl, $val]) {
+    $pdf->SetXY(COL_R, $yR);
+    $pdf->SetFont('helvetica', 'B', BODY_FONT);
+    $pdf->Cell($INFO_LBL_W, ROW_H, $lbl, 0, 0, 'L');
+    $pdf->SetFont('helvetica', '', BODY_FONT);
+    $pdf->Cell($INFO_VAL_W, ROW_H, $val, 0, 1, 'L');
+    $yR += ROW_H;
+}
+
+// Advance cursor past both columns
+$pdf->SetY(max($yL, $yR) + 2);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Divider
+// ─────────────────────────────────────────────────────────────────────────────
+drawRule($pdf);
+$pdf->Ln(1);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// EARNINGS | DEDUCTIONS section headers
+// ─────────────────────────────────────────────────────────────────────────────
+$pdf->SetFont('helvetica', 'B', SECTION_FONT);
+$pdf->SetX(PAGE_L);
+$pdf->Cell(COL_W, ROW_H, 'EARNINGS',   0, 0, 'L');
+$pdf->Cell(COL_W, ROW_H, 'DEDUCTIONS', 0, 1, 'L');
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Sub-header row: "Description" | "Amount"  ×2
+// ─────────────────────────────────────────────────────────────────────────────
+$ySubHdr = $pdf->GetY();
+$pdf->SetFont('helvetica', '', SMALL_FONT);
+$pdf->SetDrawColor(FG_BORD_R, FG_BORD_G, FG_BORD_B);
+
+// Left sub-header
+$pdf->SetXY(PAGE_L, $ySubHdr);
+$pdf->Cell(LBL_W, ROW_H, 'Description', 'B', 0, 'L');   // bottom border only
+$pdf->Cell(AMT_W, ROW_H, 'Amount',      'B', 0, 'R');
+
+// Right sub-header
+$pdf->SetXY(COL_R, $ySubHdr);
+$pdf->Cell(LBL_W, ROW_H, 'Description', 'B', 0, 'L');
+$pdf->Cell(AMT_W, ROW_H, 'Amount',      'B', 1, 'R');
+
+// Reset draw colour
+$pdf->SetDrawColor(0, 0, 0);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// EARNINGS rows
+// ─────────────────────────────────────────────────────────────────────────────
+$yEarnings = $pdf->GetY();
+
+// BASIC
+$pdf->SetXY(PAGE_L, $yEarnings);
+$pdf->SetFont('helvetica', '', SMALL_FONT);
+$pdf->Cell(LBL_W, ROW_H, 'BASIC', 0, 0, 'L');
+$pdf->Cell(AMT_W, ROW_H, number_format($payslip['basic'], 2), 0, 0, 'R');
+$yEarnings += ROW_H;
+
+// OTHER INCOME (conditional)
+if ($payslip['other_earnings'] > 0) {
+    $pdf->SetXY(PAGE_L, $yEarnings);
+    $pdf->Cell(LBL_W, ROW_H, 'OTHER INCOME', 0, 0, 'L');
+    $pdf->Cell(AMT_W, ROW_H, number_format($payslip['other_earnings'], 2), 0, 0, 'R');
+    $yEarnings += ROW_H;
+}
+
+// GROSS PAY (shaded)
+$pdf->SetXY(PAGE_L, $yEarnings);
+$pdf->SetFont('helvetica', 'B', SMALL_FONT);
+$pdf->SetFillColor(FG_GREY_R, FG_GREY_G, FG_GREY_B);
+$pdf->Cell(LBL_W, ROW_H, 'GROSS PAY', 0, 0, 'L', true);
+$pdf->Cell(AMT_W, ROW_H, number_format($payslip['gross'], 2), 0, 0, 'R', true);
+$yEarnings += ROW_H;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DEDUCTIONS rows — start at same Y as earnings rows (ySubHdr + ROW_H)
+// ─────────────────────────────────────────────────────────────────────────────
+$yDeductions   = $pdf->GetY() - ($yEarnings - ($ySubHdr + ROW_H + 3));   // sync to earnings start
+$deduction_items = $payslip['deductions'];
+$total_ded_calc  = 0;
+
+$pdf->SetFont('helvetica', '', SMALL_FONT);
+foreach ($deduction_items as $key => $deduction) {
+    if ($key === 'total_deductions' || !is_array($deduction) || !isset($deduction['amount'])) {
+        continue;
+    }
+    $label  = $deduction['label']  ?? '';
+    $amount = (float)($deduction['amount'] ?? 0);
+    $total_ded_calc += $amount;
+
+    $pdf->SetXY(COL_R, $yDeductions);
+    $pdf->Cell(LBL_W, ROW_H, $label, 0, 0, 'L');
+    $pdf->Cell(AMT_W, ROW_H, number_format($amount, 2), 0, 0, 'R');
+    $yDeductions += ROW_H;
+}
+
+// TOTAL DEDUCTIONS (shaded)
+$total_ded = $deduction_items['total_deductions'] ?? $total_ded_calc;
+$pdf->SetXY(COL_R, $yDeductions);
+$pdf->SetFont('helvetica', 'B', SMALL_FONT);
+$pdf->SetFillColor(FG_GREY_R, FG_GREY_G, FG_GREY_B);
+$pdf->Cell(LBL_W, ROW_H, 'TOTAL DEDUCTIONS', 0, 0, 'L', true);
+$pdf->Cell(AMT_W, ROW_H, number_format($total_ded, 2), 0, 0, 'R', true);
+$yDeductions += ROW_H;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Advance cursor past whichever column is longer, then add 1mm gap
+// ─────────────────────────────────────────────────────────────────────────────
+$pdf->SetY(max($yEarnings, $yDeductions) + 1);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Divider
+// ─────────────────────────────────────────────────────────────────────────────
+drawRule($pdf);
+$pdf->Ln(1);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// NET PAY bar
+// ─────────────────────────────────────────────────────────────────────────────
+$pdf->SetFont('helvetica', 'B', 9);
+$pdf->SetFillColor(FG_BLUE_R, FG_BLUE_G, FG_BLUE_B);
+$pdf->SetTextColor(255, 255, 255);
+$pdf->Cell(0, 6, 'NET PAY: ' . number_format($payslip['net_pay'], 2), 0, 1, 'C', true);
+$pdf->SetTextColor(0, 0, 0);
+$pdf->Ln(0.5);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Footer
+// ─────────────────────────────────────────────────────────────────────────────
+$pdf->SetFont('helvetica', '', TINY_FONT);
+$pdf->SetTextColor(100, 100, 100);
+$pdf->Cell(0, 2, 'This is an electronically generated document. No signature is required.', 0, 1, 'C');
+$pdf->Cell(0, 2, 'Generated on: ' . date('F d, Y h:i A'), 0, 1, 'C');
+$pdf->SetTextColor(0, 0, 0);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Output
+// ─────────────────────────────────────────────────────────────────────────────
 $filename = 'Payslip_' . str_replace(' ', '_', $payslip['employee_name']) . '_' . $year . '.pdf';
 ob_end_clean();
 $pdf->Output($filename, 'I');

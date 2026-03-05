@@ -81,7 +81,7 @@ class Payslip extends Payroll {
                 $gross = $payroll_entry['gross'];
 
                 // Net pay is always accumulated
-                $net_pay += floatval($payroll_entry['net_pay']);
+                //$net_pay += floatval($payroll_entry['net_pay']);
 
                 // Decode earnings and deductions breakdown and add to list
                 $earnings_breakdown = json_decode($payroll_entry['earnings_breakdown'], true) ?? [];
@@ -103,8 +103,8 @@ class Payslip extends Payroll {
         $final_earnings = $this->SumEarningsBreakdown($all_earnings_breakdown);
         $total_other_earnings = $final_earnings['total_earnings'] - $basic;
         $final_deductions = $this->SumDeductionsBreakdown($all_deductions_breakdown);
-                
-       
+        $net_pay = $gross - $final_deductions['total_deductions'];
+                      
         
 
         // Logic to generate payslip for the given employee, year, and payroll period

@@ -61,7 +61,7 @@ if($action = isset($_REQUEST['action'])?$_REQUEST['action']:'') {
             $Payroll = new Payroll();
 
             $employee_earning_id = $_POST['employee_earning_id'];
-            $employee_id = isset($_POST['employee_id']) ? $_POST['employee_id'] : '';                     //---needed for payroll period blocking check (may come from hidden field)
+            $employee_id = isset($_POST['employee_id']) ? $_POST['employee_id'] : '';                     //---needed for payroll period and status blocking checks
             //$earning_particulars = $_POST['earning_particulars'];     //---not to be included since its already saved in db and will be permanent data of the employee
             //$effective_date = $_POST['effective_date'];               //---not to be included since its already saved in db and will be permanent data of the employee
             $earning_code_ids = $_POST['earning_code_ids'] ?? [];   ## array of earning codes
@@ -70,20 +70,29 @@ if($action = isset($_REQUEST['action'])?$_REQUEST['action']:'') {
             $date_updated = DateToday();
             $json_data = '';
 
-            // Check if edit should be blocked for semi-monthly payroll when in first half of month
-            $last_locked_period = $Payroll->GetLastLockedPayrollPeriodByEmployee($employee_id);
-            $locked_start_date = $last_locked_period['date_start'] ?? null;
+            // ========== TWO-LAYER BLOCKING SYSTEM ==========
+            // Layer 1: Period-based (1st/2nd half semi-monthly consistency)
+            // Layer 2: Status-based (workflow state protection)
             
-            $active_frequency = $Payroll->GetCurrentActiveFrequency();
-            $frequency = $active_frequency['freq_code'] ?? 'monthly';
+            $last_locked_period = $Payroll->GetLastLockedPayrollPeriodByEmployee($employee_id);
+            $payroll_status = $last_locked_period['status'] ?? null;
+            $locked_start_date = $last_locked_period['date_start'] ?? null;
+                         
+            // LAYER 2: Check status-based blocking (workflow state protection)
+            // Additional checkpoint: Block non-DRAFT status regardless of period
+            if($last_locked_period && $payroll_status !== 'DRAFT'){
+                $json_data = '{"result":"block_edit","reason":"status","status":"'.$payroll_status.'","message":"Payroll is in '.$payroll_status.' status. Please backtrack to DRAFT status first to make changes to earnings."}';
+                echo $json_data;
+                exit;
+            }
 
-            if($frequency == 'semi-monthly' && $locked_start_date){
-                $is_second_half = $Payroll->IsSecondHalfOfMonth($locked_start_date);
-                if(!$is_second_half){
-                    $json_data = '{"result":"block_edit"}';
-                    echo $json_data;
-                    exit;
-                }
+            // LAYER 1: Check period-based blocking (1st/2nd half semi-monthly consistency)
+            // Block edits to earnings for 2nd half of semi-monthly payroll to ensure consistency
+            // Earnings should only be edited in the 1st half of the month for semi-monthly frequencies
+            if($last_locked_period && $Payroll->IsSecondHalfOfMonth($locked_start_date)){
+                $json_data = '{"result":"block_edit","reason":"period","period_type":"2nd_half_semi_monthly","message":"Earnings cannot be edited for the 2nd half of semi-monthly payroll period but on the 1st half of the payroll cycle."}';
+                echo $json_data;
+                exit;
             }
             
             if (!empty($earning_code_ids) && !empty($emp_earnings_amts)) {        

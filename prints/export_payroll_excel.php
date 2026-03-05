@@ -129,23 +129,6 @@ function buildGovSharesArray($configured_govshares, $govshares) {
 
 // ==========================================================
 // STYLE TAG CONSTANTS
-// -------------------------------------------------------
-// SimpleXLSXGen uses the same inline pseudo-HTML tag system
-// as the old PhpXlsxGenerator — all your existing tags work.
-//
-// Tag reference:
-//   <b>  <i>  <u>  <s>
-//   <left>  <center>  <right>  <top>  <middle>  <bottom>
-//   <wraptext>
-//   <style bgcolor="AARRGGBB" color="AARRGGBB"
-//          border="thin|medium|none none thin none|..."
-//          nf="format_code"  font-size="N"  height="N">
-//
-// NEW features vs CodexWorld fork:
-//   <raw>value</raw>  — disables type detection (e.g. keep +12345 as text)
-//   SimpleXLSXGen::raw($v)        — same, static helper
-//   SimpleXLSXGen::rawArray($arr) — applies raw() to all strings in 2-D array
-//   ->setLanguage('en-PH')        — document language property
 // ==========================================================
 
 $BG_HEADER    = 'FFD9D9D9';
@@ -154,15 +137,15 @@ $BG_TOTAL     = 'FFEEEEEE';
 $NF_CURRENCY  = '#,##0.00';
 
 $TAG_HDR = '<b><center><middle><wraptext>'
-         . '<style bgcolor="' . $BG_HEADER    . '" border="thin" font-size="8">';
+         . '<style bgcolor="' . $BG_HEADER    . '" border="thin" font-size="9">';
 $TAG_SUB = '<b><center><middle>'
-         . '<style bgcolor="' . $BG_SUBHEADER . '" border="thin" font-size="7">';
+         . '<style bgcolor="' . $BG_SUBHEADER . '" border="thin" font-size="9">';
 $TAG_NUM = '<right><middle>'
-         . '<style border="thin" nf="' . $NF_CURRENCY . '" font-size="7">';
+         . '<style border="thin" nf="' . $NF_CURRENCY . '" font-size="9">';
 $TAG_NUM_BOLD = '<b><right><middle>'
-              . '<style border="thin" nf="' . $NF_CURRENCY . '" font-size="7">';
+              . '<style border="thin" nf="' . $NF_CURRENCY . '" font-size="9">';
 $TAG_TOT = '<b><right><middle>'
-         . '<style bgcolor="' . $BG_TOTAL . '" border="thin" nf="' . $NF_CURRENCY . '" font-size="8">';
+         . '<style bgcolor="' . $BG_TOTAL . '" border="thin" nf="' . $NF_CURRENCY . '" font-size="9">';
 $TAG_TOT_EMPTY = '<style bgcolor="' . $BG_TOTAL . '" border="thin">';
 
 // ==========================================================
@@ -178,6 +161,8 @@ $col_gov1  = $col_ded1 + $ded_count;
 $col_net   = $col_gov1 + $gov_count;
 $col_sig   = $col_net  + 1;
 $last_col  = $col_sig;
+
+$half_col  = (int)ceil($last_col / 2);
 
 function colLetter($n) {
     $c = '';
@@ -196,8 +181,8 @@ $rows = [];
 $title_lines = [
     '<center><style font-size="9">Republic of the Philippines',
     '<center><style font-size="9">Province of Zamboanga del Norte',
-    '<b><center><style font-size="12">MUNICIPALITY OF POLANCO',
-    '<b><center><style font-size="11">GENERAL PAYROLL',
+    '<center><b><style font-size="9">MUNICIPALITY OF POLANCO',
+    '<center><b><style font-size="9">GENERAL PAYROLL',
     '<center><style font-size="9">Period: ' . $pay_period_start . ' to ' . $pay_period_end,
     '<center><style font-size="9">Department: ' . $department_name,
 ];
@@ -205,31 +190,36 @@ foreach ($title_lines as $line) {
     $r = emptyRow($last_col); $r[0] = $line; $rows[] = $r;
 }
 
-// Row 7: group headers
-$row7 = emptyRow($last_col);
-$row7[$col_no    - 1] = $TAG_HDR . 'NO.';
-$row7[$col_name  - 1] = $TAG_HDR . 'EMPLOYEE / DESIGNATION';
-$row7[$col_basic - 1] = $TAG_HDR . 'EARNINGS';
-$row7[$col_ded1  - 1] = $TAG_HDR . 'DEDUCTIONS';
-$row7[$col_gov1  - 1] = $TAG_HDR . 'GOV SHARES';
-$row7[$col_net   - 1] = $TAG_HDR . 'NET PAY';
-$row7[$col_sig   - 1] = $TAG_HDR . 'SIGNATURE';
-$rows[] = $row7;
+// ── CHANGE 1: Row 7 — blank spacer between title block and column headers ──
+$rows[] = emptyRow($last_col);
 
-// Row 8: sub-column headers
+// Row 8: group headers  (was row 7)
 $row8 = emptyRow($last_col);
-foreach (['Basic', 'PERA', 'Others', 'Gross'] as $i => $lbl) {
-    $row8[$col_basic - 1 + $i] = $TAG_SUB . $lbl;
-}
-foreach ($deduction_headers as $i => $dh) {
-    $row8[$col_ded1 - 1 + $i] = $TAG_SUB . strtoupper($dh);
-}
-foreach (['L/R', 'HDMF', 'PHIC', 'ECC'] as $i => $lbl) {
-    $row8[$col_gov1 - 1 + $i] = $TAG_SUB . $lbl;
-}
+$row8[$col_no    - 1] = $TAG_HDR . 'NO.';
+$row8[$col_name  - 1] = $TAG_HDR . 'EMPLOYEE / DESIGNATION';
+$row8[$col_basic - 1] = $TAG_HDR . 'EARNINGS';
+$row8[$col_ded1  - 1] = $TAG_HDR . 'DEDUCTIONS';
+$row8[$col_gov1  - 1] = $TAG_HDR . 'GOV SHARES';
+$row8[$col_net   - 1] = $TAG_HDR . 'NET PAY';
+$row8[$col_sig   - 1] = $TAG_HDR . 'SIGNATURE';
 $rows[] = $row8;
 
-// Data rows
+// Row 9: sub-column headers  (was row 8)
+$row9 = emptyRow($last_col);
+foreach (['Basic', 'PERA', 'Others', 'Gross'] as $i => $lbl) {
+    $row9[$col_basic - 1 + $i] = $TAG_SUB . $lbl;
+}
+foreach ($deduction_headers as $i => $dh) {
+    $row9[$col_ded1 - 1 + $i] = $TAG_SUB . strtoupper($dh);
+}
+foreach (['L/R', 'HDMF', 'PHIC', 'ECC'] as $i => $lbl) {
+    $row9[$col_gov1 - 1 + $i] = $TAG_SUB . $lbl;
+}
+$rows[] = $row9;
+
+// Data rows start at Excel row 10  (title=6, spacer=1, headers=2, so 6+1+2+1=10)
+$dataStartExcelRow = 10;
+
 $total_basic = $total_pera = $total_others = $total_gross = $total_net = 0;
 $total_ded   = array_fill(0, $ded_count, 0);
 $total_gov   = array_fill(0, $gov_count, 0);
@@ -238,7 +228,7 @@ foreach ($payrollData as $index => $employee) {
     $count   = $index + 1;
     $dataRow = emptyRow($last_col);
 
-    $dataRow[$col_no   - 1] = '<center><middle><style border="thin" font-size="7">' . $count . '.';
+    $dataRow[$col_no   - 1] = '<center><middle><style border="thin" font-size="9">' . $count . '.';
     $dataRow[$col_name - 1] = '<wraptext><middle><style border="thin" height="30">'
         . '<b>' . $employee['name'] . "\n" . '<i>' . $employee['designation'];
 
@@ -284,7 +274,8 @@ $totalRow[$col_net - 1] = $TAG_TOT . number_format($total_net, 2);
 $totalRow[$col_sig - 1] = $TAG_TOT_EMPTY;
 $rows[] = $totalRow;
 
-$totalExcelRow = 9 + count($payrollData);
+// title(6) + spacer(1) + headers(2) + data rows
+$totalExcelRow = $dataStartExcelRow + count($payrollData);
 
 // Spacer rows
 $rows[] = emptyRow($last_col);
@@ -309,10 +300,10 @@ foreach ($sig_groups as $group) {
     foreach ($group as $i => $sign) {
         $ci = $i * $cols_per_sig;
         if ($sign === null) { continue; }
-        $rowA[$ci] = '<center><style font-size="8"><i>' . $sign['sign_particulars'];
+        $rowA[$ci] = '<style font-size="9"><i>' . $sign['sign_particulars'];
         $rowB[$ci] = '<style border="none none thin none" height="20">';   // signature underline
-        $rowC[$ci] = '<b><center><style font-size="10">'  . $sign['full_name'];
-        $rowD[$ci] = '<center><style font-size="8">'       . $sign['position_title'];
+        $rowC[$ci] = '<b><style font-size="9">'  . $sign['full_name'];
+        $rowD[$ci] = '<style font-size="9">'       . $sign['position_title'];
     }
     $rows[] = $rowA; $rows[] = $rowB; $rows[] = $rowC; $rows[] = $rowD;
 }
@@ -321,31 +312,41 @@ foreach ($sig_groups as $group) {
 // INSTANTIATE + CONFIGURE
 // ==========================================================
 $xlsx = new SimpleXLSXGen();
-$xlsx->setDefaultFont('Arial');
-$xlsx->setDefaultFontSize(8);
+$xlsx->setDefaultFont('Arial Narrow');
+$xlsx->setDefaultFontSize(9);
 $xlsx->setTitle('General Payroll - ' . $department_name);
 $xlsx->setSubject('Municipality of Polanco - General Payroll');
 $xlsx->setAuthor('Municipality of Polanco');
 $xlsx->setCompany('Municipality of Polanco');
-$xlsx->setLanguage('en-PH');   // available in SimpleXLSXGen — not in old CodexWorld fork
+$xlsx->setLanguage('en-PH');
 
 $xlsx->addSheet($rows, 'Payroll');
 
 // ==========================================================
 // MERGE CELLS
 // ==========================================================
+// Title block rows 1–6
 for ($r = 1; $r <= 6; $r++) {
-    $xlsx->mergeCells(cellRange($col_no, $r, $last_col, $r));
+    $xlsx->mergeCells(cellRange(1, $r, $half_col, $r));
 }
-$xlsx->mergeCells(cellRange($col_no,   7, $col_no,   8));
-$xlsx->mergeCells(cellRange($col_name, 7, $col_name, 8));
-$xlsx->mergeCells(cellRange($col_net,  7, $col_net,  8));
-$xlsx->mergeCells(cellRange($col_sig,  7, $col_sig,  8));
-$xlsx->mergeCells(cellRange($col_basic, 7, $col_gross,                  7));
-$xlsx->mergeCells(cellRange($col_ded1,  7, $col_ded1 + $ded_count - 1, 7));
-$xlsx->mergeCells(cellRange($col_gov1,  7, $col_gov1 + $gov_count - 1, 7));
+
+// Row 7 is the blank spacer — no merges needed
+
+// Header merges on rows 8–9 (shifted +1 due to spacer row)
+$xlsx->mergeCells(cellRange($col_no,   8, $col_no,   9));
+$xlsx->mergeCells(cellRange($col_name, 8, $col_name, 9));
+$xlsx->mergeCells(cellRange($col_net,  8, $col_net,  9));
+$xlsx->mergeCells(cellRange($col_sig,  8, $col_sig,  9));
+$xlsx->mergeCells(cellRange($col_basic, 8, $col_gross,                  8));
+$xlsx->mergeCells(cellRange($col_ded1,  8, $col_ded1 + $ded_count - 1, 8));
+$xlsx->mergeCells(cellRange($col_gov1,  8, $col_gov1 + $gov_count - 1, 8));
+
+// Totals row — merge NO. and EMPLOYEE columns
 $xlsx->mergeCells(cellRange($col_no, $totalExcelRow, $col_name, $totalExcelRow));
 
+// ── CHANGE 2: Signatory merges ──────────────────────────────────────────────
+// Only merge the name row (sl=2) and position row (sl=3).
+// The particulars label (sl=0) and signature underline (sl=1) are NOT merged.
 foreach ($sig_groups as $groupIdx => $group) {
     while (count($group) < 4) { $group[] = null; }
     $groupBaseRow = $sigBaseExcelRow + ($groupIdx * 4);
@@ -353,7 +354,7 @@ foreach ($sig_groups as $groupIdx => $group) {
         if ($sign === null) { continue; }
         $cStart = $col_no + ($i * $cols_per_sig);
         $cEnd   = min($cStart + $cols_per_sig - 1, $last_col);
-        for ($sl = 0; $sl <= 3; $sl++) {
+        for ($sl = 2; $sl <= 3; $sl++) {
             $xlsx->mergeCells(cellRange($cStart, $groupBaseRow + $sl, $cEnd, $groupBaseRow + $sl));
         }
     }
@@ -364,13 +365,13 @@ foreach ($sig_groups as $groupIdx => $group) {
 // ==========================================================
 $xlsx->setColWidth($col_no,   5);
 $xlsx->setColWidth($col_name, 28);
-for ($c = $col_basic; $c <= $col_gross; $c++)            { $xlsx->setColWidth($c, 13); }
+for ($c = $col_basic; $c <= $col_gross; $c++)             { $xlsx->setColWidth($c, 13); }
 for ($c = $col_ded1;  $c < $col_ded1 + $ded_count; $c++) { $xlsx->setColWidth($c, 12); }
 for ($c = $col_gov1;  $c < $col_gov1 + $gov_count; $c++) { $xlsx->setColWidth($c, 12); }
 $xlsx->setColWidth($col_net, 14);
 $xlsx->setColWidth($col_sig, 18);
 
-$xlsx->freezePanes('A9');
+//$xlsx->freezePanes('A9');
 
 // ==========================================================
 // DOWNLOAD

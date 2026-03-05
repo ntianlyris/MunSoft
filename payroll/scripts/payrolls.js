@@ -150,13 +150,12 @@ function RetrievePayroll() {
                 $.each(response, function (index, emp) {
                     // Determine status badge color
                     let statusBadgeClass = 'badge-secondary';
-                    if (emp.status === 'DRAFT') statusBadgeClass = 'badge-warning';
-                    else if (emp.status === 'SUBMITTED') statusBadgeClass = 'badge-info';
-                    else if (emp.status === 'APPROVED') statusBadgeClass = 'badge-success';
+                    if (emp.status === 'DRAFT') statusBadgeClass = 'badge-secondary';
+                    else if (emp.status === 'REVIEW') statusBadgeClass = 'badge-warning';
+                    else if (emp.status === 'APPROVED') statusBadgeClass = 'badge-info';
                     else if (emp.status === 'PAID') statusBadgeClass = 'badge-success';
-                    else if (emp.status === 'LOCKED') statusBadgeClass = 'badge-danger';
 
-                    // Build action buttons - only View Details button per row
+                    // Build action buttons based on status
                     let actionButtons = `
                       <button class="btn btn-sm btn-info" onclick='viewPayrollBreakdown(this)' 
                         data-employee='${JSON.stringify({
@@ -175,6 +174,39 @@ function RetrievePayroll() {
                         <i class="fas fa-search"></i> View
                       </button>
                     `;
+
+                    // Add workflow status buttons
+                    if (emp.status === 'DRAFT') {
+                        actionButtons += ` 
+                          <button class="btn btn-sm btn-primary ml-1" onclick="submitForReview([${emp.payroll_entry_id}])" title="Submit for Review">
+                            <i class="fas fa-paper-plane"></i>
+                          </button>
+                        `;
+                    } else if (emp.status === 'REVIEW') {
+                        actionButtons += ` 
+                          <button class="btn btn-sm btn-success ml-1" onclick="approvePayroll([${emp.payroll_entry_id}])" title="Approve">
+                            <i class="fas fa-check"></i>
+                          </button>
+                          <button class="btn btn-sm btn-warning ml-1" onclick="returnToDraft([${emp.payroll_entry_id}])" title="Return to Draft">
+                            <i class="fas fa-undo"></i>
+                          </button>
+                        `;
+                    } else if (emp.status === 'APPROVED') {
+                        actionButtons += ` 
+                          <button class="btn btn-sm btn-success ml-1" onclick="markAsPaid([${emp.payroll_entry_id}])" title="Mark as Paid">
+                            <i class="fas fa-money-bill-wave"></i>
+                          </button>
+                        `;
+                    }
+
+                    // Add history button for all statuses except DRAFT
+                    if (emp.status !== 'DRAFT') {
+                        actionButtons += ` 
+                          <button class="btn btn-sm btn-secondary ml-1" onclick="viewTransitionHistory(${emp.payroll_entry_id})" title="View History">
+                            <i class="fas fa-history"></i>
+                          </button>
+                        `;
+                    }
 
                     rows += `
                       <tr>
@@ -200,6 +232,9 @@ function RetrievePayroll() {
                 $("#printPayrollBtn").removeClass("d-none");
                 $("#exportPayrollExcelBtn").removeClass("d-none");
                 $("#deletePayrollRecordsBtn").removeClass("d-none");
+                
+                // Update status counts
+                getPayrollStatusCounts();
             } else {
                 $("#payrollTable tbody").html(
                     `<tr><td colspan="9" class="text-center">No payroll data found.</td></tr>`
@@ -676,6 +711,416 @@ function deleteAllPayrollRecords() {
                     });
                 }
             });
+        }
+    });
+}
+
+/**
+ * WORKFLOW: Submit multiple payroll entries for review (DRAFT → REVIEW)
+ */
+function submitForReview(payrollEntryIds) {
+    if (!payrollEntryIds || payrollEntryIds.length === 0) {
+        Swal.fire({
+            icon: "warning",
+            title: "No Selection",
+            text: "Please select payroll records to submit for review.",
+            confirmButtonColor: '#ffc107',
+        });
+        return;
+    }
+
+    Swal.fire({
+        title: 'Submit for Review?',
+        html: `
+            <p>You are about to submit <strong>${payrollEntryIds.length}</strong> payroll record(s) for review.</p>
+            <p>These records will move from <strong>DRAFT</strong> to <strong>REVIEW</strong> status.</p>
+        `,
+        icon: 'info',
+        showCancelButton: true,
+        confirmButtonColor: '#17a2b8',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, Submit for Review',
+        cancelButtonText: 'Cancel'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $('#Loader').fadeIn();
+
+            $.ajax({
+                url: 'payroll_handler.php',
+                type: 'POST',
+                dataType: 'json',
+                data: {
+                    payroll_entry_ids: payrollEntryIds,
+                    new_status: 'REVIEW',
+                    action: 'update_payroll_status_bulk'
+                },
+                success: function(response) {
+                    $('#Loader').fadeOut();
+                    
+                    if (response.status === 'success') {
+                        Swal.fire({
+                            icon: "success",
+                            title: "Success",
+                            text: response.message,
+                            confirmButtonColor: '#28a745',
+                        }).then(() => {
+                            RetrievePayroll();
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: response.message + (response.failed ? ` (${response.failed.length} failed)` : ''),
+                            confirmButtonColor: '#dc3545',
+                        });
+                    }
+                },
+                error: function(xhr, status, error) {
+                    $('#Loader').fadeOut();
+                    Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text: "Failed to submit for review.",
+                        confirmButtonColor: '#dc3545',
+                    });
+                }
+            });
+        }
+    });
+}
+
+/**
+ * WORKFLOW: Approve multiple payroll entries (REVIEW → APPROVED)
+ */
+function approvePayroll(payrollEntryIds) {
+    if (!payrollEntryIds || payrollEntryIds.length === 0) {
+        Swal.fire({
+            icon: "warning",
+            title: "No Selection",
+            text: "Please select payroll records to approve.",
+            confirmButtonColor: '#ffc107',
+        });
+        return;
+    }
+
+    Swal.fire({
+        title: 'Approve Payroll?',
+        html: `
+            <p>You are about to approve <strong>${payrollEntryIds.length}</strong> payroll record(s).</p>
+            <p>These records will move from <strong>REVIEW</strong> to <strong>APPROVED</strong> status.</p>
+        `,
+        icon: 'info',
+        showCancelButton: true,
+        confirmButtonColor: '#007bff',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, Approve',
+        cancelButtonText: 'Cancel'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $('#Loader').fadeIn();
+
+            $.ajax({
+                url: 'payroll_handler.php',
+                type: 'POST',
+                dataType: 'json',
+                data: {
+                    payroll_entry_ids: payrollEntryIds,
+                    new_status: 'APPROVED',
+                    action: 'update_payroll_status_bulk'
+                },
+                success: function(response) {
+                    $('#Loader').fadeOut();
+                    
+                    if (response.status === 'success') {
+                        Swal.fire({
+                            icon: "success",
+                            title: "Success",
+                            text: response.message,
+                            confirmButtonColor: '#28a745',
+                        }).then(() => {
+                            RetrievePayroll();
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: response.message,
+                            confirmButtonColor: '#dc3545',
+                        });
+                    }
+                },
+                error: function(xhr, status, error) {
+                    $('#Loader').fadeOut();
+                    Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text: "Failed to approve payroll.",
+                        confirmButtonColor: '#dc3545',
+                    });
+                }
+            });
+        }
+    });
+}
+
+/**
+ * WORKFLOW: Return payroll entries to draft (REVIEW → DRAFT) with reason
+ */
+function returnToDraft(payrollEntryIds) {
+    if (!payrollEntryIds || payrollEntryIds.length === 0) {
+        Swal.fire({
+            icon: "warning",
+            title: "No Selection",
+            text: "Please select payroll records to return.",
+            confirmButtonColor: '#ffc107',
+        });
+        return;
+    }
+
+    Swal.fire({
+        title: 'Return to Draft?',
+        html: `
+            <p>You are about to return <strong>${payrollEntryIds.length}</strong> payroll record(s) to DRAFT status.</p>
+            <label for="returnReason"><strong>Reason for Return:</strong></label>
+            <textarea id="returnReason" class="swal2-textarea" placeholder="Enter reason for returning to draft..." style="width: 100%; min-height: 80px;"></textarea>
+        `,
+        icon: 'info',
+        showCancelButton: true,
+        confirmButtonColor: '#ffc107',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, Return to Draft',
+        cancelButtonText: 'Cancel',
+        preConfirm: () => {
+            const reason = Swal.getPopup().querySelector('#returnReason').value;
+            if (!reason || reason.trim() === '') {
+                Swal.showValidationMessage('Please provide a reason for returning to draft');
+                return false;
+            }
+            return reason;
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $('#Loader').fadeIn();
+
+            $.ajax({
+                url: 'payroll_handler.php',
+                type: 'POST',
+                dataType: 'json',
+                data: {
+                    payroll_entry_ids: payrollEntryIds,
+                    new_status: 'DRAFT',
+                    reason: result.value,
+                    action: 'update_payroll_status_bulk'
+                },
+                success: function(response) {
+                    $('#Loader').fadeOut();
+                    
+                    if (response.status === 'success') {
+                        Swal.fire({
+                            icon: "success",
+                            title: "Success",
+                            text: response.message,
+                            confirmButtonColor: '#28a745',
+                        }).then(() => {
+                            RetrievePayroll();
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: response.message,
+                            confirmButtonColor: '#dc3545',
+                        });
+                    }
+                },
+                error: function(xhr, status, error) {
+                    $('#Loader').fadeOut();
+                    Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text: "Failed to return payroll to draft.",
+                        confirmButtonColor: '#dc3545',
+                    });
+                }
+            });
+        }
+    });
+}
+
+/**
+ * WORKFLOW: Mark payroll as paid (APPROVED → PAID)
+ */
+function markAsPaid(payrollEntryIds) {
+    if (!payrollEntryIds || payrollEntryIds.length === 0) {
+        Swal.fire({
+            icon: "warning",
+            title: "No Selection",
+            text: "Please select payroll records to mark as paid.",
+            confirmButtonColor: '#ffc107',
+        });
+        return;
+    }
+
+    Swal.fire({
+        title: 'Mark as Paid?',
+        html: `
+            <p>You are about to mark <strong>${payrollEntryIds.length}</strong> payroll record(s) as PAID.</p>
+            <p><strong style="color: red;">⚠️ WARNING:</strong> Once marked as PAID, these records CANNOT be edited or returned to previous status.</p>
+        `,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#28a745',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, Mark as Paid',
+        cancelButtonText: 'Cancel'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $('#Loader').fadeIn();
+
+            $.ajax({
+                url: 'payroll_handler.php',
+                type: 'POST',
+                dataType: 'json',
+                data: {
+                    payroll_entry_ids: payrollEntryIds,
+                    new_status: 'PAID',
+                    action: 'update_payroll_status_bulk'
+                },
+                success: function(response) {
+                    $('#Loader').fadeOut();
+                    
+                    if (response.status === 'success') {
+                        Swal.fire({
+                            icon: "success",
+                            title: "Success",
+                            text: response.message,
+                            confirmButtonColor: '#28a745',
+                        }).then(() => {
+                            RetrievePayroll();
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: response.message,
+                            confirmButtonColor: '#dc3545',
+                        });
+                    }
+                },
+                error: function(xhr, status, error) {
+                    $('#Loader').fadeOut();
+                    Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text: "Failed to mark payroll as paid.",
+                        confirmButtonColor: '#dc3545',
+                    });
+                }
+            });
+        }
+    });
+}
+
+/**
+ * Get payroll status distribution for dashboard/summary
+ */
+function getPayrollStatusCounts() {
+    const payroll_period_id = $('#payrollPeriodYearDropdown').val();
+    const dept_id = $('#department').val();
+    const emp_type = $('#employment_type').val();
+
+    if (!payroll_period_id || !dept_id || !emp_type) {
+        return;
+    }
+
+    $.ajax({
+        url: 'payroll_handler.php',
+        type: 'POST',
+        dataType: 'json',
+        data: {
+            payroll_period_id: payroll_period_id,
+            dept_id: dept_id,
+            emp_type: emp_type,
+            action: 'get_payroll_status_counts'
+        },
+        success: function(response) {
+            if (response.status === 'success') {
+                // Update status badges/counters in UI if they exist
+                const counts = response.counts;
+                
+                if ($('#statusDraftCount').length) {
+                    $('#statusDraftCount').text(counts.DRAFT || 0);
+                }
+                if ($('#statusReviewCount').length) {
+                    $('#statusReviewCount').text(counts.REVIEW || 0);
+                }
+                if ($('#statusApprovedCount').length) {
+                    $('#statusApprovedCount').text(counts.APPROVED || 0);
+                }
+                if ($('#statusPaidCount').length) {
+                    $('#statusPaidCount').text(counts.PAID || 0);
+                }
+            }
+        }
+    });
+}
+
+/**
+ * Get workflow transition history for a payroll entry
+ */
+function viewTransitionHistory(payrollId) {
+    $.ajax({
+        url: 'payroll_handler.php',
+        type: 'POST',
+        dataType: 'json',
+        data: {
+            payroll_entry_id: payrollId,
+            limit: 50,
+            action: 'get_transition_history'
+        },
+        error: function(xhr, status, error) {
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: "Failed to load transition history.",
+                confirmButtonColor: '#dc3545',
+            });
+        },
+        success: function(response) {
+            if (response.status === 'success' && response.transitions && response.transitions.length > 0) {
+                let historyHtml = '<div style="text-align: left; max-height: 400px; overflow-y: auto;">';
+                historyHtml += '<table class="table table-sm">';
+                historyHtml += '<thead><tr><th>From</th><th>To</th><th>By</th><th>Date</th><th>Reason</th></tr></thead><tbody>';
+                
+                response.transitions.forEach(function(transition) {
+                    const changeDate = new Date(transition.changed_date).toLocaleString();
+                    const reason = transition.reason ? transition.reason.substring(0, 30) + '...' : '-';
+                    
+                    historyHtml += '<tr>';
+                    historyHtml += '<td><span class="badge bg-light text-dark">' + transition.from_status + '</span></td>';
+                    historyHtml += '<td><span class="badge bg-info">' + transition.to_status + '</span></td>';
+                    historyHtml += '<td>' + (transition.username || 'System') + '</td>';
+                    historyHtml += '<td><small>' + changeDate + '</small></td>';
+                    historyHtml += '<td><small>' + reason + '</small></td>';
+                    historyHtml += '</tr>';
+                });
+                
+                historyHtml += '</tbody></table></div>';
+                
+                Swal.fire({
+                    title: 'Workflow Transition History',
+                    html: historyHtml,
+                    icon: 'info',
+                    width: '90%',
+                    confirmButtonColor: '#3085d6',
+                });
+            } else {
+                Swal.fire({
+                    title: 'Transition History',
+                    text: 'No transition history found.',
+                    icon: 'info',
+                });
+            }
         }
     });
 }
