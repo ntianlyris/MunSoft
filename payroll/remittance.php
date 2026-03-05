@@ -368,8 +368,11 @@ body {
             <h6 class="ml-4" id="remittancePeriodLabel"></h6>
           </div>
           <div class="col-md-6 text-right">
-            <!-- Print Button -->
-            <div class="d-flex justify-content-end">
+            <!-- Print & Export Buttons -->
+            <div class="d-flex justify-content-end gap-2">
+                <button type="button" class="btn btn-success btn-sm mb-3" id="btnExportRemittanceDetails" data-remit_id="">
+                    <i class="fas fa-file-excel"></i> Export Excel
+                </button>
                 <button type="button" class="btn btn-primary btn-sm mb-3" id="btnPrintRemittanceDetails" data-remit_id="">
                     <i class="fas fa-print"></i> Print Remittance Details
                 </button>
@@ -417,8 +420,11 @@ body {
             <h6 class="ml-4" id="remittanceLoansPeriodLabel"></h6>
           </div>
           <div class="col-md-6 text-right">
-            <!-- Print Button -->
-            <div class="d-flex justify-content-end">
+            <!-- Print & Export Buttons -->
+            <div class="d-flex justify-content-end gap-2">
+              <button type="button" class="btn btn-success btn-sm mb-3" id="btnExportLoansRemittanceDetails" data-loan_remit_id="">
+                <i class="fas fa-file-excel"></i> Export Excel
+              </button>
               <button type="button" class="btn btn-primary btn-sm mb-3" id="btnPrintLoansRemittanceDetails" data-loan_remit_id="">
                 <i class="fas fa-print"></i> Print Remittance Loans Details
               </button>
@@ -465,8 +471,11 @@ body {
                     <h6 class="ml-4" id="loanRemitBreakdownPeriodLabel"></h6>
                   </div>
                   <div class="col-md-6 text-right">
-                    <!-- Print Button -->
-                    <div class="d-flex justify-content-end mb-3">
+                    <!-- Print & Export Buttons -->
+                    <div class="d-flex justify-content-end gap-2 mb-3">
+                        <button type="button" class="btn btn-success btn-sm" id="btnExportLoanRemitBreakdown" data-loans_breakdown="" data-breakdown_period="">
+                            <i class="fas fa-file-excel"></i> Export Excel
+                        </button>
                         <button type="button" class="btn btn-primary btn-sm" id="btnPrintLoanRemitBreakdown" data-loans_breakdown="" data-breakdown_period="">
                             <i class="fas fa-print"></i> Print Loan Remittance Breakdown
                         </button>
@@ -518,8 +527,8 @@ body {
           <div class="col-md-6 text-right">
             <!-- Export and Print Buttons -->
             <div class="d-flex justify-content-end gap-2">
-              <button type="button" class="btn btn-secondary btn-sm" id="btnExportOthersRemittanceDetails" title="Export to CSV">
-                <i class="fas fa-download"></i> Export CSV
+              <button type="button" class="btn btn-success btn-sm" id="btnExportOthersRemittanceDetails" title="Export to Excel">
+                <i class="fas fa-file-excel"></i> Export Excel
               </button>
               <button type="button" class="btn btn-primary btn-sm" id="btnPrintOthersRemittanceDetails" data-others_remit_id="" title="Print Details">
                 <i class="fas fa-print"></i> Print
@@ -573,8 +582,11 @@ body {
                     </h6>
                   </div>
                   <div class="col-md-6 text-right">
-                    <!-- Print Button -->
-                    <div class="d-flex justify-content-end">
+                    <!-- Print & Export Buttons -->
+                    <div class="d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-success btn-sm" id="btnExportOthersRemitBreakdown" data-others_breakdown="" data-breakdown_period="" title="Export to Excel">
+                            <i class="fas fa-file-excel"></i> Export Excel
+                        </button>
                         <button type="button" class="btn btn-primary btn-sm" id="btnPrintOthersRemitBreakdown" data-others_breakdown="" data-breakdown_period="" title="Print Breakdown">
                             <i class="fas fa-print"></i> Print Breakdown
                         </button>
