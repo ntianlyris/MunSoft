@@ -73,6 +73,9 @@
                 <button id="printPayrollBtn" class="btn btn-success d-none">
                   <i class="fas fa-print"></i> Print Payroll
                 </button>
+                <button id="exportPayrollExcelBtn" class="btn btn-info d-none ml-2">
+                  <i class="fas fa-file-excel"></i> Export to Excel
+                </button>
                 <button id="deletePayrollRecordsBtn" class="btn btn-danger d-none ml-2" onclick="deleteAllPayrollRecords()">
                   <i class="fas fa-trash"></i> Delete Payroll Records
                 </button>

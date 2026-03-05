@@ -198,12 +198,14 @@ function RetrievePayroll() {
                 });
                 $("#payrollTable tbody").html(rows);
                 $("#printPayrollBtn").removeClass("d-none");
+                $("#exportPayrollExcelBtn").removeClass("d-none");
                 $("#deletePayrollRecordsBtn").removeClass("d-none");
             } else {
                 $("#payrollTable tbody").html(
                     `<tr><td colspan="9" class="text-center">No payroll data found.</td></tr>`
                 );
                 $("#printPayrollBtn").addClass("d-none");
+                $("#exportPayrollExcelBtn").addClass("d-none");
                 $("#deletePayrollRecordsBtn").addClass("d-none");
             }
         },
@@ -212,6 +214,7 @@ function RetrievePayroll() {
                 `<tr><td colspan="9" class="text-center text-danger">Error fetching payroll data.</td></tr>`
             );
             $("#printPayrollBtn").addClass("d-none");
+            $("#exportPayrollExcelBtn").addClass("d-none");
             $("#deletePayrollRecordsBtn").addClass("d-none");
         }
     });
@@ -417,6 +420,18 @@ $('#printPayrollBtn').on('click', function() {
       return;
     }
     var url = '../prints/print_payroll.php?period=' + encodeURIComponent(period) + '&department=' + encodeURIComponent(department) + '&employment_type=' + encodeURIComponent(employment_type);
+    window.open(url, '_blank');
+});
+
+$('#exportPayrollExcelBtn').on('click', function() {
+    var period = $('#payrollPeriodYearDropdown').val();
+    var department = $('#department').val();
+    var employment_type = $('#employment_type').val();
+    if (!period || !department || !employment_type) {
+      alert('Please select both Pay Period and Department.');
+      return;
+    }
+    var url = '../prints/export_payroll_excel.php?period=' + encodeURIComponent(period) + '&department=' + encodeURIComponent(department) + '&employment_type=' + encodeURIComponent(employment_type);
     window.open(url, '_blank');
 });
 
