@@ -1,6 +1,7 @@
 <?php 
 include_once '../includes/class/Employment.php';
 include_once '../includes/class/Earning.php';
+include_once '../includes/class/Payroll.php';
 include_once '../includes/view/functions.php';
 
 if($action = isset($_REQUEST['action'])?$_REQUEST['action']:'') {
@@ -57,9 +58,10 @@ if($action = isset($_REQUEST['action'])?$_REQUEST['action']:'') {
 
         case 'edit_employee_earnings':
             $EmployeeEarning = new Earning();
+            $Payroll = new Payroll();
 
             $employee_earning_id = $_POST['employee_earning_id'];
-            //$employee_id = $_POST['employee_id'];                     //---not to be included since its already saved in db and will be permanent data of the employee
+            $employee_id = isset($_POST['employee_id']) ? $_POST['employee_id'] : '';                     //---needed for payroll period blocking check (may come from hidden field)
             //$earning_particulars = $_POST['earning_particulars'];     //---not to be included since its already saved in db and will be permanent data of the employee
             //$effective_date = $_POST['effective_date'];               //---not to be included since its already saved in db and will be permanent data of the employee
             $earning_code_ids = $_POST['earning_code_ids'] ?? [];   ## array of earning codes
@@ -67,6 +69,22 @@ if($action = isset($_REQUEST['action'])?$_REQUEST['action']:'') {
             $gross = 0;
             $date_updated = DateToday();
             $json_data = '';
+
+            // Check if edit should be blocked for semi-monthly payroll when in first half of month
+            $last_locked_period = $Payroll->GetLastLockedPayrollPeriodByEmployee($employee_id);
+            $locked_start_date = $last_locked_period['date_start'] ?? null;
+            
+            $active_frequency = $Payroll->GetCurrentActiveFrequency();
+            $frequency = $active_frequency['freq_code'] ?? 'monthly';
+
+            if($frequency == 'semi-monthly' && $locked_start_date){
+                $is_second_half = $Payroll->IsSecondHalfOfMonth($locked_start_date);
+                if(!$is_second_half){
+                    $json_data = '{"result":"block_edit"}';
+                    echo $json_data;
+                    exit;
+                }
+            }
             
             if (!empty($earning_code_ids) && !empty($emp_earnings_amts)) {        
                 for ($i=0; $i <count($earning_code_ids) ; $i++) { 

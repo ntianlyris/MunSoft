@@ -68,10 +68,13 @@
                 </form>
               </div>
 
-              <!-- Save Payroll Button -->
+              <!-- Payroll Action Buttons -->
               <div class="text-right mb-2">
                 <button id="printPayrollBtn" class="btn btn-success d-none">
                   <i class="fas fa-print"></i> Print Payroll
+                </button>
+                <button id="deletePayrollRecordsBtn" class="btn btn-danger d-none ml-2" onclick="deleteAllPayrollRecords()">
+                  <i class="fas fa-trash"></i> Delete Payroll Records
                 </button>
               </div>
 
@@ -85,6 +88,7 @@
                     <th class="text-center">Earnings</th>
                     <th class="text-center">Deductions</th>
                     <th class="text-center">Net Pay</th>
+                    <th class="text-center">Status</th>
                     <th class="text-center">Actions</th>
                   </tr>
                 </thead>
@@ -139,6 +143,62 @@
 <script src="system.js"></script>
 <!-- Payrolls Engine -->
 <script src="scripts/payrolls.js"></script>
+
+<!-- Edit Payroll Modal -->
+<div id="editPayrollModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="editPayrollModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editPayrollModalLabel">Edit Payroll Entry</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="editPayrollId">
+        <div class="form-group">
+          <label for="editEmployeeName">Employee:</label>
+          <input type="text" class="form-control" id="editEmployeeName" readonly>
+        </div>
+        <div class="form-group">
+          <label for="editGross">Gross Pay:</label>
+          <input type="number" class="form-control" id="editGross" step="0.01" min="0">
+        </div>
+        <div class="form-group">
+          <label for="editDeductions">Total Deductions:</label>
+          <input type="number" class="form-control" id="editDeductions" step="0.01" min="0">
+        </div>
+        <div class="form-group">
+          <label for="editNetPay">Net Pay:</label>
+          <input type="number" class="form-control" id="editNetPay" step="0.01" min="0" readonly>
+        </div>
+        <div class="form-group">
+          <label for="editStatus">Status:</label>
+          <input type="text" class="form-control" id="editStatus" readonly>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="saveEditedPayroll()">
+          <i class="fas fa-save"></i> Save Changes
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Auto-calculate Net Pay -->
+<script>
+$(document).ready(function() {
+  $('#editGross, #editDeductions').on('change', function() {
+    const gross = parseFloat($('#editGross').val()) || 0;
+    const deductions = parseFloat($('#editDeductions').val()) || 0;
+    const net = gross - deductions;
+    $('#editNetPay').val(net.toFixed(2));
+  });
+});
+</script>
+
 <!-- Clear the input fields on form when adding new entry -->
 <script>
     // Ensure the modal has the correct ID

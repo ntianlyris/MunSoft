@@ -10,7 +10,7 @@ if($action = isset($_REQUEST['action'])?$_REQUEST['action']:'') {
             $Employment = new Employment();
             $EmployeeDeduction = new Deduction();
 
-            $employee_id = $_POST['employee_id'];
+            $employee_id = isset($_POST['employee_id']) ? $_POST['employee_id'] : '';
             $deduction_particulars = $_POST['deduction_particulars'];
             $effective_date = $_POST['effective_date'];
             $config_deduction_ids = $_POST['config_deduction_ids'] ?? [];   ## array of earning codes
@@ -56,7 +56,7 @@ if($action = isset($_REQUEST['action'])?$_REQUEST['action']:'') {
             $Payroll = new Payroll();
 
             $employee_deduction_id = $_POST['employee_deduction_id'];
-            $employee_id = $_POST['employee_id'];
+            $employee_id = isset($_POST['employee_id']) ? $_POST['employee_id'] : '';
             $deduction_particulars = $_POST['deduction_particulars'];
             $effective_date = $_POST['effective_date'];
             $config_deduction_ids = $_POST['config_deduction_ids'] ?? [];   ## array of earning codes

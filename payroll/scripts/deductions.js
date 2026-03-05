@@ -21,6 +21,14 @@ $( document ).ready(function(){
 //-----Functions-----//
 
 function SaveEmployeeDeductions(){
+    // make sure employee_id is submitted when dropdown is disabled during edit
+    var empId = $('#cmbEmployee').val();
+    if (empId && $('#cmbEmployee').prop('disabled')) {
+        $('#txtEmployeeID').val(empId);
+    } else {
+        $('#txtEmployeeID').val('');
+    }
+
     var action = '';
     var employee_deduction_id = $('#txtEmployeeDeductionID').val();
     if (employee_deduction_id !== '') {
@@ -30,71 +38,89 @@ function SaveEmployeeDeductions(){
         action = 'save_employee_deductions';
     }
 
-    var formData = $('#formEmployeeDeduction').serialize(); // This automatically collects all form inputs with names
-        formData +='&action='+action;
+    var confirmMessage = action === 'edit_employee_deductions'
+      ? 'Are you sure you want to update employee deductions? This will affect payroll calculations.'
+      : 'Are you sure you want to save these employee deductions? This will affect payroll calculations.';
 
-     $.ajax({
-      url: 'deductions_handler.php', 
-      type: 'POST',
-      data: formData,
-      success: function(response) {
-        var obj = $.parseJSON(response);
-        var result = obj.result;
-            if(result == "success"){
-                Swal.fire({
-                    title: 'Success',
-                    text: 'Employee Earnings successfully saved.',
-                    icon: 'success',
-                    confirmButtonColor: '#28a745',
-                    confirmButtonText: 'Ok'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            window.location.reload();
-                        }
-                });
-            }
-            else if(result == 'not_employed'){
-                Swal.fire({
-                    title: 'Error',
-                    text: 'Employee has no employment. Asign employment to employee first.',
-                    icon: 'error',
-                    confirmButtonColor: '#dc3545',
-                    confirmButtonText: 'Ok'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            window.location.reload();
-                        }
-                });
-            }
-            else if(result == 'block_edit'){
-                Swal.fire({
-                    title: 'Error',
-                    text: 'Cannot save/edit deduction. Employee deduction is already applied in the previous (1st-half) locked payroll period.',
-                    icon: 'error',
-                    confirmButtonColor: '#dc3545',
-                    confirmButtonText: 'Ok'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            window.location.reload();
-                        }
-                });
-            }
-            else{
-                Swal.fire({
-                    title: 'Error',
-                    text: 'Failed to save Employee Deductions.',
-                    icon: 'error',
-                    confirmButtonColor: '#dc3545',
-                    confirmButtonText: 'Ok'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            window.location.reload();
-                        }
-                });
-            }
-      },
-      error: function() {
-        alert('Submission failed!');
+    // Show confirmation dialog before saving
+    Swal.fire({
+      title: 'Confirm Save',
+      text: confirmMessage,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#28a745',
+      cancelButtonColor: '#dc3545',
+      confirmButtonText: 'Yes, Save',
+      cancelButtonText: 'Cancel'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        var formData = $('#formEmployeeDeduction').serialize(); // This automatically collects all form inputs with names
+            formData +='&action='+action;
+
+         $.ajax({
+          url: 'deductions_handler.php', 
+          type: 'POST',
+          data: formData,
+          success: function(response) {
+            var obj = $.parseJSON(response);
+            var result = obj.result;
+                if(result == "success"){
+                    Swal.fire({
+                        title: 'Success',
+                        text: 'Employee Deductions successfully saved.',
+                        icon: 'success',
+                        confirmButtonColor: '#28a745',
+                        confirmButtonText: 'Ok'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                window.location.reload();
+                            }
+                    });
+                }
+                else if(result == 'not_employed'){
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'Employee has no employment. Asign employment to employee first.',
+                        icon: 'error',
+                        confirmButtonColor: '#dc3545',
+                        confirmButtonText: 'Ok'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                window.location.reload();
+                            }
+                    });
+                }
+                else if(result == 'block_edit'){
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'Cannot save/edit deduction. Employee deduction is already applied in the previous (1st-half) locked payroll period.',
+                        icon: 'error',
+                        confirmButtonColor: '#dc3545',
+                        confirmButtonText: 'Ok'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                window.location.reload();
+                            }
+                    });
+                }
+                else{
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'Failed to save Employee Deductions.',
+                        icon: 'error',
+                        confirmButtonColor: '#dc3545',
+                        confirmButtonText: 'Ok'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                window.location.reload();
+                            }
+                    });
+                }
+          },
+          error: function() {
+            alert('Submission failed!');
+          }
+        });
       }
     });
 }
@@ -111,6 +137,9 @@ function GetEmployeeDeductionComponents(employee_deduction_id){
                 var obj = $.parseJSON(data);
                 $('#txtEmployeeDeductionID').val(obj['employee_deduction_id']);
                 $('#cmbEmployee').val(obj['employee_id']).trigger('change');
+                // disable employee selector and store hidden copy
+                $('#cmbEmployee').prop('disabled', true);
+                $('#txtEmployeeID').val(obj['employee_id']);
                 $('#txtDeductionParticulars').val(obj['deduction_particulars']);
                 $('#txtEffectiveDate').val(obj['effective_date']);
         }

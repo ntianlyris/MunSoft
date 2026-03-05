@@ -216,44 +216,66 @@ $(function () {
         return;
       }
 
-      // Serialize form data
-      let formData = $(this).serialize();
-      formData += '&action=save_employee_govshares';
-      
-      $.ajax({
-        url: 'govshare_handler.php',
-        type: 'POST',
-        data: formData, // Send as JSON JSON.stringify(formData)
-        //contentType: 'application/json', // Important
-        dataType: 'json',
-        success: function (res) {
-          if (res.status === 'success') {
-            Swal.fire({
-              icon: 'success',
-              title: 'Saved!',
-              text: res.message,
-              confirmButtonColor: '#28a745',
-              confirmButtonText: 'Ok'
-                }).then((result) => {
-                  if (result.isConfirmed) {
-                    window.location.reload();
-                    $('#govShareFormEmployee')[0].reset();
-                    $('#employee_id').val(null).trigger('change');
-                  }
-            }); 
-          } else {
-            Swal.fire({
-              icon: 'error',
-              title: 'Failed to Save',
-              text: res.message || 'Something went wrong while saving data.',
-            });
-          }
-        },
-        error: function () {
-          Swal.fire({
-            icon: 'error',
-            title: 'Request Failed',
-            text: 'There was a problem with the server request.',
+      // Show confirmation dialog before saving employee govshares
+      Swal.fire({
+        title: 'Confirm Save',
+        text: 'Are you sure you want to save/update employee government shares? This will apply to future payroll calculations.',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#28a745',
+        cancelButtonColor: '#dc3545',
+        confirmButtonText: 'Yes, Save',
+        cancelButtonText: 'Cancel'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          // Serialize form data
+          let formData = $(this).serialize();
+          formData += '&action=save_employee_govshares';
+          
+          $.ajax({
+            url: 'govshare_handler.php',
+            type: 'POST',
+            data: formData, // Send as JSON JSON.stringify(formData)
+            //contentType: 'application/json', // Important
+            dataType: 'json',
+            success: function (res) {
+              if (res.status === 'success') {
+                Swal.fire({
+                  icon: 'success',
+                  title: 'Saved!',
+                  text: res.message,
+                  confirmButtonColor: '#28a745',
+                  confirmButtonText: 'Ok'
+                    }).then((result) => {
+                      if (result.isConfirmed) {
+                        window.location.reload();
+                        $('#govShareFormEmployee')[0].reset();
+                        $('#employee_id').val(null).trigger('change');
+                      }
+                }); 
+              } else if (res.status === 'block_edit') {
+                Swal.fire({
+                  icon: 'error',
+                  title: 'Cannot Save',
+                  text: res.message,
+                  confirmButtonColor: '#dc3545',
+                  confirmButtonText: 'Ok'
+                });
+              } else {
+                Swal.fire({
+                  icon: 'error',
+                  title: 'Failed to Save',
+                  text: res.message || 'Something went wrong while saving data.',
+                });
+              }
+            },
+            error: function () {
+              Swal.fire({
+                icon: 'error',
+                title: 'Request Failed',
+                text: 'There was a problem with the server request.',
+              });
+            }
           });
         }
       });

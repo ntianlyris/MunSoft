@@ -69,6 +69,15 @@ function ValidateInputAmount(){
 //-----Functions-----//
 
 function SaveEmployeeEarnings(){
+    // ensure employee_id is submitted when dropdown is disabled (edit mode)
+    var empId = $('#cmbEmployee').val();
+    if (empId && $('#cmbEmployee').prop('disabled')) {
+        $('#txtEmployeeID').val(empId);
+    } else {
+        // clear hidden field during creation to prevent duplicate POST values
+        $('#txtEmployeeID').val('');
+    }
+
     var action = '';
     var employee_earning_id = $('#txtEmployeeEarningID').val();
     if (employee_earning_id !== '') {
@@ -78,58 +87,89 @@ function SaveEmployeeEarnings(){
         action = 'save_employee_earnings';
     }
 
-    var formData = $('#formEmployeeEarning').serialize(); // This automatically collects all form inputs with names
-        formData +='&action='+action;
+    var confirmMessage = action === 'edit_employee_earnings' 
+      ? 'Are you sure you want to update employee earnings? This will affect payroll calculations.' 
+      : 'Are you sure you want to save these employee earnings? This will affect payroll calculations.';
 
-     $.ajax({
-      url: 'earnings_handler.php', 
-      type: 'POST',
-      data: formData,
-      success: function(response) {
-        var obj = $.parseJSON(response);
-        var result = obj.result;
-            if(result == "success"){
-                Swal.fire({
-                    title: 'Success',
-                    text: 'Employee Earnings successfully saved.',
-                    icon: 'success',
-                    confirmButtonColor: '#28a745',
-                    confirmButtonText: 'Ok'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            window.location.reload();
-                        }
-                });
-            }
-            else if(result == 'not_employed'){
-                Swal.fire({
-                    title: 'Error',
-                    text: 'Employee has no employment. Asign employment to employee first.',
-                    icon: 'error',
-                    confirmButtonColor: '#dc3545',
-                    confirmButtonText: 'Ok'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            window.location.reload();
-                        }
-                });
-            }
-            else{
-                Swal.fire({
-                    title: 'Error',
-                    text: 'Failed to save Employee Earnings.',
-                    icon: 'error',
-                    confirmButtonColor: '#dc3545',
-                    confirmButtonText: 'Ok'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            window.location.reload();
-                        }
-                });
-            }
-      },
-      error: function() {
-        alert('Submission failed!');
+    // Show confirmation dialog before saving
+    Swal.fire({
+      title: 'Confirm Save',
+      text: confirmMessage,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#28a745',
+      cancelButtonColor: '#dc3545',
+      confirmButtonText: 'Yes, Save',
+      cancelButtonText: 'Cancel'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        var formData = $('#formEmployeeEarning').serialize(); // This automatically collects all form inputs with names
+            formData +='&action='+action;
+
+         $.ajax({
+          url: 'earnings_handler.php', 
+          type: 'POST',
+          data: formData,
+          success: function(response) {
+            var obj = $.parseJSON(response);
+            var result = obj.result;
+                if(result == "success"){
+                    Swal.fire({
+                        title: 'Success',
+                        text: 'Employee Earnings successfully saved.',
+                        icon: 'success',
+                        confirmButtonColor: '#28a745',
+                        confirmButtonText: 'Ok'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                window.location.reload();
+                            }
+                    });
+                }
+                else if(result == 'not_employed'){
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'Employee has no employment. Asign employment to employee first.',
+                        icon: 'error',
+                        confirmButtonColor: '#dc3545',
+                        confirmButtonText: 'Ok'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                window.location.reload();
+                            }
+                    });
+                }
+                else if(result == 'block_edit'){
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'Cannot save/edit earnings. Employee earnings are already applied in the previous (1st-half) locked payroll period.',
+                        icon: 'error',
+                        confirmButtonColor: '#dc3545',
+                        confirmButtonText: 'Ok'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                window.location.reload();
+                            }
+                    });
+                }
+                else{
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'Failed to save Employee Earnings.',
+                        icon: 'error',
+                        confirmButtonColor: '#dc3545',
+                        confirmButtonText: 'Ok'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                window.location.reload();
+                            }
+                    });
+                }
+          },
+          error: function() {
+            alert('Submission failed!');
+          }
+        });
       }
     });
 }
@@ -151,6 +191,8 @@ function GetEmployeeEarningComponents(emp_earning_id){
                 $('#txtEmpType').val(obj['employment_type']);
                 $('#cmbEmployee').select2('destroy'); // Destroys Select2 UI
                 $('#cmbEmployee').val(obj['employee_id']).prop('disabled', true);  
+                // also store in hidden field so it's submitted with the form regardless of disabled state
+                $('#txtEmployeeID').val(obj['employee_id']);  
                 $('#txtEarningParticulars').val(obj['earning_particulars']);
                 $('#txtEffectiveDate').val(obj['effective_date']);
                 $('#txtBasicRate').val(obj['locked_rate']);
