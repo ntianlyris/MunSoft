@@ -132,34 +132,24 @@ if($action = isset($_POST['action'])?$_POST['action']:'') {
             break;
 
         case 'toggle_include_payroll':
-            // SECURITY: Validate user session exists
-            if (!isset($_SESSION['userID'])) {
-                http_response_code(401);
-                echo json_encode(['status' => 'error', 'message' => 'Unauthorized - please login']);
-                exit;
-            }
-            
             $Payroll = new Payroll();
-            $payroll_entry_id = intval($_POST['payroll_entry_id'] ?? 0);
-            $new_status = htmlspecialchars($_POST['status'] ?? 'DRAFT');
-            $user_id = intval($_SESSION['userID']);
+            $employee_id = intval($_POST['employee_id']);
+            $include_in_payroll = intval($_POST['include_in_payroll']);
+            $result = $Payroll->UpdateIncludeInPayroll($employee_id, $include_in_payroll);
             
-            // SECURITY: Validate input
-            if ($payroll_entry_id <= 0) {
-                http_response_code(400);
-                echo json_encode(['status' => 'error', 'message' => 'Invalid payroll entry ID']);
-                exit;
+            if($result){
+                header('Content-Type: application/json');
+                echo json_encode(['status' => 'success']);
+            } else {
+                header('Content-Type: application/json');
+                echo json_encode(['status' => 'error']);
             }
-            
-            $result = $Payroll->UpdatePayrollStatus($payroll_entry_id, $new_status, $user_id);
-            
-            header('Content-Type: application/json');
-            echo json_encode($result);
             break;
 
         case 'get_payroll_entry':
             // SECURITY: Validate user session exists
-            if (!isset($_SESSION['userID'])) {
+            session_start();
+            if (!isset($_SESSION['uid'])) {
                 http_response_code(401);
                 echo json_encode(['status' => 'error', 'message' => 'Unauthorized - please login']);
                 exit;
@@ -189,7 +179,8 @@ if($action = isset($_POST['action'])?$_POST['action']:'') {
             break;
         case 'get_payroll_audit_trail':
             // SECURITY: Validate user session exists
-            if (!isset($_SESSION['userID'])) {
+            session_start();
+            if (!isset($_SESSION['uid'])) {
                 http_response_code(401);
                 echo json_encode(['status' => 'error', 'message' => 'Unauthorized - please login']);
                 exit;
