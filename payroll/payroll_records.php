@@ -81,6 +81,30 @@
                 </button>
               </div>
 
+              <!-- Bulk Actions Panel -->
+              <div id="bulkActionsPanel" class="alert alert-info d-none mb-3" role="alert">
+                <div class="d-flex justify-content-between align-items-center">
+                  <span><strong id="bulkSelectionCount">0</strong> record(s) selected</span>
+                  <div>
+                    <button id="bulkSubmitBtn" class="btn btn-primary btn-sm d-none" onclick="bulkSubmitForReview()">
+                      <i class="fas fa-paper-plane"></i> Submit for Review
+                    </button>
+                    <button id="bulkApproveBtn" class="btn btn-success btn-sm d-none ml-2" onclick="bulkApprovePayroll()">
+                      <i class="fas fa-check"></i> Approve
+                    </button>
+                    <button id="bulkReturnBtn" class="btn btn-warning btn-sm d-none ml-2" onclick="bulkReturnToDraft()">
+                      <i class="fas fa-undo"></i> Return to Draft
+                    </button>
+                    <button id="bulkMarkPaidBtn" class="btn btn-success btn-sm d-none ml-2" onclick="bulkMarkAsPaid()">
+                      <i class="fas fa-money-bill-wave"></i> Mark as Paid
+                    </button>
+                    <button id="bulkClearBtn" class="btn btn-secondary btn-sm ml-2" onclick="clearBulkSelection()">
+                      <i class="fas fa-times"></i> Clear Selection
+                    </button>
+                  </div>
+                </div>
+              </div>
+
               <table id="payrollTable" class="table table-bordered table-hover">
                 <thead>
                   <tr>
@@ -93,6 +117,9 @@
                     <th class="text-center">Net Pay</th>
                     <th class="text-center">Status</th>
                     <th class="text-center">Actions</th>
+                    <th class="text-center">
+                      <input type="checkbox" id="selectAllCheckbox" title="Select all in this table">
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -139,6 +166,50 @@
     padding: 0.25rem 0.5rem;
     font-size: 0.75rem;
   }
+
+  /* Bulk action buttons - lighter background colors */
+  #bulkSubmitBtn {
+    background-color: #a8d5ff !important;
+    border-color: #a8d5ff !important;
+    color: #003d7a !important;
+  }
+
+  #bulkApproveBtn {
+    background-color: #a8dba8 !important;
+    border-color: #a8dba8 !important;
+    color: #1b4d1b !important;
+  }
+
+  #bulkReturnBtn {
+    background-color: #ffe5a8 !important;
+    border-color: #ffe5a8 !important;
+    color: #664d00 !important;
+  }
+
+  #bulkMarkPaidBtn {
+    background-color: #a8dba8 !important;
+    border-color: #a8dba8 !important;
+    color: #1b4d1b !important;
+  }
+
+  #bulkClearBtn {
+    background-color: #d4d4d4 !important;
+    border-color: #d4d4d4 !important;
+    color: #333 !important;
+  }
+
+  /* Disabled button styling for Print and Export */
+  #printPayrollBtn:disabled,
+  #exportPayrollExcelBtn:disabled {
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
+  }
+
+  #printPayrollBtn:disabled:hover,
+  #exportPayrollExcelBtn:disabled:hover {
+    background-color: inherit !important;
+    border-color: inherit !important;
+  }
 </style>
 
 <!-- jQuery -->
@@ -169,6 +240,8 @@
 <script src="system.js"></script>
 <!-- Payrolls Engine -->
 <script src="scripts/payrolls.js"></script>
+<!-- Bulk Actions Engine -->
+<script src="scripts/bulk_actions.js"></script>
 
 <!-- Edit Payroll Modal -->
 <div id="editPayrollModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="editPayrollModalLabel" aria-hidden="true">

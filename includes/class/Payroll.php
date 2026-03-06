@@ -1313,6 +1313,14 @@ class Payroll {
      * @return array ['valid' => true/false, 'message' => '...']
      */
     public function ValidateStatusTransition($current_status, $new_status) {
+        // Legacy data guard: records saved before the workflow was introduced
+        // have status = '' (empty string) because the old SavePayrollEntry()
+        // INSERT did not include a status value and MariaDB silently stored ''.
+        // Treat these as DRAFT so they can re-enter the workflow normally.
+        if ($current_status === '' || $current_status === null) {
+            $current_status = 'DRAFT';
+        }
+
         // Define allowed transitions
         $allowed_transitions = [
             'DRAFT' => ['REVIEW'],

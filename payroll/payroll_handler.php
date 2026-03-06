@@ -241,8 +241,10 @@ if($action = isset($_POST['action'])?$_POST['action']:'') {
             break;
 
         case 'update_payroll_status_bulk':
-            // BULK UPDATE: Update status for multiple payroll entries with workflow validation
-            // SECURITY: Requires session validation and workflow rule compliance
+            // BULK UPDATE: Update status for multiple payroll entries with workflow validation.
+            // SECURITY: Requires session validation, workflow rule compliance, AND explicit
+            // payroll_period_id / dept_id / emp_type_stamp context so that the update is
+            // strictly scoped to the currently selected period + department + employment type.
             session_start();
             
             if (!isset($_SESSION['uid'])) {
@@ -254,10 +256,20 @@ if($action = isset($_POST['action'])?$_POST['action']:'') {
             $Payroll = new Payroll();
             $payroll_entry_ids = isset($_POST['payroll_entry_ids']) ? 
                 array_map('intval', (array)$_POST['payroll_entry_ids']) : [];
-            $new_status = $_POST['new_status'] ?? '';
-            $reason = isset($_POST['reason']) ? $_POST['reason'] : null;
-            $user_id = intval($_SESSION['uid']);
-            
+            $new_status        = $_POST['new_status'] ?? '';
+            $reason            = isset($_POST['reason']) ? $_POST['reason'] : null;
+            $user_id           = intval($_SESSION['uid']);
+
+            // --- Context fields (REQUIRED) ---
+            // These three values scope the operation to the exact combination that the
+            // user has selected in the UI.  The Payroll class will enforce them at the
+            // SQL level, so even a crafted POST cannot touch records from other periods,
+            // departments, or employment types.
+            $payroll_period_id = intval($_POST['payroll_period_id'] ?? 0);
+            $dept_id           = intval($_POST['dept_id']           ?? 0);
+            $emp_type_stamp    = $_POST['emp_type_stamp'] ?? 'Regular';
+            $emp_type_stamp    = ($emp_type_stamp === 'Casual') ? 'Casual' : 'Regular'; // whitelist
+
             // SECURITY: Validate inputs
             if (empty($payroll_entry_ids)) {
                 http_response_code(400);
@@ -271,9 +283,27 @@ if($action = isset($_POST['action'])?$_POST['action']:'') {
                 echo json_encode(['status' => 'error', 'message' => "Invalid status: $new_status"]);
                 exit;
             }
+
+            // Validate context fields
+            if ($payroll_period_id <= 0 || $dept_id <= 0) {
+                http_response_code(400);
+                echo json_encode([
+                    'status'  => 'error',
+                    'message' => 'Invalid or missing payroll period / department. Please re-select your filters and try again.'
+                ]);
+                exit;
+            }
             
-            // Call bulk update method
-            $result = $Payroll->BulkUpdatePayrollStatus($payroll_entry_ids, $new_status, $user_id, $reason);
+            // Call bulk update method with full context
+            $result = $Payroll->BulkUpdatePayrollStatus(
+                $payroll_entry_ids,
+                $new_status,
+                $user_id,
+                $reason,
+                $payroll_period_id,
+                $dept_id,
+                $emp_type_stamp
+            );
             
             header('Content-Type: application/json');
             http_response_code($result['status'] === 'success' ? 200 : 400);

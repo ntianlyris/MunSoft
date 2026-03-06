@@ -209,7 +209,7 @@ function RetrievePayroll() {
                     }
 
                     rows += `
-                      <tr>
+                      <tr data-payroll-id="${emp.payroll_entry_id}" data-payroll-status="${emp.status || 'DRAFT'}">
                         <td class="text-center">${index + 1}</td>
                         <td>${emp.id_num ? emp.id_num : ""}</td>
                         <td>${emp.full_name ? emp.full_name : ""}</td>
@@ -225,6 +225,9 @@ function RetrievePayroll() {
                         <td class="text-center" style="white-space: nowrap;">
                           ${actionButtons}
                         </td>
+                        <td class="text-center">
+                          <input type="checkbox" class="payrollCheckbox" data-payroll-id="${emp.payroll_entry_id}" data-status="${emp.status || 'DRAFT'}">
+                        </td>
                       </tr>
                     `;
                 });
@@ -232,6 +235,12 @@ function RetrievePayroll() {
                 $("#printPayrollBtn").removeClass("d-none");
                 $("#exportPayrollExcelBtn").removeClass("d-none");
                 $("#deletePayrollRecordsBtn").removeClass("d-none");
+                
+                // Check if all payroll entries are in APPROVED status
+                checkPrintExportButtonStatus();
+                
+                // Initialize bulk selection after table is rendered
+                initializeBulkSelection();
                 
                 // Update status counts
                 getPayrollStatusCounts();
@@ -752,6 +761,13 @@ function submitForReview(payrollEntryIds) {
                 data: {
                     payroll_entry_ids: payrollEntryIds,
                     new_status: 'REVIEW',
+                    // Context fields — scope this update to the currently selected
+                    // period, department, and employment type so the backend can
+                    // enforce that ONLY records belonging to this exact combination
+                    // are ever modified.
+                    payroll_period_id: $('#payrollPeriodYearDropdown').val(),
+                    dept_id:           $('#department').val(),
+                    emp_type_stamp:    $('#employment_type').val(),
                     action: 'update_payroll_status_bulk'
                 },
                 success: function(response) {
@@ -826,6 +842,10 @@ function approvePayroll(payrollEntryIds) {
                 data: {
                     payroll_entry_ids: payrollEntryIds,
                     new_status: 'APPROVED',
+                    // Context fields — scope to selected period/department/type
+                    payroll_period_id: $('#payrollPeriodYearDropdown').val(),
+                    dept_id:           $('#department').val(),
+                    emp_type_stamp:    $('#employment_type').val(),
                     action: 'update_payroll_status_bulk'
                 },
                 success: function(response) {
@@ -910,6 +930,10 @@ function returnToDraft(payrollEntryIds) {
                     payroll_entry_ids: payrollEntryIds,
                     new_status: 'DRAFT',
                     reason: result.value,
+                    // Context fields — scope to selected period/department/type
+                    payroll_period_id: $('#payrollPeriodYearDropdown').val(),
+                    dept_id:           $('#department').val(),
+                    emp_type_stamp:    $('#employment_type').val(),
                     action: 'update_payroll_status_bulk'
                 },
                 success: function(response) {
@@ -984,6 +1008,10 @@ function markAsPaid(payrollEntryIds) {
                 data: {
                     payroll_entry_ids: payrollEntryIds,
                     new_status: 'PAID',
+                    // Context fields — scope to selected period/department/type
+                    payroll_period_id: $('#payrollPeriodYearDropdown').val(),
+                    dept_id:           $('#department').val(),
+                    emp_type_stamp:    $('#employment_type').val(),
                     action: 'update_payroll_status_bulk'
                 },
                 success: function(response) {
