@@ -84,6 +84,42 @@ foreach ($payroll_entries as $row) {
     ];
 }
 
+// ========================================================
+// DEDUCTION FILTERING — Identify active (non-zero) deductions
+// Exclude the TOTAL deduction (it's always at the end of buildDeductionsArray output)
+// ========================================================
+$active_deduction_indices = [];
+foreach ($payrollData as $row) {
+    foreach ($row['deductions'] as $di => $val) {
+        // Skip TOTAL deduction (label === 'Total'), only process actual deductions
+        if ($val['label'] !== 'Total' && $val['amount'] > 0 && !in_array($di, $active_deduction_indices)) {
+            $active_deduction_indices[] = $di;
+        }
+    }
+}
+sort($active_deduction_indices);
+
+// Create index mapping: old index → new (filtered) index
+$deduction_index_map = [];
+$new_index = 0;
+foreach ($active_deduction_indices as $old_di) {
+    $deduction_index_map[$old_di] = $new_index;
+    $new_index++;
+}
+
+// Build filtered deduction headers from configured deductions only
+$filtered_deduction_headers = [];
+if (count($active_deduction_indices) > 0) {
+    foreach ($active_deduction_indices as $di) {
+        // Only include deductions that are in the configured list (not TOTAL)
+        if ($di < count($configured_deductions) && isset($deduction_headers[$di])) {
+            $filtered_deduction_headers[] = $deduction_headers[$di];
+        }
+    }
+}
+// Always include TOTAL as the last deduction column
+$filtered_deduction_headers[] = 'TOTAL';
+
 // ==========================================================
 // HELPER FUNCTIONS (identical to PDF version)
 // ==========================================================
@@ -151,7 +187,7 @@ $TAG_TOT_EMPTY = '<style bgcolor="' . $BG_TOTAL . '" border="thin">';
 // ==========================================================
 // COLUMN LAYOUT
 // ==========================================================
-$ded_count = count($deduction_headers);
+$ded_count = count($filtered_deduction_headers);  // Use filtered deduction count
 $gov_count = 4;
 
 $col_no    = 1;  $col_name  = 2;  $col_basic = 3;
@@ -209,7 +245,7 @@ $row9 = emptyRow($last_col);
 foreach (['Basic', 'PERA', 'Others', 'Gross'] as $i => $lbl) {
     $row9[$col_basic - 1 + $i] = $TAG_SUB . $lbl;
 }
-foreach ($deduction_headers as $i => $dh) {
+foreach ($filtered_deduction_headers as $i => $dh) {
     $row9[$col_ded1 - 1 + $i] = $TAG_SUB . strtoupper($dh);
 }
 foreach (['L/R', 'HDMF', 'PHIC', 'ECC'] as $i => $lbl) {
@@ -221,7 +257,7 @@ $rows[] = $row9;
 $dataStartExcelRow = 10;
 
 $total_basic = $total_pera = $total_others = $total_gross = $total_net = 0;
-$total_ded   = array_fill(0, $ded_count, 0);
+$total_ded   = array_fill(0, count($filtered_deduction_headers), 0);
 $total_gov   = array_fill(0, $gov_count, 0);
 
 foreach ($payrollData as $index => $employee) {
@@ -234,7 +270,8 @@ foreach ($payrollData as $index => $employee) {
 
     foreach ($employee['earnings'] as $ei => $val) {
         $a = $val['amount'];
-        $dataRow[$col_basic - 1 + $ei] = $TAG_NUM . ($a != 0 ? number_format($a, 2) : '-');
+        $display_value = ($a == 0 || $a == '') ? ' ' : number_format($a, 2);
+        $dataRow[$col_basic - 1 + $ei] = $TAG_NUM . $display_value;
         if ($val['label'] === 'Basic')  { $total_basic  += $a; }
         if ($val['label'] === 'PERA')   { $total_pera   += $a; }
         if ($val['label'] === 'Others') { $total_others += $a; }
@@ -242,12 +279,25 @@ foreach ($payrollData as $index => $employee) {
     }
     foreach ($employee['deductions'] as $di => $val) {
         $a = $val['amount'];
-        $dataRow[$col_ded1 - 1 + $di] = $TAG_NUM . ($a != 0 ? number_format($a, 2) : '-');
-        $total_ded[$di] += $a;
+        // Check if this is the TOTAL deduction (always the last element from buildDeductionsArray)
+        if ($val['label'] === 'Total') {
+            // This is the TOTAL deduction - render it in the last filtered column
+            $total_ded_index = count($filtered_deduction_headers) - 1;
+            $display_value = ($a == 0 || $a == '') ? ' ' : number_format($a, 2);
+            $dataRow[$col_ded1 - 1 + $total_ded_index] = $TAG_NUM . $display_value;
+            $total_ded[$total_ded_index] += $a;
+        } elseif (isset($deduction_index_map[$di])) {
+            // This is an active (non-zero) deduction - render using the mapped index
+            $new_di = $deduction_index_map[$di];
+            $display_value = ($a == 0 || $a == '') ? ' ' : number_format($a, 2);
+            $dataRow[$col_ded1 - 1 + $new_di] = $TAG_NUM . $display_value;
+            $total_ded[$new_di] += $a;
+        }
     }
     foreach ($employee['govshares'] as $gi => $val) {
         $a = $val['amount'];
-        $dataRow[$col_gov1 - 1 + $gi] = $TAG_NUM . ($a != 0 ? number_format($a, 2) : '-');
+        $display_value = ($a == 0 || $a == '') ? ' ' : number_format($a, 2);
+        $dataRow[$col_gov1 - 1 + $gi] = $TAG_NUM . $display_value;
         $total_gov[$gi] += $a;
     }
 
@@ -262,15 +312,21 @@ $totalRow = emptyRow($last_col);
 $totalRow[$col_no   - 1] = '<b><right><middle><style bgcolor="' . $BG_TOTAL . '" border="thin" font-size="8">TOTAL';
 $totalRow[$col_name - 1] = $TAG_TOT_EMPTY;
 foreach ([$total_basic, $total_pera, $total_others, $total_gross] as $ei => $v) {
-    $totalRow[$col_basic - 1 + $ei] = $TAG_TOT . number_format($v, 2);
+    $display_value = ($v == 0 || $v == '') ? ' ' : number_format($v, 2);
+    $totalRow[$col_basic - 1 + $ei] = $TAG_TOT . $display_value;
 }
-foreach ($total_ded as $di => $v) {
-    $totalRow[$col_ded1 - 1 + $di] = $TAG_TOT . ($v != 0 ? number_format($v, 2) : '-');
+// Render all deduction totals including TOTAL column
+for ($di = 0; $di < count($filtered_deduction_headers); $di++) {
+    $v = $total_ded[$di] ?? 0;
+    $display_value = ($v == 0 || $v == '') ? ' ' : number_format($v, 2);
+    $totalRow[$col_ded1 - 1 + $di] = $TAG_TOT . $display_value;
 }
 foreach ($total_gov as $gi => $v) {
-    $totalRow[$col_gov1 - 1 + $gi] = $TAG_TOT . ($v != 0 ? number_format($v, 2) : '-');
+    $display_value = ($v == 0 || $v == '') ? ' ' : number_format($v, 2);
+    $totalRow[$col_gov1 - 1 + $gi] = $TAG_TOT . $display_value;
 }
-$totalRow[$col_net - 1] = $TAG_TOT . number_format($total_net, 2);
+$display_value = ($total_net == 0 || $total_net == '') ? ' ' : number_format($total_net, 2);
+$totalRow[$col_net - 1] = $TAG_TOT . $display_value;
 $totalRow[$col_sig - 1] = $TAG_TOT_EMPTY;
 $rows[] = $totalRow;
 
@@ -301,7 +357,7 @@ foreach ($sig_groups as $group) {
         $ci = $i * $cols_per_sig;
         if ($sign === null) { continue; }
         $rowA[$ci] = '<style font-size="9"><i>' . $sign['sign_particulars'];
-        $rowB[$ci] = '<style border="none none thin none" height="20">';   // signature underline
+        $rowB[$ci] = '<style border="none" height="20">';   // no underline, just spacing
         $rowC[$ci] = '<b><style font-size="9">'  . $sign['full_name'];
         $rowD[$ci] = '<style font-size="9">'       . $sign['position_title'];
     }
