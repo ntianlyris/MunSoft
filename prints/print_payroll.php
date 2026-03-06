@@ -319,7 +319,7 @@ foreach ($payrollData as $index => $row) {
     
     // Earnings
     foreach ($row['earnings'] as $ei => $val) {
-        $html .= '<td class="text-right" width="'.$earn_sub_w.'%" style="font-size:8pt;">' . ($val['amount'] != 0 ? number_format($val['amount'], 2) : '-') . '</td>';
+        $html .= '<td class="text-right" width="'.$earn_sub_w.'%" style="font-size:7pt;">' . ($val['amount'] != 0 ? number_format($val['amount'], 2) : '-') . '</td>';
         if($val['label'] == 'Basic') $total_basic += $val['amount'];
         if($val['label'] == 'PERA') $total_pera += $val['amount'];
         if($val['label'] == 'Others') $total_others += $val['amount'];
