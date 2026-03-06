@@ -22,9 +22,15 @@ if (isset($_REQUEST['action'])) {
                 $period_id = isset($_REQUEST['period_id']) ? trim($_REQUEST['period_id']) : '';
                 $dept_id = isset($_REQUEST['dept_id']) ? trim($_REQUEST['dept_id']) : '';
                 $employment_type = isset($_REQUEST['employment_type']) ? trim($_REQUEST['employment_type']) : '';
+                $consolidate_all = isset($_REQUEST['consolidate_all']) ? (int)$_REQUEST['consolidate_all'] : 0;
 
-                if (empty($year) || empty($period_id) || empty($dept_id)) {
+                if (empty($year) || empty($period_id) || empty($employment_type)) {
                     throw new Exception('Missing required parameters');
+                }
+
+                // If not consolidated, dept_id is required
+                if (!$consolidate_all && empty($dept_id)) {
+                    throw new Exception('Please select a department or choose All Departments');
                 }
 
                 // Initialize classes
@@ -35,8 +41,13 @@ if (isset($_REQUEST['action'])) {
                 // Generate journal entries
                 $journal_entries = array();
 
-                // Get payroll data for the period
-                $payroll_data = $Payroll->FetchPayrollByPayPeriodAndDept($period_id, $dept_id, $employment_type);
+                // Get payroll data for the period - use appropriate method based on consolidation flag
+                if ($consolidate_all) {
+                    $payroll_data = $Payroll->FetchPayrollByPayPeriodAllDepts($period_id, $employment_type);
+                } else {
+                    $payroll_data = $Payroll->FetchPayrollByPayPeriodAndDept($period_id, $dept_id, $employment_type);
+                }
+                
                 if (!$payroll_data || empty($payroll_data)) {
                     throw new Exception('No payroll data found for the selected period');
                 }

@@ -21,14 +21,20 @@ $year = $_GET['year'] ?? '';
 $period_id = $_GET['period_id'] ?? '';
 $dept_id = $_GET['dept_id'] ?? '';
 $employment_type = $_GET['employment_type'] ?? '';
+$consolidate_all = isset($_GET['consolidate_all']) ? (int)$_GET['consolidate_all'] : 0;
 
-if (!$year || !$period_id || !$dept_id || !$employment_type) {
+if (!$year || !$period_id || !$employment_type) {
     die("Missing required parameters.");
+}
+
+// If not consolidated, dept_id is required
+if (!$consolidate_all && !$dept_id) {
+    die("Missing department information.");
 }
 
 if (strpos($period_id, '_') !== false) {
     // Period is a date range (e.g., "2025-08-01_2025-08-15")
-    list($start_date, $end_date) = explode('_', $period);
+    list($start_date, $end_date) = explode('_', $period_id);
     $payroll_period_id = $Payroll->GetPayrollPeriodByDates($start_date, $end_date)['payroll_period_id'];
 } else {
     // Period is already a payroll_period_id
@@ -46,20 +52,29 @@ if (strpos($period_id, '_') !== false) {
 $journal_entries = array();
 
 // Get department details for responsibility center
-$dept_details = $Department->GetDepartmentDetails($dept_id);
-if (!$dept_details) {
-    throw new Exception('Department not found');
+if ($consolidate_all) {
+    $responsibility_ctr = 'All Departments';
+} else {
+    $dept_details = $Department->GetDepartmentDetails($dept_id);
+    if (!$dept_details) {
+        throw new Exception('Department not found');
+    }
+    $responsibility_ctr = $dept_details['dept_code'];
 }
 
 // Set Labels for department and period
-$responsibility_ctr = $dept_details['dept_code'];
 $pay_period_start = OutputDate($start_date);
 $pay_period_end = OutputDate($end_date);
 $date = new DateTime();
 $date = OutputShortDate($date->format('Y-m-d'));
 
-// Get payroll data for the period
-$payroll_data = $Payroll->FetchPayrollByPayPeriodAndDept($period_id, $dept_id, $employment_type);
+// Get payroll data for the period - use appropriate method based on consolidation flag
+if ($consolidate_all) {
+    $payroll_data = $Payroll->FetchPayrollByPayPeriodAllDepts($period_id, $employment_type);
+} else {
+    $payroll_data = $Payroll->FetchPayrollByPayPeriodAndDept($period_id, $dept_id, $employment_type);
+}
+
 if (!$payroll_data || empty($payroll_data)) {
     throw new Exception('No payroll data found for the selected period');
 }

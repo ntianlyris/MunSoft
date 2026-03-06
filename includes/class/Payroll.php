@@ -836,6 +836,20 @@ class Payroll {
         return $payrolls;
     }
 
+    public function FetchPayrollByPayPeriodAllDepts($period_id, $emp_type){
+        $stmt = "SELECT * FROM payroll_entries 
+                    WHERE payroll_period_id = '$period_id' 
+                    AND emp_type_stamp = '$emp_type' 
+                    ORDER BY payroll_entry_id";
+        $result = $this->db->query($stmt) or die($this->db->error);
+        
+        $payrolls = [];
+        while ($row = $this->db->fetch_array($result)) {
+            $payrolls[] = $row;
+        }
+        return $payrolls;
+    }
+
     public function FetchConfigEarningsIDandCode(){
         $query = "SELECT config_earning_id, earning_code FROM config_earnings ORDER BY earning_acct_code ASC";
         $result = $this->db->query($query) or die($this->db->error);
