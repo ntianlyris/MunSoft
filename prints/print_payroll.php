@@ -67,6 +67,47 @@ foreach ($payroll_entries as $row) {
 }
 
 // ==========================================================
+// DYNAMIC DEDUCTION FILTERING (Remove zero-value deductions)
+// ==========================================================
+// Analyze all payroll data to find which deductions have non-zero values
+$active_deduction_indices = [];
+$deduction_totals = [];
+
+// Initialize totals array
+for ($i = 0; $i < count($deduction_headers); $i++) {
+    $deduction_totals[$i] = 0;
+}
+
+// Scan all payroll entries to find deductions with values
+foreach ($payrollData as $row) {
+    foreach ($row['deductions'] as $di => $ded) {
+        if ($ded['amount'] > 0) {
+            $active_deduction_indices[$di] = true;
+        }
+        $deduction_totals[$di] += $ded['amount'];
+    }
+}
+
+// Build filtered deduction headers and create index mapping
+$filtered_deduction_headers = [];
+$deduction_index_map = []; // Maps old index to new index
+$new_index = 0;
+
+for ($old_index = 0; $old_index < count($deduction_headers); $old_index++) {
+    if (isset($active_deduction_indices[$old_index]) || $deduction_headers[$old_index] === 'TOTAL') {
+        $filtered_deduction_headers[] = $deduction_headers[$old_index];
+        $deduction_index_map[$old_index] = $new_index;
+        $new_index++;
+    }
+}
+
+// If no deductions with values found, at least show TOTAL
+if (count($filtered_deduction_headers) === 0) {
+    $filtered_deduction_headers = ['TOTAL'];
+    $deduction_index_map[count($deduction_headers) - 1] = 0;
+}
+
+// ==========================================================
 // HELPER FUNCTIONS For BUILDING EARNINGS AND DEDUCTIONS ARRAYS
 // ==========================================================
 
@@ -211,15 +252,17 @@ $pdf->setCustomHeaderData([
 $pdf->AddPage();
 
 // Layout Constants
-$name_w = 7; 
-$earn_w = 11.5; 
-$ded_w = 63; 
+$name_w = 7;      // Increased from 7 for wider Name column
+$earn_w = 13.5;    // Increased from 11.5 for wider Earnings column
+$ded_w = 61;       // Slightly reduced to compensate
 $gov_w = 12; 
-$net_w = 4; 
+$net_w = 3.5; 
 $sig_w = 3.5;
 
 $earn_sub_w = $earn_w / 4;
-$ded_sub_w = $ded_w / count($deduction_headers);
+// --- DYNAMIC: Use filtered deduction count for column width calculation ---
+$active_ded_count = count($filtered_deduction_headers);
+$ded_sub_w = $ded_w / $active_ded_count;
 $gov_sub_w = $gov_w / 4;
 
 // ==========================================================
@@ -228,19 +271,19 @@ $gov_sub_w = $gov_w / 4;
 $html = '
 <style>
     table { border-collapse: collapse; width: 100%; }
-    th { border: 0.5pt solid black; background-color: #f2f2f2; font-weight: bold; text-align: center; vertical-align: middle; font-size: 8pt; }
+    th { border: 0.5pt solid black; background-color: #f2f2f2; font-weight: bold; text-align: center; vertical-align: middle; font-size: 9pt; }
     td { border: 0.5pt solid black; vertical-align: middle; }
-    .sub-header { font-size: 6pt; font-weight: normal; background-color: #fafafa; }
+    .sub-header { font-size: 7pt; font-weight: normal; background-color: #fafafa; }
     .text-right { text-align: right; }
     .text-center { text-align: center; }
-    .total-row { font-weight: bold; background-color: #eeeeee; font-size: 5pt; }
+    .total-row { font-weight: bold; background-color: #eeeeee; font-size: 7pt; }
 </style>
 <table cellpadding="2">
     <thead>
         <tr>
             <th rowspan="2" width="'.$name_w.'%">EMPLOYEE</th>
             <th colspan="4" width="'.$earn_w.'%">EARNINGS</th>
-            <th colspan="'.count($deduction_headers).'" width="'.$ded_w.'%">DEDUCTIONS</th>
+            <th colspan="'.$active_ded_count.'" width="'.$ded_w.'%">DEDUCTIONS</th>
             <th colspan="4" width="'.$gov_w.'%">GOV SHARES</th>
             <th rowspan="2" width="'.$net_w.'%">NET</th>
             <th rowspan="2" width="'.$sig_w.'%"><span style="font-size: 5pt;">SIGNATURE</span></th>
@@ -250,7 +293,8 @@ $html = '
             <th class="sub-header" width="'.$earn_sub_w.'%">PERA</th>
             <th class="sub-header" width="'.$earn_sub_w.'%">Others</th>
             <th class="sub-header" width="'.$earn_sub_w.'%">Gross</th>';
-            foreach($deduction_headers as $h) {
+            // --- DYNAMIC: Loop through filtered deduction headers only ---
+            foreach($filtered_deduction_headers as $h) {
                 $html .= '<th class="sub-header" width="'.$ded_sub_w.'%">'.strtoupper($h).'</th>';
             }
             $html .= '
@@ -263,18 +307,19 @@ $html = '
     <tbody>';
 
 $total_basic = 0; $total_pera = 0; $total_others = 0; $total_gross = 0; 
-$total_ded_cols = array_fill(0, count($deduction_headers), 0);
+// --- DYNAMIC: Use active deduction count for totals array ---
+$total_ded_cols = array_fill(0, $active_ded_count, 0);
 $total_gov_cols = array_fill(0, 4, 0);
 $total_net = 0;
 
 foreach ($payrollData as $index => $row) {
     $count = $index + 1;
     $html .= '<tr nobr="true">
-                <td width="'.$name_w.'%" style="font-size:6pt;">'.$count.'.) <b>'.$row['name'].'</b><br><i style="font-size:6pt;">'.$row['designation'].'</i></td>';
+                <td width="'.$name_w.'%" style="font-size:8pt;">'.$count.'.) <b>'.$row['name'].'</b><br><i style="font-size:7pt;">'.$row['designation'].'</i></td>';
     
     // Earnings
     foreach ($row['earnings'] as $ei => $val) {
-        $html .= '<td class="text-right" width="'.$earn_sub_w.'%" style="font-size:6pt;">' . ($val['amount'] != 0 ? number_format($val['amount'], 2) : '-') . '</td>';
+        $html .= '<td class="text-right" width="'.$earn_sub_w.'%" style="font-size:8pt;">' . ($val['amount'] != 0 ? number_format($val['amount'], 2) : '-') . '</td>';
         if($val['label'] == 'Basic') $total_basic += $val['amount'];
         if($val['label'] == 'PERA') $total_pera += $val['amount'];
         if($val['label'] == 'Others') $total_others += $val['amount'];
@@ -282,35 +327,40 @@ foreach ($payrollData as $index => $row) {
     }
     // Deductions
     foreach ($row['deductions'] as $di => $val) {
-        $html .= '<td class="text-right" width="'.$ded_sub_w.'%" style="font-size:6pt;">' . ($val['amount'] != 0 ? number_format($val['amount'], 2) : '-') . '</td>';
-        $total_ded_cols[$di] += $val['amount'];
+        // Only include deductions that are in the filtered list
+        if (isset($deduction_index_map[$di])) {
+            $new_di = $deduction_index_map[$di];
+            $html .= '<td class="text-right" width="'.$ded_sub_w.'%" style="font-size:7pt;">' . ($val['amount'] != 0 ? number_format($val['amount'], 2) : '-') . '</td>';
+            $total_ded_cols[$new_di] += $val['amount'];
+        }
     }
     // Gov Shares
     foreach ($row['govshares'] as $gi => $val) {
-        $html .= '<td class="text-right" width="'.$gov_sub_w.'%" style="font-size:6pt;">' . ($val['amount'] != 0 ? number_format($val['amount'], 2) : '-') . '</td>';
+        $html .= '<td class="text-right" width="'.$gov_sub_w.'%" style="font-size:7pt;">' . ($val['amount'] != 0 ? number_format($val['amount'], 2) : '-') . '</td>';
         $total_gov_cols[$gi] += $val['amount'];
     }
     
     $total_net += $row['net'];
-    $html .= '<td class="text-right" width="'.$net_w.'%" style="font-size:6pt;"><b>'.number_format($row['net'], 2).'</b></td>
-              <td width="'.$sig_w.'%" class="text-left" style="font-size:6pt;">'.$count.'.)</td>
+    $html .= '<td class="text-right" width="'.$net_w.'%" style="font-size:7pt;"><b>'.number_format($row['net'], 2).'</b></td>
+              <td width="'.$sig_w.'%" class="text-left" style="font-size:7pt;">'.$count.'.)</td>
             </tr>';
 }
 
-// TOTAL ROW - Aligned by using exact width variables
+// TOTAL ROW - Aligned with filtered deduction columns
 $html .= '<tr class="total-row">
-            <td class="text-right" width="'.$name_w.'%">TOTAL</td>
-            <td class="text-right" width="'.$earn_sub_w.'%">'.number_format($total_basic, 2).'</td>
-            <td class="text-right" width="'.$earn_sub_w.'%">'.number_format($total_pera, 2).'</td>
-            <td class="text-right" width="'.$earn_sub_w.'%">'.number_format($total_others, 2).'</td>
-            <td class="text-right" width="'.$earn_sub_w.'%">'.number_format($total_gross, 2).'</td>';
+            <td class="text-right" width="'.$name_w.'%" style="font-size:7pt;">TOTAL</td>
+            <td class="text-right" width="'.$earn_sub_w.'%" style="font-size:7pt;">'.number_format($total_basic, 2).'</td>
+            <td class="text-right" width="'.$earn_sub_w.'%" style="font-size:7pt;">'.number_format($total_pera, 2).'</td>
+            <td class="text-right" width="'.$earn_sub_w.'%" style="font-size:7pt;">'.number_format($total_others, 2).'</td>
+            <td class="text-right" width="'.$earn_sub_w.'%" style="font-size:7pt;">'.number_format($total_gross, 2).'</td>';
+            // --- DYNAMIC: Loop through filtered deduction totals only ---
             foreach($total_ded_cols as $val) {
-                $html .= '<td class="text-right" width="'.$ded_sub_w.'%">'.($val != 0 ? number_format($val, 2) : '-').'</td>';
+                $html .= '<td class="text-right" width="'.$ded_sub_w.'%" style="font-size:7pt;">'.($val != 0 ? number_format($val, 2) : '-').'</td>';
             }
             foreach($total_gov_cols as $val) {
-                $html .= '<td class="text-right" width="'.$gov_sub_w.'%">'.($val != 0 ? number_format($val, 2) : '-').'</td>';
+                $html .= '<td class="text-right" width="'.$gov_sub_w.'%" style="font-size:7pt;">'.($val != 0 ? number_format($val, 2) : '-').'</td>';
             }
-$html .= '  <td class="text-right" width="'.$net_w.'%">'.number_format($total_net, 2).'</td>
+$html .= '  <td class="text-right" width="'.$net_w.'%" style="font-size:7pt;">'.number_format($total_net, 2).'</td>
             <td width="'.$sig_w.'%"></td>
           </tr>';
 
