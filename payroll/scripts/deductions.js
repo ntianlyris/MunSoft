@@ -90,21 +90,55 @@ function SaveEmployeeDeductions(){
                             }
                     });
                 }
-                else if(result == 'block_edit'){
-                    var blockMessage = obj.message || 'Cannot save/edit deductions. Payroll is locked and cannot be modified.';
+                else if(result == 'warning' || result == 'block_edit'){
+                    var blockMessage = obj.message || 'Cannot save/edit deductions.';
                     var blockReason = obj.reason || 'unknown';
-                    var errorTitle = 'Error - Cannot Edit';
+                    var errorTitle = 'Error - Cannot Save';
+                    var detailedMessage = blockMessage;
                     
                     // Different title/handling based on blocking reason
                     if(blockReason === 'period'){
                         errorTitle = 'Error - 1st/2nd Half Mismatch';
                     } else if(blockReason === 'status'){
                         errorTitle = 'Error - Payroll Locked';
+                    } else if(blockReason === 'gaa_threshold'){
+                        // GAA Threshold Violation - Show financial breakdown
+                        errorTitle = 'Error - GAA Net Pay Threshold Violation';
+                        
+                        var currentGross = parseFloat(obj.current_gross) || 0;
+                        var proposedDeduction = parseFloat(obj.proposed_deduction) || 0;
+                        var netAfter = parseFloat(obj.net_after) || 0;
+                        var shortfall = parseFloat(obj.shortfall) || 0;
+                        var threshold = parseFloat(obj.threshold) || 5000;
+                        
+                        detailedMessage = '<div style="text-align: left; font-size: 14px;">' +
+                            '<strong>GAA Minimum Net Pay: ₱' + threshold.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '</strong><br><br>' +
+                            '<strong>Financial Breakdown:</strong><br>' +
+                            '<table style="width: 100%; margin-top: 10px; border-collapse: collapse;">' +
+                            '<tr style="border-bottom: 1px solid #ddd;">' +
+                            '<td style="padding: 8px; text-align: left;">Current Gross Earnings:</td>' +
+                            '<td style="padding: 8px; text-align: right; font-weight: bold;">₱' + currentGross.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '</td>' +
+                            '</tr>' +
+                            '<tr style="border-bottom: 1px solid #ddd;">' +
+                            '<td style="padding: 8px; text-align: left;">Proposed Deduction:</td>' +
+                            '<td style="padding: 8px; text-align: right; font-weight: bold;">₱' + proposedDeduction.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '</td>' +
+                            '</tr>' +
+                            '<tr style="border-bottom: 2px solid #dc3545; background-color: #fff3cd;">' +
+                            '<td style="padding: 8px; text-align: left; font-weight: bold;">Resulting Net Pay:</td>' +
+                            '<td style="padding: 8px; text-align: right; font-weight: bold; color: #dc3545;">₱' + netAfter.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '</td>' +
+                            '</tr>' +
+                            '<tr style="background-color: #f8d7da;">' +
+                            '<td style="padding: 8px; text-align: left; color: #721c24;"><strong>Shortfall Amount:</strong></td>' +
+                            '<td style="padding: 8px; text-align: right; color: #721c24; font-weight: bold;">₱' + shortfall.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '</td>' +
+                            '</tr>' +
+                            '</table>' +
+                            '<p style="margin-top: 15px; color: #666;"><em>Please reduce the deduction amount to ensure net pay meets the GAA minimum threshold.</em></p>' +
+                            '</div>';
                     }
                     
                     Swal.fire({
                         title: errorTitle,
-                        text: blockMessage,
+                        html: detailedMessage,
                         icon: 'error',
                         confirmButtonColor: '#dc3545',
                         confirmButtonText: 'Ok'

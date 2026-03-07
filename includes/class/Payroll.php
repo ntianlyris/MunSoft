@@ -818,6 +818,32 @@ class Payroll {
     }
 
     // ==========================================================
+    // GAA Net Pay Validation Integration
+    // ==========================================================
+
+    /**
+     * Validate computed payroll entry against GAA threshold
+     * Non-breaking integration: Uses existing computed values
+     * 
+     * @param float $gross - From ComputePayrollOfEmployees()
+     * @param float $total_deductions - From ComputePayrollOfEmployees()
+     * @param string $payroll_frequency - From GetCurrentActiveFrequency()
+     * @return array - Validation result
+     */
+    public function validatePayrollAgainstGAA($gross, $total_deductions, $payroll_frequency = 'monthly') {
+        include_once("GAANetPayValidator.php");
+        $GAAValidator = new GAANetPayValidator();
+        
+        // Use minimal params - validator only needs to validate, not modify
+        return $GAAValidator->validatePayrollEntry(
+            0,  // employee_id not used in validation logic, only for logging
+            $gross,
+            $total_deductions,
+            $payroll_frequency
+        );
+    }
+
+    // ==========================================================
     // Printing Payroll Reports
     // ==========================================================
 

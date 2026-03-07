@@ -2,6 +2,7 @@
 require_once '../includes/class/Payroll.php';
 require_once '../includes/class/Employee.php';
 require_once '../includes/class/Employment.php';
+require_once '../includes/class/DB_conn.php';
 
 if($action = isset($_POST['action'])?$_POST['action']:'') {
     switch ($action) {
@@ -52,6 +53,59 @@ if($action = isset($_POST['action'])?$_POST['action']:'') {
             }
             $payroll_period_id = $periodRow['payroll_period_id'];
 
+            // ========== NEW: GAA VALIDATION (Stage 2) ==========
+            require_once '../includes/class/GAANetPayValidator.php';
+            $GAAValidator = new GAANetPayValidator();
+            $active_frequency = $Payroll->GetCurrentActiveFrequency();
+            $payroll_frequency = $active_frequency['freq_code'];
+            
+            $validation_errors = [];
+            $validation_results = []; // Store validation per employee for audit
+            
+            foreach ($payroll_data as $emp) {
+                $emp_id = $emp['employee_id'];
+                $emp_name = $emp['name'];
+                $emp_gross = $emp['gross'];
+                $emp_deductions = $emp['deductions'];
+                
+                // Validate this employee's payroll
+                $validation_result = $GAAValidator->validatePayrollEntry(
+                    $emp_id,
+                    $emp_gross,
+                    $emp_deductions,
+                    $payroll_frequency
+                );
+                
+                $validation_results[$emp_id] = $validation_result;
+                
+                // If validation fails, collect error
+                if (!$validation_result['is_valid']) {
+                    $violation = $validation_result['violations'][0];
+                    $validation_errors[] = [
+                        'employee_id' => $emp_id,
+                        'employee' => $emp_name,
+                        'gross' => $emp_gross,
+                        'deductions' => $emp_deductions,
+                        'net_pay' => $validation_result['net_pay'],
+                        'shortfall' => $violation['shortfall_amount']
+                    ];
+                }
+            }
+            
+            // If any violations, BLOCK save and return error
+            if (!empty($validation_errors)) {
+                header('Content-Type: application/json');
+                echo json_encode([
+                    'status' => 'validation_failed',
+                    'message' => 'Cannot save payroll. ' . count($validation_errors) . ' employee(s) below GAA threshold.',
+                    'validation_errors' => $validation_errors,
+                    'affected_count' => count($validation_errors),
+                    'threshold' => 5000.00
+                ]);
+                exit; // STOP - don't save
+            }
+            // ========== END GAA VALIDATION ==========
+
             //pass payroll data and payroll period id
             $Payroll->setPayrollData($payroll_data);
             $Payroll->setPayrollPeriodID($payroll_period_id);
@@ -61,6 +115,41 @@ if($action = isset($_POST['action'])?$_POST['action']:'') {
             //save to db, 
             $returned_data = [];
             if ($returned_data = $Payroll->SavePayrollEntry()) {
+                // ========== NEW: Log GAA validation to audit trail ==========
+                $db_conn = new DB_conn();  // Create local DB connection for audit queries
+                
+                foreach ($payroll_data as $emp) {
+                    // Query to get the saved payroll_entry_id
+                    $emp_id = $emp['employee_id'];
+                    $audit_query = "SELECT payroll_entry_id FROM payroll_entries 
+                                    WHERE employee_id = '$emp_id' 
+                                    AND payroll_period_id = '$payroll_period_id'
+                                    ORDER BY created_at DESC LIMIT 1";
+                    $audit_result = $db_conn->query($audit_query);
+                    if ($audit_result && $db_conn->num_rows($audit_result) > 0) {
+                        $audit_row = $db_conn->fetch_array($audit_result);
+                        $payroll_entry_id = $audit_row['payroll_entry_id'];
+                        
+                        $validation = $validation_results[$emp_id];
+                        $shortfall = empty($validation['violations']) ? 0 : $validation['violations'][0]['shortfall_amount'];
+                        
+                        // Save GAA status to payroll_gaa_status
+                        $GAAValidator->saveGAAStatus($payroll_entry_id, false, 0); // Mark as PASS
+                        
+                        // Log to audit trail
+                        $GAAValidator->logValidationAudit(
+                            $payroll_entry_id,
+                            $emp_id,
+                            'PAYROLL_SAVE',
+                            $validation['net_pay'],
+                            $shortfall,
+                            'PASS',
+                            'Payroll saved successfully'
+                        );
+                    }
+                }
+                // ========== END AUDIT LOGGING ==========
+                
                 header('Content-Type: application/json');
                 echo json_encode($returned_data);
             }
@@ -366,6 +455,56 @@ if($action = isset($_POST['action'])?$_POST['action']:'') {
             header('Content-Type: application/json');
             echo json_encode(['status' => 'success', 'transitions' => $transitions]);
             break;
+
+        case 'validate_batch_approval':
+            // ========== NEW: STAGE 3 - BATCH APPROVAL VALIDATION ==========
+            // Validate all payroll entries for a period before final approval
+            
+            session_start();
+            if (!isset($_SESSION['uid'])) {
+                http_response_code(401);
+                echo json_encode(['status' => 'error', 'message' => 'Unauthorized - please login']);
+                exit;
+            }
+            
+            require_once '../includes/class/GAANetPayValidator.php';
+            $GAAValidator = new GAANetPayValidator();
+            
+            $payroll_period_id = isset($_POST['payroll_period_id']) ? intval($_POST['payroll_period_id']) : 0;
+            $dept_id = isset($_POST['dept_id']) ? intval($_POST['dept_id']) : null;
+            
+            // Security: Validate input
+            if ($payroll_period_id <= 0) {
+                http_response_code(400);
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => 'Invalid payroll period ID.'
+                ]);
+                exit;
+            }
+            
+            // Get validation result
+            $batch_validation = $GAAValidator->validatePayrollBatch($payroll_period_id, $dept_id);
+            
+            // Log the batch validation attempt to audit trail
+            if (!$batch_validation['is_valid']) {
+                foreach ($batch_validation['violations'] as $violation) {
+                    $GAAValidator->logValidationAudit(
+                        $violation['payroll_entry_id'],
+                        $violation['employee_id'],
+                        'BATCH_APPROVAL',
+                        $violation['net_pay'],
+                        $violation['shortfall_amount'],
+                        'FAIL',
+                        'Batch approval validation blocked due to GAA threshold violation'
+                    );
+                }
+            }
+            
+            header('Content-Type: application/json');
+            echo json_encode($batch_validation);
+            break;
+        // ========== END BATCH APPROVAL VALIDATION ==========
 
         default:
             # code...
