@@ -53,11 +53,11 @@ if($action = isset($_POST['action'])?$_POST['action']:'') {
             }
             $payroll_period_id = $periodRow['payroll_period_id'];
 
-            // ========== NEW: GAA VALIDATION (Stage 2) ==========
+            // ========== GAA VALIDATION (Stage 2) ==========
             require_once '../includes/class/GAANetPayValidator.php';
             $GAAValidator = new GAANetPayValidator();
             $active_frequency = $Payroll->GetCurrentActiveFrequency();
-            $payroll_frequency = $active_frequency['freq_code'];
+            $payroll_frequency = $active_frequency['freq_code'] ?? 'monthly';
             
             $validation_errors = [];
             $validation_results = []; // Store validation per employee for audit
@@ -92,8 +92,9 @@ if($action = isset($_POST['action'])?$_POST['action']:'') {
                 }
             }
             
-            // If any violations, BLOCK save and return error
+            // If any violations found, block the entire save
             if (!empty($validation_errors)) {
+                http_response_code(422);
                 header('Content-Type: application/json');
                 echo json_encode([
                     'status' => 'validation_failed',
@@ -102,7 +103,7 @@ if($action = isset($_POST['action'])?$_POST['action']:'') {
                     'affected_count' => count($validation_errors),
                     'threshold' => 5000.00
                 ]);
-                exit; // STOP - don't save
+                exit;
             }
             // ========== END GAA VALIDATION ==========
 
@@ -457,7 +458,7 @@ if($action = isset($_POST['action'])?$_POST['action']:'') {
             break;
 
         case 'validate_batch_approval':
-            // ========== NEW: STAGE 3 - BATCH APPROVAL VALIDATION ==========
+            // ========== STAGE 3 - BATCH APPROVAL VALIDATION ==========
             // Validate all payroll entries for a period before final approval
             
             session_start();
