@@ -43,6 +43,9 @@
   <!-- Employee Mobile-First Styles -->
   <link rel="stylesheet" href="../css/employee-mobile.css">
   
+  <!-- GAA Net Pay Validator Styles -->
+  <link rel="stylesheet" href="../css/gaa_validator.css">
+  
   <!-- Sweetalert -->
   <link rel="stylesheet" href="../plugins/sweetalert2/sweetalert2.min.css">
   <script src="../plugins/sweetalert2/sweetalert2.min.js"></script>

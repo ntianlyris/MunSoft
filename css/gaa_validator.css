@@ -1,0 +1,363 @@
+/**
+ * GAA Net Pay Validator - Styling
+ * 
+ * CSS classes for real-time deduction validation feedback
+ * Modal dialogs for blocked payroll entries and batch approvals
+ * 
+ * @author Development Team
+ * @version 1.0.0
+ * @since 2026-03-06
+ */
+
+/* ────────────────────────────────────────────────────────────
+   STATUS BADGES (INLINE FEEDBACK)
+   ──────────────────────────────────────────────────────────── */
+
+.gaa-status-badge {
+    display: inline-block;
+    padding: 0.35rem 0.6rem;
+    border-radius: 0.25rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    white-space: nowrap;
+    margin-left: 0.5rem;
+}
+
+.gaa-badge-ok {
+    color: #ffffff;
+    background-color: #28a745;
+    border: 1px solid #1e7e34;
+}
+
+.gaa-badge-ok::before {
+    content: '✓ ';
+    margin-right: 0.3rem;
+}
+
+.gaa-badge-blocked {
+    color: #ffffff;
+    background-color: #dc3545;
+    border: 1px solid #bd2130;
+}
+
+.gaa-badge-blocked::before {
+    content: '✗ ';
+    margin-right: 0.3rem;
+}
+
+.gaa-badge-warning {
+    color: #ffffff;
+    background-color: #ffc107;
+    border: 1px solid #e0a800;
+    color: #000000;
+}
+
+.gaa-badge-warning::before {
+    content: '⚠ ';
+    margin-right: 0.3rem;
+}
+
+/* Animation for badge appearance */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.gaa-status-badge {
+    animation: slideIn 0.3s ease-in-out;
+}
+
+/* ────────────────────────────────────────────────────────────
+   DEDUCTION TABLE STYLING
+   ──────────────────────────────────────────────────────────── */
+
+/* Highlight row with validation feedback */
+tr.gaa-violation {
+    background-color: #fff3cd !important;
+}
+
+tr.gaa-violation .gaa-status-badge {
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+/* Disable button when violations present */
+#btn-save-deductions:disabled,
+#btn-save-payroll:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+#btn-save-deductions:disabled::after,
+#btn-save-payroll:disabled::after {
+    content: ' (blocked due to GAA threshold violation)';
+    font-size: 0.75rem;
+    font-style: italic;
+    margin-left: 0.25rem;
+}
+
+/* ────────────────────────────────────────────────────────────
+   MODAL STYLING
+   ──────────────────────────────────────────────────────────── */
+
+/* Payroll blocked modal */
+#gaa-payroll-blocked-modal .modal-header {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    border-bottom: 3px solid #a71d2a;
+}
+
+#gaa-payroll-blocked-modal .modal-body {
+    padding: 2rem;
+}
+
+.gaa-block-reason {
+    font-size: 1rem;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+
+/* Approval blocked modal */
+#gaa-approval-blocked-modal .modal-header {
+    background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+    border-bottom: 3px solid #d39e00;
+}
+
+#gaa-approval-blocked-modal .modal-title {
+    color: #000000;
+}
+
+/* Violation details styling */
+.gaa-violation-details {
+    background-color: #f8f9fa;
+    border-left: 4px solid #dc3545;
+    padding: 1rem;
+    border-radius: 0.25rem;
+    margin: 1rem 0;
+}
+
+.gaa-violation-details p {
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+}
+
+.gaa-violation-details strong {
+    color: #333333;
+}
+
+.gaa-violation-details .shortfall-amount {
+    color: #dc3545;
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+/* Violations table in approval modal */
+#gaa-approval-blocked-modal .table {
+    margin-bottom: 0;
+}
+
+#gaa-approval-blocked-modal .table-danger thead {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+#gaa-approval-blocked-modal .table-sm td {
+    padding: 0.5rem;
+    vertical-align: middle;
+}
+
+#gaa-approval-blocked-modal .table-sm tbody tr:hover {
+    background-color: #ffe0e0;
+}
+
+/* ────────────────────────────────────────────────────────────
+   ALERT STYLING
+   ──────────────────────────────────────────────────────────── */
+
+.gaa-alert {
+    padding: 1rem;
+    border-radius: 0.25rem;
+    margin-bottom: 1rem;
+    border-left: 4px solid;
+}
+
+.gaa-alert-danger {
+    background-color: #f8d7da;
+    border-left-color: #dc3545;
+    color: #721c24;
+}
+
+.gaa-alert-warning {
+    background-color: #fff3cd;
+    border-left-color: #ffc107;
+    color: #856404;
+}
+
+.gaa-alert-info {
+    background-color: #d1ecf1;
+    border-left-color: #17a2b8;
+    color: #0c5460;
+}
+
+.gaa-alert-success {
+    background-color: #d4edda;
+    border-left-color: #28a745;
+    color: #155724;
+}
+
+/* ────────────────────────────────────────────────────────────
+   COMPLIANCE STATUS INDICATOR
+   ──────────────────────────────────────────────────────────── */
+
+.gaa-compliance-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 0.25rem;
+    font-size: 0.95rem;
+}
+
+.gaa-compliance-status.compliant {
+    background-color: #d4edda;
+    border-color: #28a745;
+    color: #155724;
+}
+
+.gaa-compliance-status.compliant::before {
+    content: '✓';
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.gaa-compliance-status.blocked {
+    background-color: #f8d7da;
+    border-color: #dc3545;
+    color: #721c24;
+}
+
+.gaa-compliance-status.blocked::before {
+    content: '✗';
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+/* ────────────────────────────────────────────────────────────
+   RESPONSIVE ADJUSTMENTS
+   ──────────────────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+    .gaa-status-badge {
+        display: block;
+        margin-left: 0;
+        margin-top: 0.5rem;
+    }
+    
+    #gaa-approval-blocked-modal .modal-dialog {
+        max-width: 100%;
+        margin: 1rem;
+    }
+    
+    #gaa-approval-blocked-modal .table-sm td {
+        padding: 0.35rem;
+        font-size: 0.85rem;
+    }
+}
+
+/* ────────────────────────────────────────────────────────────
+   LOADING STATE
+   ──────────────────────────────────────────────────────────── */
+
+.gaa-validating {
+    position: relative;
+    opacity: 0.7;
+}
+
+.gaa-validating::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 0.5rem;
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* ────────────────────────────────────────────────────────────
+   ACCESSIBILITY
+   ──────────────────────────────────────────────────────────── */
+
+/* Ensure badges are visible to screen readers */
+.gaa-status-badge[aria-label] {
+    /* Provide screen reader context */
+}
+
+/* Focus states for keyboard navigation */
+.gaa-status-badge:focus {
+    outline: 2px solid #0d6efd;
+    outline-offset: 2px;
+}
+
+#btn-save-deductions:disabled:focus,
+#btn-save-payroll:disabled:focus {
+    outline: 2px solid #dc3545;
+    outline-offset: 2px;
+}
+
+/* ────────────────────────────────────────────────────────────
+   DARK MODE SUPPORT (OPTIONAL)
+   ──────────────────────────────────────────────────────────── */
+
+@media (prefers-color-scheme: dark) {
+    .gaa-violation-details {
+        background-color: #2d3748;
+        border-left-color: #f56565;
+        color: #e2e8f0;
+    }
+    
+    .gaa-compliance-status {
+        background-color: #2d3748;
+        border-color: #4a5568;
+        color: #e2e8f0;
+    }
+}
+
+/* ────────────────────────────────────────────────────────────
+   PRINT STYLES
+   ──────────────────────────────────────────────────────────── */
+
+@media print {
+    .gaa-status-badge {
+        color: #333333;
+        background-color: transparent;
+        border: 1px solid #999999;
+    }
+    
+    #gaa-payroll-blocked-modal,
+    #gaa-approval-blocked-modal {
+        display: none !important;
+    }
+}

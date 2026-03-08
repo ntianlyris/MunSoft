@@ -1,0 +1,231 @@
+/**
+ * gaa_netpay_status.css  —  GAA Net Pay Status Monitor Styles
+ * Consistent with AdminLTE theme + MunSoft design system
+ */
+
+/* ══════════════════════════════════════════════════════════
+   1. LEGEND BAR
+══════════════════════════════════════════════════════════ */
+.gaa-legend-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 20px;
+    padding: 10px 16px;
+    background: #F8FAFC;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    font-size: .8rem;
+}
+.gaa-legend-title {
+    font-weight: 700;
+    color: #374151;
+    white-space: nowrap;
+}
+.gaa-legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: 600;
+}
+.gaa-legend-dot {
+    display: inline-block;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+}
+.gaa-legend--critical .gaa-legend-dot { background: #DC2626; }
+.gaa-legend--danger   .gaa-legend-dot { background: #EA580C; }
+.gaa-legend--warning  .gaa-legend-dot { background: #D97706; }
+.gaa-legend--caution  .gaa-legend-dot { background: #B45309; }
+.gaa-legend--stable   .gaa-legend-dot { background: #2563EB; }
+.gaa-legend--safe     .gaa-legend-dot { background: #16A34A; }
+
+/* ══════════════════════════════════════════════════════════
+   2. SUMMARY STAT CARDS (Master Mode)
+══════════════════════════════════════════════════════════ */
+.gaa-stat-card {
+    border-radius: 10px;
+    padding: 14px 10px 10px;
+    text-align: center;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,.12);
+    transition: transform .2s, box-shadow .2s;
+    cursor: default;
+}
+.gaa-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(0,0,0,.18);
+}
+.gaa-stat-count {
+    font-size: 2.2rem;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 4px;
+}
+.gaa-stat-label {
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    opacity: .9;
+}
+.gaa-stat--critical { background: linear-gradient(135deg, #DC2626, #B91C1C); }
+.gaa-stat--danger   { background: linear-gradient(135deg, #EA580C, #C2410C); }
+.gaa-stat--warning  { background: linear-gradient(135deg, #D97706, #B45309); }
+.gaa-stat--caution  { background: linear-gradient(135deg, #CA8A04, #92400E); }
+.gaa-stat--stable   { background: linear-gradient(135deg, #2563EB, #1D4ED8); }
+.gaa-stat--safe     { background: linear-gradient(135deg, #16A34A, #15803D); }
+
+/* ══════════════════════════════════════════════════════════
+   3. GAA BADGE (table cells)
+══════════════════════════════════════════════════════════ */
+.gaa-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: .75rem;
+    font-weight: 700;
+    letter-spacing: .03em;
+    white-space: nowrap;
+    color: #fff;
+}
+.gaa-badge-lg {
+    font-size: 1rem;
+    padding: 6px 20px;
+}
+.gaa-status-critical { background: #DC2626; }
+.gaa-status-danger   { background: #EA580C; }
+.gaa-status-warning  { background: #D97706; }
+.gaa-status-caution  { background: #B45309; }
+.gaa-status-stable   { background: #2563EB; }
+.gaa-status-safe     { background: #16A34A; }
+
+/* ══════════════════════════════════════════════════════════
+   4. TREND INDICATORS
+══════════════════════════════════════════════════════════ */
+.gaa-trend-up   { color: #16A34A; font-weight: 700; }
+.gaa-trend-down { color: #DC2626; font-weight: 700; }
+.gaa-trend-same { color: #6B7280; font-weight: 600; }
+
+/* ══════════════════════════════════════════════════════════
+   5. MASTER TABLE ROW HOVER
+══════════════════════════════════════════════════════════ */
+.gaa-master-row { transition: background .15s; }
+.gaa-master-row:hover { background: #F0F9FF !important; }
+
+/* ══════════════════════════════════════════════════════════
+   6. EMPLOYEE MODE — MAIN STATUS CARD
+══════════════════════════════════════════════════════════ */
+.gaa-emp-main-card {
+    border-radius: 16px;
+    overflow: hidden;
+    border: none;
+    box-shadow: 0 6px 32px rgba(0,0,0,.12);
+    transition: box-shadow .3s;
+}
+.gaa-emp-main-card:hover {
+    box-shadow: 0 12px 40px rgba(0,0,0,.16);
+}
+/* Coloured top border based on status */
+.gaa-emp-card-critical { border-top: 6px solid #DC2626 !important; }
+.gaa-emp-card-danger   { border-top: 6px solid #EA580C !important; }
+.gaa-emp-card-warning  { border-top: 6px solid #D97706 !important; }
+.gaa-emp-card-caution  { border-top: 6px solid #B45309 !important; }
+.gaa-emp-card-stable   { border-top: 6px solid #2563EB !important; }
+.gaa-emp-card-safe     { border-top: 6px solid #16A34A !important; }
+
+.gaa-emp-status-label {
+    font-size: 1.4rem;
+    font-weight: 800;
+    margin: 8px 0 6px;
+}
+.gaa-emp-net-amount {
+    font-size: 2.4rem;
+    font-weight: 800;
+    color: #1F2937;
+    letter-spacing: -.02em;
+    line-height: 1.1;
+}
+
+/* ══════════════════════════════════════════════════════════
+   7. COMPARISON SECTION (Employee Mode)
+══════════════════════════════════════════════════════════ */
+.gaa-compare-label {
+    font-size: .78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+}
+.gaa-compare-amount {
+    font-size: 1.1rem;
+    color: #1F2937;
+}
+.gaa-transition-arrow {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    padding: 8px 0;
+}
+
+/* ══════════════════════════════════════════════════════════
+   8. BREAKDOWN TABLE (Employee Mode)
+══════════════════════════════════════════════════════════ */
+.gaa-breakdown-table td {
+    padding: 8px 16px;
+    font-size: .88rem;
+    border-color: #F3F4F6;
+}
+.gaa-breakdown-table tr:last-child td {
+    background: #F9FAFB;
+}
+
+/* ══════════════════════════════════════════════════════════
+   9. RESPONSIVE ADJUSTMENTS
+══════════════════════════════════════════════════════════ */
+@media (max-width: 576px) {
+    .gaa-legend-bar {
+        gap: 6px 12px;
+        font-size: .75rem;
+    }
+    .gaa-stat-count {
+        font-size: 1.6rem;
+    }
+    .gaa-emp-net-amount {
+        font-size: 1.8rem;
+    }
+    .gaa-emp-status-label {
+        font-size: 1.1rem;
+    }
+    .gaa-compare-amount {
+        font-size: .95rem;
+    }
+    /* Stack comparison vertically on very small screens */
+    #emp-transition-arrow { padding: 4px 0; }
+}
+
+@media (max-width: 768px) {
+    .gaa-emp-main-card .card-body {
+        padding: 1.5rem 1rem !important;
+    }
+}
+
+/* ══════════════════════════════════════════════════════════
+   10. PERIOD CONTEXT BADGE
+══════════════════════════════════════════════════════════ */
+#gaa-period-context {
+    border-top: 1px solid #F3F4F6;
+    padding-top: 8px;
+}
+
+/* ══════════════════════════════════════════════════════════
+   11. EMPTY / LOADING STATES
+══════════════════════════════════════════════════════════ */
+#gaa-table-empty, #emp-no-data {
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}

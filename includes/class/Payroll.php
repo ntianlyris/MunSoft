@@ -1,52 +1,79 @@
 <?php
 include_once("DB_conn.php");
 
-class Payroll {
+class Payroll
+{
     protected $db;
     private $PayrollData = [];
     private $PayrollEntryID = '';
     private $PayrollPeriodID = '';
-    private $PayrollDepartmentID= '';
+    private $PayrollDepartmentID = '';
     private $PayrollEmploymentType = '';
 
-    public function __construct() {
-        $this->db = new DB_conn();	
+    public function __construct()
+    {
+        $this->db = new DB_conn();
     }
 
-    public function setPayrollData($newValue){ $this->PayrollData = $newValue; }
-    public function setPayrollEntryID($newValue){ $this->PayrollEntryID = $newValue; }
-    public function setPayrollPeriodID($newValue){ $this->PayrollPeriodID = $newValue; }
-    public function setPayrollDepartmentID($newValue){ $this->PayrollDepartmentID = $newValue; }
-    public function setPayrollEmploymentType($newValue){ $this->PayrollEmploymentType = $newValue; }
+    public function setPayrollData($newValue)
+    {
+        $this->PayrollData = $newValue;
+    }
+    public function setPayrollEntryID($newValue)
+    {
+        $this->PayrollEntryID = $newValue;
+    }
+    public function setPayrollPeriodID($newValue)
+    {
+        $this->PayrollPeriodID = $newValue;
+    }
+    public function setPayrollDepartmentID($newValue)
+    {
+        $this->PayrollDepartmentID = $newValue;
+    }
+    public function setPayrollEmploymentType($newValue)
+    {
+        $this->PayrollEmploymentType = $newValue;
+    }
 
-    public function getPayrollEntryID(){ return $this->PayrollEntryID; }
+    public function getPayrollEntryID()
+    {
+        return $this->PayrollEntryID;
+    }
 
-    public function UpdatePayFrequency($freq_id,$is_active){
+    public function UpdatePayFrequency($freq_id, $is_active)
+    {
         $sql = "UPDATE payroll_frequencies
-					SET is_active = '".$is_active."'
-					WHERE payroll_freq_id ='".$freq_id."'";
-		$query = $this->db->query($sql) or die($this->db->error);
-		if($query){
-			return true;
-		}
-		else {return false;}
+					SET is_active = '" . $is_active . "'
+					WHERE payroll_freq_id ='" . $freq_id . "'";
+        $query = $this->db->query($sql) or die($this->db->error);
+        if ($query) {
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 
-    public function GetCurrentActiveFrequency(){
+    public function GetCurrentActiveFrequency()
+    {
         $query = "SELECT * FROM payroll_frequencies
 					  WHERE is_active = '1' LIMIT 1";
-		$result = $this->db->query($query) or die($this->db->error);
-		$count_row = $this->db->num_rows($result);
-		if($count_row == 1){
-			return $active_frequency = $this->db->fetch_array($result);
-		}
-		else {return false;}
+        $result = $this->db->query($query) or die($this->db->error);
+        $count_row = $this->db->num_rows($result);
+        if ($count_row == 1) {
+            return $active_frequency = $this->db->fetch_array($result);
+        }
+        else {
+            return false;
+        }
     }
 
-    public function GetPayFrequencies(){
+    public function GetPayFrequencies()
+    {
         $query = "SELECT * FROM payroll_frequencies ORDER BY payroll_freq_id DESC";
         $result = $this->db->query($query) or die($this->db->error);
-        
+
         $frequecies = [];
         while ($row = $this->db->fetch_array($result)) {
             $frequecies[] = $row;
@@ -54,29 +81,36 @@ class Payroll {
         return $frequecies;
     }
 
-    public function ClosePayrollYear($year){
+    public function ClosePayrollYear($year)
+    {
         $year_to_close = $year;
         $sql = "INSERT INTO payroll_year_controls (year, is_closed)
-					VALUES ('".$year_to_close."', 1)
+					VALUES ('" . $year_to_close . "', 1)
 					ON DUPLICATE KEY UPDATE is_closed = 1";
-		$query = $this->db->query($sql) or die($this->db->error);
-		if($query){
-			return true;
-		}
-		else {return false;}
+        $query = $this->db->query($sql) or die($this->db->error);
+        if ($query) {
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 
-    public function CheckLastYearIsClosed($lastYear){
+    public function CheckLastYearIsClosed($lastYear)
+    {
         $query = "SELECT is_closed FROM payroll_year_controls WHERE year = '$lastYear'";
         $result = $this->db->query($query) or die($this->db->error);
-		$count_row = $this->db->num_rows($result);
-		if($count_row == 1){
-			return $last_year = $this->db->fetch_array($result);
-		}
-		else {return false;}
+        $count_row = $this->db->num_rows($result);
+        if ($count_row == 1) {
+            return $last_year = $this->db->fetch_array($result);
+        }
+        else {
+            return false;
+        }
     }
 
-    public function GetEmployedEmployeesByDept($dept_id){         //--- fetch all employees that has current employment set with their position and departments needed for payroll computation
+    public function GetEmployedEmployeesByDept($dept_id)
+    { //--- fetch all employees that has current employment set with their position and departments needed for payroll computation
         $employees = [];
         $query = "SELECT a.employee_id, a.employee_id_num,
                     CONCAT(a.lastname, ', ', a.firstname, ' ' ,IF(LENGTH(a.middlename) > 0, CONCAT(LEFT(a.middlename, 1), '. '), ''), ' ', a.extension) AS full_name,
@@ -91,8 +125,8 @@ class Payroll {
                     WHERE b.employment_status = 1 
                     AND c.dept_id = '$dept_id'
                     ORDER BY c.salary_grade DESC";
-		$result = $this->db->query($query) or die($this->db->error);
-		if ($this->db->num_rows($result) > 0) {
+        $result = $this->db->query($query) or die($this->db->error);
+        if ($this->db->num_rows($result) > 0) {
             while ($row = $this->db->fetch_array($result)) {
                 $employees[] = $row;
             }
@@ -100,7 +134,8 @@ class Payroll {
         return $employees;
     }
 
-    public function GetEmployeeListForPayrollByDept($dept_id,$emp_type){         //--- fetch all employees that has current employment set with their position and departments needed for payroll computation
+    public function GetEmployeeListForPayrollByDept($dept_id, $emp_type)
+    { //--- fetch all employees that has current employment set with their position and departments needed for payroll computation
         $employees = [];
         $query = "SELECT a.employee_id, a.employee_id_num,
                     CONCAT(a.lastname, ', ', a.firstname, ' ' ,IF(LENGTH(a.middlename) > 0, CONCAT(LEFT(a.middlename, 1), '. '), ''), ' ', a.extension) AS full_name,
@@ -118,8 +153,8 @@ class Payroll {
                     AND c.dept_id = '$dept_id'
                     AND b.employment_type = '$emp_type'
                     ORDER BY c.salary_grade DESC";
-		$result = $this->db->query($query) or die($this->db->error);
-		if ($this->db->num_rows($result) > 0) {
+        $result = $this->db->query($query) or die($this->db->error);
+        if ($this->db->num_rows($result) > 0) {
             while ($row = $this->db->fetch_array($result)) {
                 $employees[] = $row;
             }
@@ -127,7 +162,8 @@ class Payroll {
         return $employees;
     }
 
-    public function GetEmployeeListForPayroll(){         //--- fetch all employees that has current employment set with their position and departments needed for payroll computation
+    public function GetEmployeeListForPayroll()
+    { //--- fetch all employees that has current employment set with their position and departments needed for payroll computation
         $employees = [];
         $query = "SELECT a.employee_id, a.employee_id_num, a.include_in_payroll,
                     CONCAT(a.lastname, ', ', a.firstname, ' ' ,IF(LENGTH(a.middlename) > 0, CONCAT(LEFT(a.middlename, 1), '. '), ''), ' ', a.extension) AS full_name,
@@ -141,8 +177,8 @@ class Payroll {
                     ON c.dept_id = d.dept_id
                     WHERE b.employment_status = 1 
                     ORDER BY full_name ASC";
-		$result = $this->db->query($query) or die($this->db->error);
-		if ($this->db->num_rows($result) > 0) {
+        $result = $this->db->query($query) or die($this->db->error);
+        if ($this->db->num_rows($result) > 0) {
             while ($row = $this->db->fetch_array($result)) {
                 $employees[] = $row;
             }
@@ -150,7 +186,8 @@ class Payroll {
         return $employees;
     }
 
-    public function GetEmployeeEarnings($employee_id, $start_date, $end_date) {
+    public function GetEmployeeEarnings($employee_id, $start_date, $end_date)
+    {
         $query = "
             SELECT a.*, b.*, c.*
             FROM employee_earnings a
@@ -186,7 +223,8 @@ class Payroll {
         return $earnings;
     }
 
-    public function GetEmployeeDeductions($employee_id, $start_date, $end_date) {
+    public function GetEmployeeDeductions($employee_id, $start_date, $end_date)
+    {
         $query = "
             SELECT a.*, b.*, c.*
             FROM employee_deductions a
@@ -222,11 +260,12 @@ class Payroll {
         return $deductions;
     }
 
-    public function GetEmployeeGovShares($employee_id, $start_date, $end_date) {
+    public function GetEmployeeGovShares($employee_id, $start_date, $end_date)
+    {
         $employee_id = (int)$employee_id; // sanitize
 
         $start_date = $this->db->escape_string($start_date);
-        $end_date   = $this->db->escape_string($end_date);
+        $end_date = $this->db->escape_string($end_date);
 
         $query = "
             SELECT a.*, b.*
@@ -267,7 +306,8 @@ class Payroll {
     // Payroll Period Functions
     // ==========================================================
 
-    public function generateAndInsertPayPeriodsToDB() {
+    public function generateAndInsertPayPeriodsToDB()
+    {
         $temp = false;
         $active_frequency = $this->GetCurrentActiveFrequency();
         $frequency = $active_frequency['freq_code'];
@@ -296,13 +336,14 @@ class Payroll {
                 $label = "$monthText 1–$daysInMonth, $useYear";
 
                 $stmt = "INSERT IGNORE INTO payroll_periods (date_start, date_end, period_label, frequency) 
-                            VALUES ('".$start."', '".$end."', '".$label."', '".$frequency."')";
+                            VALUES ('" . $start . "', '" . $end . "', '" . $label . "', '" . $frequency . "')";
 
                 $query = $this->db->query($stmt) or die($this->db->error);
 
                 $temp = true;
 
-            } else { // semi-monthly
+            }
+            else { // semi-monthly
                 $start1 = "$useYear-" . str_pad($month, 2, '0', STR_PAD_LEFT) . "-01";
                 $end1 = "$useYear-" . str_pad($month, 2, '0', STR_PAD_LEFT) . "-15";
                 $label1 = "$monthText 1–15, $useYear";
@@ -312,11 +353,11 @@ class Payroll {
                 $label2 = "$monthText 16–$daysInMonth, $useYear";
 
                 $stmt1 = "INSERT IGNORE INTO payroll_periods (date_start, date_end, period_label, frequency) 
-                            VALUES ('".$start1."', '".$end1."', '".$label1."', '".$frequency."')";
+                            VALUES ('" . $start1 . "', '" . $end1 . "', '" . $label1 . "', '" . $frequency . "')";
                 $query1 = $this->db->query($stmt1) or die($this->db->error);
 
                 $stmt2 = "INSERT IGNORE INTO payroll_periods (date_start, date_end, period_label, frequency) 
-                            VALUES ('".$start2."', '".$end2."', '".$label2."', '".$frequency."')";
+                            VALUES ('" . $start2 . "', '" . $end2 . "', '" . $label2 . "', '" . $frequency . "')";
                 $query2 = $this->db->query($stmt2) or die($this->db->error);
 
                 $temp = true;
@@ -325,7 +366,8 @@ class Payroll {
         return $temp;
     }
 
-    public function GetPayPeriods($frequency){
+    public function GetPayPeriods($frequency)
+    {
         $currentYear = date('Y');
 
         $lastYear_isClosed = '';
@@ -342,7 +384,7 @@ class Payroll {
                     AND (YEAR(date_start) = $useYear OR YEAR(date_end) = $useYear)
                     ORDER BY date_start ASC";
         $result = $this->db->query($query) or die($this->db->error);
-        
+
         $periods = [];
         while ($row = $this->db->fetch_array($result)) {
             $periods[] = $row;
@@ -350,17 +392,30 @@ class Payroll {
         return $periods;
     }
 
-    public function GetPayrollPeriodByDates($start, $end){
-        $stmt = "SELECT payroll_period_id FROM payroll_periods WHERE date_start = '$start' AND date_end = '$end' LIMIT 1";
-        $result = $this->db->query($stmt) or die($this->db->error);
-		$count_row = $this->db->num_rows($result);
-		if($count_row == 1){
-			return $row = $this->db->fetch_array($result);
-		}
-		else {return false;}
+    public function GetPayrollPeriodByID($payroll_period_id)
+    {
+        $query = "SELECT * FROM payroll_periods 
+                    WHERE payroll_period_id = '$payroll_period_id'";
+        $result = $this->db->query($query) or die($this->db->error);
+        $period = $this->db->fetch_array($result);
+        return $period;
     }
 
-    public function GetPayrollPeriodsByYear($year,$frequency) {
+    public function GetPayrollPeriodByDates($start, $end)
+    {
+        $stmt = "SELECT payroll_period_id FROM payroll_periods WHERE date_start = '$start' AND date_end = '$end' LIMIT 1";
+        $result = $this->db->query($stmt) or die($this->db->error);
+        $count_row = $this->db->num_rows($result);
+        if ($count_row == 1) {
+            return $row = $this->db->fetch_array($result);
+        }
+        else {
+            return false;
+        }
+    }
+
+    public function GetPayrollPeriodsByYear($year, $frequency)
+    {
         $query = "SELECT payroll_period_id, period_label, date_start, date_end 
                     FROM payroll_periods 
                     WHERE YEAR(date_start) = '$year' 
@@ -374,10 +429,11 @@ class Payroll {
         return $periods;
     }
 
-    public function GetAvailableYearsByEmployee($employee_id, $frequency = 'monthly') {
+    public function GetAvailableYearsByEmployee($employee_id, $frequency = 'monthly')
+    {
         $employee_id = $this->db->escape_string($employee_id);
         $frequency = $this->db->escape_string($frequency);
-        
+
         // First, try with the provided frequency
         $query = "SELECT DISTINCT YEAR(pp.date_start) as year 
                   FROM payroll_entries pe
@@ -385,17 +441,17 @@ class Payroll {
                   WHERE pe.employee_id = '$employee_id'
                   AND pp.frequency = '$frequency'
                   ORDER BY year DESC";
-        
+
         $result = $this->db->query($query);
         $years = [];
-        
+
         if ($this->db->num_rows($result) > 0) {
             while ($row = $this->db->fetch_array($result)) {
                 $years[] = $row['year'];
             }
             return $years;
         }
-        
+
         // If no results with 'monthly', try without frequency filter
         // This will get ALL available years regardless of frequency
         $query_fallback = "SELECT DISTINCT YEAR(pp.date_start) as year 
@@ -403,42 +459,45 @@ class Payroll {
                           INNER JOIN payroll_periods pp ON pe.payroll_period_id = pp.payroll_period_id
                           WHERE pe.employee_id = '$employee_id'
                           ORDER BY year DESC";
-        
+
         $result_fallback = $this->db->query($query_fallback);
-        
+
         if ($this->db->num_rows($result_fallback) > 0) {
             while ($row = $this->db->fetch_array($result_fallback)) {
                 $years[] = $row['year'];
             }
         }
-        
+
         return $years;
     }
 
-    public function GetPeriodDatesByID($payroll_period_id) {
+    public function GetPeriodDatesByID($payroll_period_id)
+    {
         $query = "SELECT date_start, date_end FROM payroll_periods WHERE payroll_period_id = '$payroll_period_id' LIMIT 1";
         $result = $this->db->query($query) or die($this->db->error);
         if ($this->db->num_rows($result) == 1) {
             return $this->db->fetch_array($result);
-        } else {
+        }
+        else {
             return false;
         }
     }
 
     /*public function LockPayrollPeriod($payroll_period_id){
-        $sql = "UPDATE payroll_periods
-                    SET is_locked = '1'
-                    WHERE payroll_period_id ='".$payroll_period_id."'";
-        $query = $this->db->query($sql) or die($this->db->error);
-        if($query){
-            return true;
-        }
-        else {return false;}
-    }*/ //For deletion
+     $sql = "UPDATE payroll_periods
+     SET is_locked = '1'
+     WHERE payroll_period_id ='".$payroll_period_id."'";
+     $query = $this->db->query($sql) or die($this->db->error);
+     if($query){
+     return true;
+     }
+     else {return false;}
+     }*///For deletion
 
-    public function GetLastLockedPayrollPeriodByEmployee($employee_id){
+    public function GetLastLockedPayrollPeriodByEmployee($employee_id)
+    {
         $employee_id = intval($employee_id);
-        
+
         // Get the last payroll period where locked_period = 1
         // locked_period=1 means payroll was already computed and locked for the period
         // This applies regardless of workflow status (DRAFT, REVIEW, APPROVED, PAID)
@@ -451,8 +510,8 @@ class Payroll {
                     ORDER BY a.payroll_period_id DESC LIMIT 1";
         $result = $this->db->query($query) or die($this->db->error);
         $count_row = $this->db->num_rows($result);
-        
-        if($count_row == 1){
+
+        if ($count_row == 1) {
             return $this->db->fetch_array($result);
         }
         else {
@@ -460,7 +519,8 @@ class Payroll {
         }
     }
 
-    public function IsSecondHalfOfMonth($date_start){
+    public function IsSecondHalfOfMonth($date_start)
+    {
         $active_frequency = $this->GetCurrentActiveFrequency();
         $payroll_frequency = $active_frequency['freq_code'];
 
@@ -470,14 +530,15 @@ class Payroll {
         return $is_second_half; // returns true if it's the second half of the month in a semi-monthly frequency, otherwise false
     }
 
-    public function GetPeriodsByStartDateAndFrequency($start_date, $frequency) {
+    public function GetPeriodsByStartDateAndFrequency($start_date, $frequency)
+    {
 
         // Extract month and year from the given date
         $stmt = "SELECT MONTH('$start_date') AS m, YEAR('$start_date') AS y";
         $result = $this->db->query($stmt) or die($this->db->error);
         $row = $this->db->fetch_array($result);
         $month = $row['m'];
-        $year  = $row['y'];
+        $year = $row['y'];
 
         // Now fetch periods based on frequency
         $stmt2 = "
@@ -501,7 +562,8 @@ class Payroll {
     // Payroll Computation Functions
     // ==========================================================
 
-    public function ComputePayrollOfEmployees($employees_arr, $start_date, $end_date){
+    public function ComputePayrollOfEmployees($employees_arr, $start_date, $end_date)
+    {
         $employeeData = [];
 
         // Determine payroll frequency
@@ -528,11 +590,11 @@ class Payroll {
             $earnings_list = [];
             $deductions_list = [];
             $govshares_list = [];
-            
+
             $gross = 0;
             $total_deductions = 0;
-            $display_total_deductions = 0; 
-            $net = 0;   
+            $display_total_deductions = 0;
+            $net = 0;
             $locked_rate = 0;
 
             if (!empty($earnings)) {
@@ -540,8 +602,8 @@ class Payroll {
                 foreach ($earnings as $earn) {
                     $amount = floatval($earn['earning_comp_amt']);
                     $earnings_list[] = [
-                        'config_earning_id' => $earn['config_earning_id'],          // <-- include config earning ID as reference to what current active earning it was based
-                        'earning_comp_id' => $earn['earning_component_id'],         // <-- include employee earning component ID as reference to what current active earning it was based
+                        'config_earning_id' => $earn['config_earning_id'], // <-- include config earning ID as reference to what current active earning it was based
+                        'earning_comp_id' => $earn['earning_component_id'], // <-- include employee earning component ID as reference to what current active earning it was based
                         'label' => $earn['earning_code'],
                         'amount' => $amount
                     ];
@@ -556,17 +618,17 @@ class Payroll {
                     $total_deductions += $amount;
                     if (!$is_second_half) {
                         $deductions_list[] = [
-                            'config_deduction_id' => $deduct['config_deduction_id'],    // <-- include config deduction ID as reference to what current active deduction it was based
-                            'deduct_comp_id' => $deduct['deduction_component_id'],      // <-- include employee deduction ID as reference to what current active deduction it was based
+                            'config_deduction_id' => $deduct['config_deduction_id'], // <-- include config deduction ID as reference to what current active deduction it was based
+                            'deduct_comp_id' => $deduct['deduction_component_id'], // <-- include employee deduction ID as reference to what current active deduction it was based
                             'label' => $deduct['deduct_code'],
                             'amount' => $amount
                         ];
-                        $display_total_deductions += $amount;   // display total deductions during the 1st half only
+                        $display_total_deductions += $amount; // display total deductions during the 1st half only
                     }
-                    else{
+                    else {
                         $deductions_list = []; // empty array, no deductions applied
                         $display_total_deductions = 0; // no deductions total deductions must be displayed during 2nd half
-                    } 
+                    }
                 }
             }
 
@@ -575,13 +637,13 @@ class Payroll {
                     $amount = floatval($gs['govshare_amount']);
                     if (!$is_second_half) {
                         $govshares_list[] = [
-                            'govshare_id' => $gs['govshare_id'],                    // <-- include govshare ID as reference to what current active govshare it was based
-                            'emp_govshare_id' => $gs['employee_govshare_id'],       // <-- include employee govshare ID as reference to what current active govshare it was based
+                            'govshare_id' => $gs['govshare_id'], // <-- include govshare ID as reference to what current active govshare it was based
+                            'emp_govshare_id' => $gs['employee_govshare_id'], // <-- include employee govshare ID as reference to what current active govshare it was based
                             'label' => $gs['govshare_code'],
                             'amount' => $amount
                         ];
                     }
-                    else{
+                    else {
                         $govshares_list = []; // empty array, no govshares applied
                     }
                 }
@@ -590,8 +652,9 @@ class Payroll {
             // Compute net pay
             if ($payroll_frequency == 'semi-monthly') {
                 //$net = ($gross - $total_deductions) / 2;              // this will not round off the net pay to 2 decimal places which may cause issues in payroll reports and payslip display, so we will round it off to 2 decimal places
-                $net = round(($gross - $total_deductions) / 2, 2);      // for semi-monthly, divide the net pay by 2 and round to 2 decimal places
-            } else {
+                $net = round(($gross - $total_deductions) / 2, 2); // for semi-monthly, divide the net pay by 2 and round to 2 decimal places
+            }
+            else {
                 $net = $gross - $total_deductions;
             }
 
@@ -613,7 +676,8 @@ class Payroll {
         return $employeeData;
     }
 
-    public function SavePayrollEntry(){
+    public function SavePayrollEntry()
+    {
         include_once("Department.php");
         $PayrollDepartment = new Department();
 
@@ -624,7 +688,7 @@ class Payroll {
         $payroll_dept_id = $this->PayrollDepartmentID;
         $department_name = $PayrollDepartment->GetDepartmentDetails($payroll_dept_id)['dept_name'];
         $payroll_employment_type = $this->PayrollEmploymentType;
-        
+
         $success_count = 0;
 
         //--- Check if payroll period already exist ---//
@@ -636,7 +700,7 @@ class Payroll {
                     AND b.employment_type = '$payroll_employment_type'";
         $result = $this->db->query($query) or die($this->db->error);
         $count_row = $this->db->num_rows($result);
-        
+
         // Build map of existing payroll entries by employee_id and their statuses
         $existing_payrolls = [];
         if ($count_row > 0) {
@@ -660,7 +724,7 @@ class Payroll {
                 $deductions_json = json_encode($entry['deductions_list']);
                 $govshares_json = json_encode($entry['govshares_list']);
 
-                $deductions_list = $entry['deductions_list'];   
+                $deductions_list = $entry['deductions_list'];
                 $govshares_list = $entry['govshares_list'];
 
                 $earnings_json = $this->db->escape_string($earnings_json);
@@ -671,7 +735,7 @@ class Payroll {
                     $existing_entry = $existing_payrolls[$employee_id];
                     $existing_status = $existing_entry['status'];
                     $existing_payroll_entry_id = $existing_entry['payroll_entry_id'];
-                    
+
                     // SECURITY: Only allow updates if status is DRAFT or SUBMITTED
                     // Block updates if status is LOCKED, PAID, or APPROVED
                     if (in_array($existing_status, ['LOCKED', 'PAID', 'APPROVED'])) {
@@ -682,7 +746,7 @@ class Payroll {
                         ];
                         continue; // Skip this employee, don't process further
                     }
-                    
+
                     // If DRAFT or SUBMITTED, allow UPDATE instead of INSERT
                     $update_query = "UPDATE payroll_entries 
                                     SET gross = $gross, 
@@ -693,18 +757,19 @@ class Payroll {
                                         govshares_breakdown = '$govshares_json',
                                         updated_at = NOW()
                                     WHERE payroll_entry_id = $existing_payroll_entry_id";
-                    
+
                     $update_result = $this->db->query($update_query);
                     if ($update_result) {
                         // Clear old deductions and govshares, then re-insert
                         $this->db->query("DELETE FROM payroll_deductions WHERE payroll_entry_id = $existing_payroll_entry_id");
                         $this->db->query("DELETE FROM payroll_govshares WHERE payroll_entry_id = $existing_payroll_entry_id");
-                        
+
                         $this->SavePayrollDeductions($existing_payroll_entry_id, $deductions_list);
                         $this->SavePayrollGovShares($existing_payroll_entry_id, $govshares_list);
                         $success_count++;
                     }
-                } else {
+                }
+                else {
                     // No existing payroll - INSERT new
                     $insert_query = "INSERT INTO payroll_entries 
                             (employee_id, employment_id, payroll_period_id, locked_period, dept_id, locked_basic, gross, total_deductions, net_pay, earnings_breakdown, deductions_breakdown, govshares_breakdown, emp_type_stamp, status, created_at) 
@@ -732,16 +797,17 @@ class Payroll {
                         $this->SavePayrollGovShares($payroll_entry_id, $govshares_list);
                         $success_count++;
                     }
-                }              
+                }
             }
-            
+
             if ($success_count > 0) {
                 $return_arr = [
                     'status' => 'success',
                     'message' => "$success_count payroll records saved/updated.",
                     'saved' => $success_count
                 ];
-            } else {
+            }
+            else {
                 $return_arr = [
                     'status' => 'error',
                     'message' => "Payroll exist for the current period. Failed to save/update payroll records.",
@@ -749,23 +815,24 @@ class Payroll {
                 ];
             }
         }
-        else{
+        else {
             $return_arr = [
                 'status' => 'not_set',
                 'message' => "Payroll Data not set.",
                 'saved' => $success_count
             ];
-        }      
+        }
         return $return_arr;
     }
 
-    
+
     /**
      * Save deductions/govshares list to payrolls_deductions/govshares table
      * @param int $payroll_entry_id
      * @param array $deductions_list/goshares_list
      */
-    public function SavePayrollDeductions($payroll_entry_id, $deductions_list) {
+    public function SavePayrollDeductions($payroll_entry_id, $deductions_list)
+    {
         $temp = false;
         if (!is_array($deductions_list) || empty($deductions_list)) {
             return $temp;
@@ -791,7 +858,8 @@ class Payroll {
         return $temp;
     }
 
-    public function SavePayrollGovShares($payroll_entry_id, $govshares_list) {
+    public function SavePayrollGovShares($payroll_entry_id, $govshares_list)
+    {
         $temp = false;
         if (!is_array($govshares_list) || empty($govshares_list)) {
             return $temp;
@@ -821,14 +889,15 @@ class Payroll {
     // Printing Payroll Reports
     // ==========================================================
 
-    public function FetchPayrollByPayPeriodAndDept($period_id, $dept_id, $emp_type){
+    public function FetchPayrollByPayPeriodAndDept($period_id, $dept_id, $emp_type)
+    {
         $stmt = "SELECT * FROM payroll_entries 
                     WHERE payroll_period_id = '$period_id' 
                     AND dept_id = '$dept_id'
                     AND emp_type_stamp = '$emp_type' 
                     ORDER BY payroll_entry_id";
         $result = $this->db->query($stmt) or die($this->db->error);
-        
+
         $payrolls = [];
         while ($row = $this->db->fetch_array($result)) {
             $payrolls[] = $row;
@@ -836,13 +905,14 @@ class Payroll {
         return $payrolls;
     }
 
-    public function FetchPayrollByPayPeriodAllDepts($period_id, $emp_type){
+    public function FetchPayrollByPayPeriodAllDepts($period_id, $emp_type)
+    {
         $stmt = "SELECT * FROM payroll_entries 
                     WHERE payroll_period_id = '$period_id' 
                     AND emp_type_stamp = '$emp_type' 
                     ORDER BY payroll_entry_id";
         $result = $this->db->query($stmt) or die($this->db->error);
-        
+
         $payrolls = [];
         while ($row = $this->db->fetch_array($result)) {
             $payrolls[] = $row;
@@ -850,10 +920,11 @@ class Payroll {
         return $payrolls;
     }
 
-    public function FetchConfigEarningsIDandCode(){
+    public function FetchConfigEarningsIDandCode()
+    {
         $query = "SELECT config_earning_id, earning_code FROM config_earnings ORDER BY earning_acct_code ASC";
         $result = $this->db->query($query) or die($this->db->error);
-        
+
         $earnings = [];
         while ($row = $this->db->fetch_array($result)) {
             $earnings[] = $row;
@@ -861,10 +932,11 @@ class Payroll {
         return $earnings;
     }
 
-    public function FetchConfigDeductionsIDandCode(){
+    public function FetchConfigDeductionsIDandCode()
+    {
         $query = "SELECT config_deduction_id, deduct_code FROM config_deductions ORDER BY deduct_acct_code ASC";
         $result = $this->db->query($query) or die($this->db->error);
-        
+
         $deductions = [];
         while ($row = $this->db->fetch_array($result)) {
             $deductions[] = $row;
@@ -872,10 +944,11 @@ class Payroll {
         return $deductions;
     }
 
-    public function FetchGovSharesIDandCode(){
+    public function FetchGovSharesIDandCode()
+    {
         $query = "SELECT govshare_id, govshare_code FROM govshares ORDER BY govshare_acctcode ASC";
         $result = $this->db->query($query) or die($this->db->error);
-        
+
         $govshares = [];
         while ($row = $this->db->fetch_array($result)) {
             $govshares[] = $row;
@@ -888,7 +961,8 @@ class Payroll {
     // ==========================================================
 
     // Get list of distinct years from payroll periods
-    public function GetPayrollYears() {
+    public function GetPayrollYears()
+    {
         $query = "SELECT DISTINCT YEAR(date_start) AS payroll_year
                     FROM payroll_periods
                     ORDER BY payroll_year DESC";
@@ -904,32 +978,38 @@ class Payroll {
     // Toggle Include in Payroll for Employees
     // ==========================================================
 
-    public function UpdateIncludeInPayroll($employee_id, $include_in_payroll){
+    public function UpdateIncludeInPayroll($employee_id, $include_in_payroll)
+    {
         $sql = "UPDATE employees_tbl
-                    SET include_in_payroll = '".$include_in_payroll."'
-                    WHERE employee_id ='".$employee_id."'";
+                    SET include_in_payroll = '" . $include_in_payroll . "'
+                    WHERE employee_id ='" . $employee_id . "'";
         $query = $this->db->query($sql) or die($this->db->error);
-        if($query){
+        if ($query) {
             return true;
         }
-        else {return false;}
+        else {
+            return false;
+        }
     }
 
     // ==========================================================
     // Get Payroll Entry By Employee and Period
     // ==========================================================
 
-    public function GetPayrollEntryByEmployeeAndPeriod($employee_id, $payroll_period_id){
+    public function GetPayrollEntryByEmployeeAndPeriod($employee_id, $payroll_period_id)
+    {
         $stmt = "SELECT * FROM payroll_entries 
                     WHERE employee_id = '$employee_id' 
                     AND payroll_period_id = '$payroll_period_id' 
                     LIMIT 1";
         $result = $this->db->query($stmt) or die($this->db->error);
         $count_row = $this->db->num_rows($result);
-        if($count_row == 1){
+        if ($count_row == 1) {
             return $row = $this->db->fetch_array($result);
         }
-        else {return false;}
+        else {
+            return false;
+        }
     }
 
     /**
@@ -938,19 +1018,20 @@ class Payroll {
      * @param int $limit
      * @return array
      */
-    public function getEmployeePayrollRecords($employee_id, $limit = 5) {
+    public function getEmployeePayrollRecords($employee_id, $limit = 5)
+    {
         $employee_id = intval($employee_id);
-        
+
         // Determine the active year (same logic as GetPayPeriods)
         $currentYear = date('Y');
         $lastYear = $currentYear - 1;
         $useYear = $currentYear;
-        
+
         $lastYear_isClosed = $this->CheckLastYearIsClosed($lastYear);
         if (!$lastYear_isClosed || $lastYear_isClosed['is_closed'] == 0) {
             $useYear = $lastYear;
         }
-        
+
         $query = "SELECT pe.payroll_entry_id, pe.employee_id, pe.gross, pe.total_deductions, pe.net_pay,
                          pp.period_label, pp.date_start, pp.date_end, YEAR(pp.date_start) as year
                   FROM payroll_entries pe
@@ -959,16 +1040,16 @@ class Payroll {
                   AND YEAR(pp.date_start) = $useYear
                   ORDER BY pp.date_start DESC
                   LIMIT $limit";
-        
+
         $result = $this->db->query($query) or die($this->db->error);
-        
+
         $payrolls = [];
         if ($this->db->num_rows($result) > 0) {
             while ($row = $this->db->fetch_array($result)) {
                 $payrolls[] = $row;
             }
         }
-        
+
         return $payrolls;
     }
 
@@ -978,19 +1059,20 @@ class Payroll {
      * @param int $employee_id
      * @return array|bool Returns associative array with total_gross, total_deductions, total_net_pay or false
      */
-    public function getPayrollSummaryByEmployee($employee_id) {
+    public function getPayrollSummaryByEmployee($employee_id)
+    {
         $employee_id = intval($employee_id);
-        
+
         // Determine the active year (same logic as GetPayPeriods)
         $currentYear = date('Y');
         $lastYear = $currentYear - 1;
         $useYear = $currentYear;
-        
+
         $lastYear_isClosed = $this->CheckLastYearIsClosed($lastYear);
         if (!$lastYear_isClosed || $lastYear_isClosed['is_closed'] == 0) {
             $useYear = $lastYear;
         }
-        
+
         // Get the LATEST payroll entry (current), not accumulated
         $query = "SELECT pe.gross as total_gross,
                          pe.total_deductions as total_deductions,
@@ -1003,10 +1085,10 @@ class Payroll {
                   AND YEAR(pp.date_start) = $useYear
                   ORDER BY pp.date_start DESC
                   LIMIT 1";
-        
+
         $result = $this->db->query($query) or die($this->db->error);
         $count_row = $this->db->num_rows($result);
-        
+
         if ($count_row == 1) {
             $row = $this->db->fetch_array($result);
             return [
@@ -1022,18 +1104,19 @@ class Payroll {
     }
 
     // ========== NEW METHODS FOR PAYROLL EDIT/DELETE FUNCTIONALITY ==========
-    
+
     /**
      * Get complete payroll entry details by ID
      * @param int $payroll_entry_id
      * @return array|bool
      */
-    public function GetPayrollEntryByID($payroll_entry_id) {
+    public function GetPayrollEntryByID($payroll_entry_id)
+    {
         $payroll_entry_id = intval($payroll_entry_id);
-        
+
         $query = "SELECT * FROM payroll_entries WHERE payroll_entry_id = $payroll_entry_id";
         $result = $this->db->query($query) or die($this->db->error);
-        
+
         if ($this->db->num_rows($result) == 1) {
             return $this->db->fetch_array($result);
         }
@@ -1048,12 +1131,13 @@ class Payroll {
      * @param int $user_id
      * @return array
      */
-    public function UpdatePayrollStatus($payroll_entry_id, $new_status, $user_id) {
+    public function UpdatePayrollStatus($payroll_entry_id, $new_status, $user_id)
+    {
         $payroll_entry_id = intval($payroll_entry_id);
         $user_id = intval($user_id);
-        
+
         $valid_statuses = ['DRAFT', 'SUBMITTED', 'APPROVED', 'PAID', 'LOCKED'];
-        
+
         // SECURITY: Validate status
         if (!in_array($new_status, $valid_statuses)) {
             return [
@@ -1061,7 +1145,7 @@ class Payroll {
                 'message' => 'Invalid status: ' . htmlspecialchars($new_status)
             ];
         }
-        
+
         // SECURITY: Get old values for audit trail
         $old_payroll = $this->GetPayrollEntryByID($payroll_entry_id);
         if (!$old_payroll) {
@@ -1070,30 +1154,31 @@ class Payroll {
                 'message' => 'Payroll entry not found.'
             ];
         }
-        
+
         // Build update query
         $query = "UPDATE payroll_entries SET status = '$new_status'";
-        
+
         // Add approval/lock tracking
         if ($new_status === 'APPROVED') {
             $query .= ", approved_by = $user_id, approved_date = NOW()";
-        } elseif ($new_status === 'PAID' || $new_status === 'LOCKED') {
+        }
+        elseif ($new_status === 'PAID' || $new_status === 'LOCKED') {
             $query .= ", locked_by = $user_id, locked_date = NOW()";
         }
-        
+
         $query .= ", updated_at = NOW() WHERE payroll_entry_id = $payroll_entry_id";
-        
+
         $result = $this->db->query($query) or die($this->db->error);
-        
+
         if ($result) {
             $this->LogPayrollAudit($payroll_entry_id, 'STATUS_CHANGE', $user_id, $old_payroll, ['status' => $new_status]);
-            
+
             return [
                 'status' => 'success',
                 'message' => 'Payroll status updated to ' . $new_status
             ];
         }
-        
+
         return [
             'status' => 'error',
             'message' => 'Failed to update payroll status.'
@@ -1109,23 +1194,24 @@ class Payroll {
      * @param array $old_values
      * @param array $new_values
      */
-    public function LogPayrollAudit($payroll_entry_id, $action, $user_id, $old_values, $new_values) {
+    public function LogPayrollAudit($payroll_entry_id, $action, $user_id, $old_values, $new_values)
+    {
         $payroll_entry_id = intval($payroll_entry_id);
         $user_id = intval($user_id);
         $action = htmlspecialchars($action);
-        
+
         // SECURITY: Capture user IP and user agent
         $ip_address = $_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN';
         $user_agent = $_SERVER['HTTP_USER_AGENT'] ?? 'UNKNOWN';
         $user_agent = substr($user_agent, 0, 255); // Limit length
-        
+
         $old_values_json = $this->db->escape_string(json_encode($old_values));
         $new_values_json = $this->db->escape_string(json_encode($new_values));
-        
+
         $query = "INSERT INTO payroll_entries_audit 
                   (payroll_entry_id, action, changed_by, old_values, new_values, action_date, ip_address, user_agent) 
                   VALUES ($payroll_entry_id, '$action', $user_id, '$old_values_json', '$new_values_json', NOW(), INET_ATON('$ip_address'), '$user_agent')";
-        
+
         $this->db->query($query);
     }
 
@@ -1135,22 +1221,23 @@ class Payroll {
      * @param int $limit (default 50)
      * @return array
      */
-    public function GetPayrollAuditTrail($payroll_entry_id, $limit = 50) {
+    public function GetPayrollAuditTrail($payroll_entry_id, $limit = 50)
+    {
         $payroll_entry_id = intval($payroll_entry_id);
         $limit = intval($limit);
-        
+
         $query = "SELECT * FROM payroll_entries_audit 
                   WHERE payroll_entry_id = $payroll_entry_id 
                   ORDER BY action_date DESC 
                   LIMIT $limit";
-        
+
         $result = $this->db->query($query) or die($this->db->error);
-        
+
         $audit_trail = [];
         while ($row = $this->db->fetch_array($result)) {
             $audit_trail[] = $row;
         }
-        
+
         return $audit_trail;
     }
 
@@ -1165,12 +1252,13 @@ class Payroll {
      * @param int $user_id
      * @return array
      */
-    public function DeleteAllPayrollRecordsForPeriodAndDept($payroll_period_id, $dept_id, $emp_type_stamp, $user_id) {
+    public function DeleteAllPayrollRecordsForPeriodAndDept($payroll_period_id, $dept_id, $emp_type_stamp, $user_id)
+    {
         $payroll_period_id = intval($payroll_period_id);
         $dept_id = intval($dept_id);
         $emp_type_stamp = $this->db->escape_string($emp_type_stamp);
         $user_id = intval($user_id);
-        
+
         try {
             // STEP 1: Get ONLY DRAFT payroll entries for this period/dept/type combo for audit logging
             // SECURITY: ONLY allows deletion of DRAFT status entries
@@ -1180,19 +1268,19 @@ class Payroll {
                                    AND dept_id = $dept_id 
                                    AND emp_type_stamp = '$emp_type_stamp'
                                    AND status = 'DRAFT'";
-            
+
             $result_payrolls = $this->db->query($query_get_payrolls) or die($this->db->error);
             $payroll_ids = [];
             $deleted_count = 0;
             $total_gross_deleted = 0;
-            
+
             if ($this->db->num_rows($result_payrolls) > 0) {
                 while ($row = $this->db->fetch_array($result_payrolls)) {
                     $payroll_ids[] = $row['payroll_entry_id'];
                     $total_gross_deleted += floatval($row['gross']);
                 }
             }
-            
+
             // STEP 2: Check if there are non-DRAFT entries (for reporting)
             $query_non_draft = "SELECT COUNT(*) as non_draft_count FROM payroll_entries 
                                 WHERE payroll_period_id = $payroll_period_id 
@@ -1202,7 +1290,7 @@ class Payroll {
             $result_non_draft = $this->db->query($query_non_draft);
             $non_draft_row = $this->db->fetch_array($result_non_draft);
             $non_draft_count = intval($non_draft_row['non_draft_count'] ?? 0);
-            
+
             if (empty($payroll_ids)) {
                 // No DRAFT records found
                 if ($non_draft_count > 0) {
@@ -1215,7 +1303,8 @@ class Payroll {
                         'deleted_govshares' => 0,
                         'non_draft_count' => $non_draft_count
                     ];
-                } else {
+                }
+                else {
                     return [
                         'status' => 'info',
                         'message' => 'No payroll records found for this period and department.',
@@ -1226,10 +1315,10 @@ class Payroll {
                     ];
                 }
             }
-            
+
             // STEP 3: Build list of IDs for bulk deletion
             $payroll_ids_str = implode(',', $payroll_ids);
-            
+
             // STEP 4: Log bulk deletion to audit trail BEFORE deletion (CRITICAL - before FK constraint violation)
             // Must log BEFORE deleting entries since audit has FK constraint to payroll_entries
             $audit_data = [
@@ -1242,30 +1331,30 @@ class Payroll {
                 'only_draft_deleted' => true,
                 'non_draft_protected' => $non_draft_count
             ];
-            
+
             // Log as special BULK_DELETE action with summary data
             $this->LogPayrollAudit(
                 $payroll_ids[0], // Use first ID as reference
                 'BULK_DELETE',
                 $user_id,
                 $audit_data,
-                ['deleted_at' => date('Y-m-d H:i:s')]
+            ['deleted_at' => date('Y-m-d H:i:s')]
             );
-            
+
             // ===== DELETION CASCADE (CRITICAL ORDER) =====
-            
+
             // DELETE from payroll_deductions FIRST (child table)
             $query_deductions = "DELETE FROM payroll_deductions 
                                 WHERE payroll_entry_id IN ($payroll_ids_str)";
             $result_deductions = $this->db->query($query_deductions);
             $deleted_deductions = $this->db->affectedRows();
-            
+
             // DELETE from payroll_govshares (child table)
             $query_govshares = "DELETE FROM payroll_govshares 
                                WHERE payroll_entry_id IN ($payroll_ids_str)";
             $result_govshares = $this->db->query($query_govshares);
             $deleted_govshares = $this->db->affectedRows();
-            
+
             // DELETE from payroll_entries MAIN TABLE (NOW SAFE - all children deleted)
             // SECURITY: Explicitly filter by status = 'DRAFT' for safety
             $query_entries = "DELETE FROM payroll_entries 
@@ -1275,14 +1364,14 @@ class Payroll {
                              AND status = 'DRAFT'";
             $result_entries = $this->db->query($query_entries) or die($this->db->error);
             $deleted_entries = $this->db->affectedRows();
-            
+
             if ($result_entries) {
                 // STEP 5: Deletion completed successfully
                 $message = "Successfully deleted $deleted_entries DRAFT payroll records for this period and department.";
                 if ($non_draft_count > 0) {
                     $message .= " $non_draft_count non-DRAFT records were protected and not deleted.";
                 }
-                
+
                 return [
                     'status' => 'success',
                     'message' => $message,
@@ -1294,8 +1383,9 @@ class Payroll {
                     'non_draft_protected' => $non_draft_count
                 ];
             }
-            
-        } catch (Exception $e) {
+
+        }
+        catch (Exception $e) {
             return [
                 'status' => 'error',
                 'message' => 'Error during bulk deletion: ' . $e->getMessage(),
@@ -1305,7 +1395,7 @@ class Payroll {
                 'deleted_govshares' => 0
             ];
         }
-        
+
         return [
             'status' => 'error',
             'message' => 'Failed to delete payroll records.',
@@ -1326,7 +1416,8 @@ class Payroll {
      * @param string $new_status Desired target status
      * @return array ['valid' => true/false, 'message' => '...']
      */
-    public function ValidateStatusTransition($current_status, $new_status) {
+    public function ValidateStatusTransition($current_status, $new_status)
+    {
         // Legacy data guard: records saved before the workflow was introduced
         // have status = '' (empty string) because the old SavePayrollEntry()
         // INSERT did not include a status value and MariaDB silently stored ''.
@@ -1340,18 +1431,18 @@ class Payroll {
             'DRAFT' => ['REVIEW'],
             'REVIEW' => ['APPROVED', 'DRAFT'],
             'APPROVED' => ['PAID'],
-            'PAID' => []  // No transitions FROM PAID
+            'PAID' => [] // No transitions FROM PAID
         ];
-        
+
         // Check if transition exists
         if (!isset($allowed_transitions[$current_status])) {
             return ['valid' => false, 'message' => "Invalid current status: $current_status"];
         }
-        
+
         if (!in_array($new_status, $allowed_transitions[$current_status])) {
             return ['valid' => false, 'message' => "Cannot transition from $current_status to $new_status"];
         }
-        
+
         return ['valid' => true, 'message' => 'Transition allowed'];
     }
 
@@ -1364,11 +1455,12 @@ class Payroll {
      * @param string|null $reason Optional reason (e.g., for REVIEW→DRAFT returns)
      * @return array ['status' => 'success'|'error'|'partial', 'affected' => N, 'succeeded' => [...], 'failed' => [...], 'message' => '...']
      */
-    public function BulkUpdatePayrollStatus($payroll_entry_ids, $new_status, $user_id, $reason = null) {
+    public function BulkUpdatePayrollStatus($payroll_entry_ids, $new_status, $user_id, $reason = null)
+    {
         $payroll_entry_ids = array_map('intval', (array)$payroll_entry_ids);
         $user_id = intval($user_id);
         $new_status = strtoupper($this->db->escape_string($new_status));
-        
+
         try {
             // STEP 1: Validate new_status value
             $valid_statuses = ['DRAFT', 'REVIEW', 'APPROVED', 'PAID'];
@@ -1381,7 +1473,7 @@ class Payroll {
                     'failed' => $payroll_entry_ids
                 ];
             }
-            
+
             // STEP 2: Get all payroll entries with their current details
             if (empty($payroll_entry_ids)) {
                 return [
@@ -1392,33 +1484,33 @@ class Payroll {
                     'failed' => []
                 ];
             }
-            
+
             $ids_str = implode(',', $payroll_entry_ids);
             $query = "SELECT payroll_entry_id, status FROM payroll_entries WHERE payroll_entry_id IN ($ids_str)";
             $result = $this->db->query($query) or die($this->db->error);
-            
+
             $payroll_entries = [];
             $failed_ids = [];
-            
+
             while ($row = $this->db->fetch_array($result)) {
                 $payroll_entries[$row['payroll_entry_id']] = $row['status'];
             }
-            
+
             // STEP 3: Pre-validate all transitions (fail all if any invalid)
             foreach ($payroll_entry_ids as $id) {
                 if (!isset($payroll_entries[$id])) {
                     $failed_ids[] = $id;
                     continue;
                 }
-                
+
                 $current_status = $payroll_entries[$id];
                 $validation = $this->ValidateStatusTransition($current_status, $new_status);
-                
+
                 if (!$validation['valid']) {
                     $failed_ids[] = $id;
                 }
             }
-            
+
             // STEP 4: If any failed pre-validation, return error without updating
             if (!empty($failed_ids)) {
                 $succeeded_ids = array_diff($payroll_entry_ids, $failed_ids);
@@ -1430,7 +1522,7 @@ class Payroll {
                     'failed' => $failed_ids
                 ];
             }
-            
+
             // STEP 5: All validations passed - proceed with UPDATE
             $updated_field = '';
             switch ($new_status) {
@@ -1447,39 +1539,39 @@ class Payroll {
                     $updated_field = "returned_reason = '" . $this->db->escape_string($reason ?? '') . "'";
                     break;
             }
-            
+
             $update_query = "UPDATE payroll_entries 
                             SET status = '$new_status', 
                                 $updated_field,
                                 updated_at = NOW() 
                             WHERE payroll_entry_id IN ($ids_str)";
-            
+
             $update_result = $this->db->query($update_query) or die($this->db->error);
             $affected_count = $this->db->affectedRows();
-            
+
             // STEP 6: Log all transitions to workflow_transitions table
             foreach ($payroll_entry_ids as $id) {
                 $old_status = $payroll_entries[$id];
                 $ip_address = $_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN';
                 $user_agent = substr($_SERVER['HTTP_USER_AGENT'] ?? '', 0, 255);
                 $reason_sql = $reason ? "'" . $this->db->escape_string($reason) . "'" : 'NULL';
-                
+
                 $log_query = "INSERT INTO payroll_workflow_transitions 
                              (payroll_entry_id, from_status, to_status, changed_by, changed_date, reason, ip_address, user_agent)
                              VALUES ($id, '$old_status', '$new_status', $user_id, NOW(), $reason_sql, INET_ATON('$ip_address'), '$user_agent')";
-                
+
                 $this->db->query($log_query);
             }
-            
+
             // STEP 7: Log to audit trail
             $this->LogPayrollAudit(
                 $payroll_entry_ids[0],
                 'BULK_STATUS_UPDATE',
                 $user_id,
-                ['from_statuses' => $payroll_entries, 'count' => count($payroll_entry_ids)],
-                ['to_status' => $new_status, 'reason' => $reason, 'affected' => $affected_count]
+            ['from_statuses' => $payroll_entries, 'count' => count($payroll_entry_ids)],
+            ['to_status' => $new_status, 'reason' => $reason, 'affected' => $affected_count]
             );
-            
+
             return [
                 'status' => 'success',
                 'message' => "Successfully updated status of $affected_count payroll record(s) to $new_status",
@@ -1487,8 +1579,9 @@ class Payroll {
                 'succeeded' => $payroll_entry_ids,
                 'failed' => []
             ];
-            
-        } catch (Exception $e) {
+
+        }
+        catch (Exception $e) {
             return [
                 'status' => 'error',
                 'message' => 'Error during bulk status update: ' . $e->getMessage(),
@@ -1506,27 +1599,28 @@ class Payroll {
      * @param string $emp_type
      * @return array ['DRAFT' => count, 'REVIEW' => count, ...]
      */
-    public function GetPayrollStatusCounts($payroll_period_id, $dept_id, $emp_type) {
+    public function GetPayrollStatusCounts($payroll_period_id, $dept_id, $emp_type)
+    {
         $payroll_period_id = intval($payroll_period_id);
         $dept_id = intval($dept_id);
         $emp_type = $this->db->escape_string($emp_type);
-        
+
         $query = "SELECT status, COUNT(*) as count FROM payroll_entries 
                  WHERE payroll_period_id = $payroll_period_id 
                  AND dept_id = $dept_id 
                  AND emp_type_stamp = '$emp_type'
                  GROUP BY status";
-        
+
         $result = $this->db->query($query) or die($this->db->error);
-        
+
         $counts = ['DRAFT' => 0, 'REVIEW' => 0, 'APPROVED' => 0, 'PAID' => 0];
-        
+
         while ($row = $this->db->fetch_array($result)) {
             if (isset($counts[$row['status']])) {
                 $counts[$row['status']] = intval($row['count']);
             }
         }
-        
+
         return $counts;
     }
 
@@ -1538,26 +1632,27 @@ class Payroll {
      * @param string $status DRAFT|REVIEW|APPROVED|PAID
      * @return array
      */
-    public function GetPayrollsByStatus($payroll_period_id, $dept_id, $emp_type, $status) {
+    public function GetPayrollsByStatus($payroll_period_id, $dept_id, $emp_type, $status)
+    {
         $payroll_period_id = intval($payroll_period_id);
         $dept_id = intval($dept_id);
         $emp_type = $this->db->escape_string($emp_type);
         $status = strtoupper($this->db->escape_string($status));
-        
+
         $query = "SELECT * FROM payroll_entries 
                  WHERE payroll_period_id = $payroll_period_id 
                  AND dept_id = $dept_id 
                  AND emp_type_stamp = '$emp_type'
                  AND status = '$status'
                  ORDER BY payroll_entry_id ASC";
-        
+
         $result = $this->db->query($query) or die($this->db->error);
-        
+
         $payrolls = [];
         while ($row = $this->db->fetch_array($result)) {
             $payrolls[] = $row;
         }
-        
+
         return $payrolls;
     }
 
@@ -1567,24 +1662,25 @@ class Payroll {
      * @param int $limit
      * @return array
      */
-    public function GetTransitionHistory($payroll_entry_id, $limit = 50) {
+    public function GetTransitionHistory($payroll_entry_id, $limit = 50)
+    {
         $payroll_entry_id = intval($payroll_entry_id);
         $limit = intval($limit);
-        
+
         $query = "SELECT t.*, u.username 
                  FROM payroll_workflow_transitions t
                  LEFT JOIN admin_users u ON t.changed_by = u.admin_id
                  WHERE t.payroll_entry_id = $payroll_entry_id
                  ORDER BY t.changed_date DESC
                  LIMIT $limit";
-        
+
         $result = $this->db->query($query) or die($this->db->error);
-        
+
         $transitions = [];
         while ($row = $this->db->fetch_array($result)) {
             $transitions[] = $row;
         }
-        
+
         return $transitions;
     }
 

@@ -176,6 +176,10 @@
 <script src="system.js"></script>
 <!-- Payrolls Engine -->
 <script src="scripts/payrolls.js"></script>
+
+<!-- GAA Net Pay Validator Module -->
+<script src="gaa_validator.js"></script>
+
 <!-- Clear the input fields on form when adding new entry -->
 <script>
     // Ensure the modal has the correct ID

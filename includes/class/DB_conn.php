@@ -10,13 +10,27 @@ define('DB_DATABASE', 'munsoft_polanco');
 class DB_conn implements DB {
 
 	/* Properties */
-        private $conn;
+        public $conn;
 
         // Constructor:
         function __construct()
         {
             // At instantiation of the class/object, we will connect to our database.
             $this->connect();
+        }
+
+        // Magic method to proxy properties to $conn (mysqli)
+        public function __get($name) {
+            if ($name === 'error') {
+                return $this->conn->error;
+            }
+            if ($name === 'connect_error') {
+                return $this->conn->connect_error;
+            }
+            if ($name === 'num_rows' && isset($this->last_result)) {
+                return $this->last_result->num_rows;
+            }
+            return null;
         }
 
         /* Methods */
@@ -73,6 +87,12 @@ class DB_conn implements DB {
 	                return false;
 	            }
 	    }
+
+        // Method for preparing statements (for parameterized queries)
+        public function prepare($query)
+        {
+            return $this->conn->prepare($query);
+        }
 
 		public function close(){
 			return mysqli_close($this->conn);

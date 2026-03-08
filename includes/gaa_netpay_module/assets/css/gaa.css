@@ -1,0 +1,131 @@
+/**
+ * gaa.css
+ * GAA Net Pay Intelligence Module — Component Styles
+ * All classes are prefixed with .gaa- to prevent collisions.
+ */
+
+/* ── Keyframes ─────────────────────────────────────────── */
+@keyframes gaaFadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes gaaPulse {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.6; }
+}
+
+/* ── Badge base ─────────────────────────────────────────── */
+.gaa-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #fff;
+    white-space: nowrap;
+    animation: gaaFadeIn 0.25s ease;
+}
+
+/* Per-status badge colors */
+.gaa-badge--critical { background: #DC2626; }
+.gaa-badge--danger   { background: #EA580C; }
+.gaa-badge--warning  { background: #D97706; }
+.gaa-badge--caution  { background: #CA8A04; }
+.gaa-badge--stable   { background: #2563EB; }
+.gaa-badge--safe     { background: #16A34A; }
+
+/* ── Card ───────────────────────────────────────────────── */
+.gaa-card {
+    background: #fff;
+    border-radius: 8px;
+    padding: 18px 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .10);
+    animation: gaaFadeIn 0.3s ease;
+    font-family: inherit;
+}
+
+/* ── Risk meter ─────────────────────────────────────────── */
+.gaa-risk-meter {
+    text-align: center;
+    padding: 16px;
+}
+.gaa-risk-meter .gaa-arc {
+    transition: stroke-dasharray 1.2s cubic-bezier(.4, 0, .2, 1);
+}
+
+/* ── Sparkline ──────────────────────────────────────────── */
+.gaa-sparkline {
+    display: inline-block;
+}
+.gaa-sparkline svg {
+    overflow: visible;
+    display: block;
+}
+
+/* ── Headroom bar ───────────────────────────────────────── */
+.gaa-headroom-bar div[style*="transition"] {
+    transition: width 0.6s ease;
+}
+
+/* ── Loading shimmer ────────────────────────────────────── */
+[data-gaa-loading="1"] {
+    background: linear-gradient(90deg, #F3F4F6 25%, #E5E7EB 50%, #F3F4F6 75%);
+    background-size: 200% 100%;
+    animation: gaaShimmer 1.4s infinite;
+    border-radius: 6px;
+    min-height: 28px;
+    color: transparent !important;
+}
+@keyframes gaaShimmer {
+    from { background-position: 200% 0; }
+    to   { background-position: -200% 0; }
+}
+
+/* ── CRITICAL blinking alert ────────────────────────────── */
+.gaa-badge--critical,
+.gaa-alert--critical {
+    animation: gaaPulse 1.8s ease-in-out infinite;
+}
+
+/* ── Batch table ────────────────────────────────────────── */
+.gaa-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: inherit;
+}
+.gaa-table th {
+    padding: 10px 12px;
+    text-align: left;
+    font-size: 0.75rem;
+    color: #6B7280;
+    font-weight: 600;
+    background: #F9FAFB;
+    border-bottom: 2px solid #E5E7EB;
+}
+.gaa-table td {
+    padding: 10px 12px;
+    font-size: 0.82rem;
+    border-bottom: 1px solid #F3F4F6;
+}
+.gaa-table tr:hover td {
+    background: #FAFAFA;
+}
+
+/* ── Utility: alert box ─────────────────────────────────── */
+.gaa-alert {
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    animation: gaaFadeIn 0.25s ease;
+}
+.gaa-alert--critical { background: #FEF2F2; color: #DC2626; border: 1px solid #FECACA; }
+.gaa-alert--danger   { background: #FFF7ED; color: #EA580C; border: 1px solid #FED7AA; }
+.gaa-alert--warning  { background: #FFFBEB; color: #D97706; border: 1px solid #FDE68A; }
+.gaa-alert--safe     { background: #F0FDF4; color: #16A34A; border: 1px solid #BBF7D0; }

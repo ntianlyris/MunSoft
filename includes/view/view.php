@@ -117,6 +117,22 @@ function ViewSideBarLink($link_name){
                                 </li>';
                 }
             break;
+        case 'employee_gaa_status':
+                if($user_role == "Employee"){
+                    include_once '../includes/class/Employee.php';
+                    $MyEmployee = new Employee();
+                    $employee_id = "";
+                    $employee_id = $MyEmployee->getEmployeeIDByUserId($user_id);
+                    $link_text = '<li class="nav-item">
+                                    <a href="gaa_netpay_status.php?emp_id='.$employee_id.'" class="nav-link" id="employee_gaa_status">
+                                    <i class="nav-icon fas fa-shield-alt"></i>
+                                    <p>
+                                        Net Pay Status
+                                    </p>
+                                    </a>
+                                </li>';
+                }
+            break;
         case 'leave_application':
                 if($user_role == "Employee"){
                     include_once('../includes/class/Employee.php'); 
@@ -272,6 +288,19 @@ function ViewSideBarLink($link_name){
                                     <i class="nav-icon fas fa-folder-open"></i>
                                     <p>
                                         Payroll Records
+                                    </p>
+                                    </a>
+                                </li>';
+                }
+            break;
+
+        case 'gaa_netpay_status':
+            if($user_role == "Payroll Master"){
+                    $link_text = '<li class="nav-item">
+                                    <a href="gaa_netpay_status.php" class="nav-link" id="gaa_netpay_status">
+                                    <i class="nav-icon fas fa-shield-alt"></i>
+                                    <p>
+                                        GAA Net Pay Status
                                     </p>
                                     </a>
                                 </li>';

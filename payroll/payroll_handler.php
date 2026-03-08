@@ -52,6 +52,49 @@ if($action = isset($_POST['action'])?$_POST['action']:'') {
             }
             $payroll_period_id = $periodRow['payroll_period_id'];
 
+            // ═══════════════════════════════════════════════════════════
+            // GAA NET PAY THRESHOLD VALIDATION - Phase 5 Integration
+            // ═══════════════════════════════════════════════════════════
+            require_once '../includes/class/GAANetPayValidator.php';
+            $db_for_gaa = new DB_conn();
+            $validator = new GAANetPayValidator($db_for_gaa, $_SESSION['admin_id'] ?? $_SESSION['user_id'] ?? 0);
+            
+            // Validate each employee's net pay before saving any records
+            $gaa_violations = [];
+            foreach ($payroll_data as $entry) {
+                $employee_id = $entry['employee_id'];
+                $gross = floatval($entry['gross']);
+                $deductions_total = floatval($entry['deductions']);
+                // Estimate mandatory (for now, assume all are deductions)
+                $mandatory_deductions = $deductions_total * 0.7; // Rough estimate
+                $authorized_deductions = $deductions_total * 0.3;
+                
+                $net_pay = $validator->computeNetPay($gross, $mandatory_deductions, $authorized_deductions);
+                
+                // Check threshold
+                if ($net_pay < 5000.00) {
+                    $gaa_violations[] = [
+                        'employee_id' => $employee_id,
+                        'employee_name' => $entry['employee_name'] ?? 'Unknown',
+                        'net_pay' => $net_pay,
+                        'shortfall' => round(5000.00 - $net_pay, 2)
+                    ];
+                }
+            }
+            
+            // If any violations found, block the entire save
+            if (!empty($gaa_violations)) {
+                http_response_code(422);
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => 'GAA Compliance Violation: ' . count($gaa_violations) . ' employee(s) below PHP 5,000.00 threshold',
+                    'gaa_blocked' => true,
+                    'violations' => $gaa_violations
+                ]);
+                exit;
+            }
+            // ═══════════════════════════════════════════════════════════
+
             //pass payroll data and payroll period id
             $Payroll->setPayrollData($payroll_data);
             $Payroll->setPayrollPeriodID($payroll_period_id);
@@ -365,6 +408,28 @@ if($action = isset($_POST['action'])?$_POST['action']:'') {
             
             header('Content-Type: application/json');
             echo json_encode(['status' => 'success', 'transitions' => $transitions]);
+            break;
+
+        case 'validate_batch_approval':
+            require_once('../includes/class/GAANetPayValidator.php');
+            
+            $payroll_period_id = isset($_POST['payroll_period_id']) ? intval($_POST['payroll_period_id']) : 0;
+            
+            if (!$payroll_period_id) {
+                http_response_code(400);
+                echo json_encode(['status' => 'error', 'message' => 'Missing payroll_period_id']);
+                break;
+            }
+            
+            $gaa_validator = new GAANetPayValidator($db, $_SESSION['admin_id'] ?? $_SESSION['user_id'] ?? 0);
+            $validation_result = $gaa_validator->validatePayrollBatch($payroll_period_id);
+            
+            if (!$validation_result['can_approve']) {
+                http_response_code(422);
+            }
+            
+            header('Content-Type: application/json');
+            echo json_encode($validation_result);
             break;
 
         default:

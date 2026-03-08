@@ -51,6 +51,7 @@
           <?php echo ViewSideBarLink('employment'); ?>
           <?php echo ViewSideBarLink('payroll'); ?>
           <?php echo ViewSideBarLink('employee_payslip'); ?>
+          <?php echo ViewSideBarLink('employee_gaa_status'); ?>
           <?php echo ViewSideBarLink('leave_application'); ?>
           <?php echo ViewSideBarLink('admin_settings'); ?>
           <?php echo ViewSideBarLink('employee_earnings'); ?>
@@ -58,6 +59,7 @@
           <?php echo ViewSideBarLink('employee_govshares'); ?>
           <?php echo ViewSideBarLink('payrolls'); ?>
           <?php echo ViewSideBarLink('payroll_records'); ?>
+          <?php echo ViewSideBarLink('gaa_netpay_status'); ?>
           <?php echo ViewSideBarLink('remittance'); ?>
           <?php echo ViewSideBarLink('leave_applications'); ?>
           <?php echo ViewSideBarLink('manage_leave_credits'); ?>
