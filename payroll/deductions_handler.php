@@ -28,6 +28,37 @@ if($action = isset($_REQUEST['action'])?$_REQUEST['action']:'') {
                     $total_deductions = $total_deductions + $emp_deductions_amt;
                 }
 
+                // ========== GAA THRESHOLD VALIDATION FOR NEW DEDUCTIONS (Stage 1) ==========
+                if($Employment->isEmployeeEmployed($employee_id)) {
+                    include_once '../includes/class/GAANetPayValidator.php';
+                    $GAAValidator = new GAANetPayValidator();
+                    
+                    // Validate proposed deduction
+                    $gaa_validation = $GAAValidator->validateDeductionEntry(
+                        intval($employee_id),
+                        $total_deductions,
+                        null  // Will fetch latest gross automatically
+                    );
+                    
+                    // If validation fails, return warning
+                    if (!$gaa_validation['is_valid']) {
+                        $json_data = json_encode([
+                            'result' => 'warning',
+                            'reason' => 'gaa_threshold',
+                            'is_valid' => false,
+                            'current_gross' => $gaa_validation['current_gross'],
+                            'proposed_deduction' => $gaa_validation['proposed_deduction'],
+                            'net_after' => $gaa_validation['net_after'],
+                            'shortfall' => $gaa_validation['shortfall'],
+                            'threshold' => $gaa_validation['threshold'],
+                            'message' => $gaa_validation['message']
+                        ]);
+                        echo $json_data;
+                        exit;
+                    }
+                }
+                // ========== END GAA VALIDATION ==========
+
                 if($Employment->isEmployeeEmployed($employee_id)){              ## checks if whether employee has employment
                     $EmployeeDeduction->setEmployeeID($employee_id);
                     $EmployeeDeduction->setDeductionParticulars($deduction_particulars);
@@ -89,6 +120,47 @@ if($action = isset($_REQUEST['action'])?$_REQUEST['action']:'') {
                 echo $json_data;
                 exit;
             }
+
+            // ========== LAYER 3: NEW - GAA THRESHOLD VALIDATION (Stage 1) ==========
+            // Check if proposed deduction amounts would violate GAA minimum net pay threshold
+            if (!empty($config_deduction_ids) && !empty($emp_deductions_amts)) {
+                // Calculate proposed total deductions
+                $proposed_total_deductions = 0;
+                for ($i = 0; $i < count($emp_deductions_amts); $i++) {
+                    $proposed_total_deductions += floatval($emp_deductions_amts[$i]);
+                }
+                
+                // Get employee's current gross earnings
+                include_once '../includes/class/GAANetPayValidator.php';
+                $GAAValidator = new GAANetPayValidator();
+                
+                $gaa_validation = $GAAValidator->validateDeductionEntry(
+                    intval($employee_id),
+                    $proposed_total_deductions,
+                    null  // Will fetch latest gross automatically
+                );
+                
+                // If validation fails, block the edit and return warning
+                if (!$gaa_validation['is_valid']) {
+                    $json_data = json_encode([
+                        'result' => 'block_edit',
+                        'reason' => 'gaa_threshold',
+                        'is_valid' => false,
+                        'current_gross' => $gaa_validation['current_gross'],
+                        'proposed_deduction' => $gaa_validation['proposed_deduction'],
+                        'net_after' => $gaa_validation['net_after'],
+                        'shortfall' => $gaa_validation['shortfall'],
+                        'threshold' => $gaa_validation['threshold'],
+                        'message' => $gaa_validation['message']
+                    ]);
+                    echo $json_data;
+                    exit;
+                }
+                
+                // NOTE: Audit logging happens at Stage 2 (payroll save) and Stage 3 (batch approval)
+                // At Stage 1, payroll_entry_id doesn't exist yet, so we skip audit logging here
+            }
+            // ========== END GAA VALIDATION ==========
 
             if (!empty($config_deduction_ids) && !empty($config_deduction_ids)) {        
                 for ($i=0; $i <count($config_deduction_ids) ; $i++) { 
