@@ -151,6 +151,8 @@
     </section>
 </div>
 
+
+<?php $page_title = 'Summary List of Payroll'; include_once '../includes/layout/appfooter.php'; ?>
 <!-- JS Libraries -->
 <script src="../plugins/jquery/jquery.min.js"></script>
 <script src="../plugins/bootstrap/js/bootstrap.bundle.min.js"></script>

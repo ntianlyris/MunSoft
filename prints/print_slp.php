@@ -41,18 +41,30 @@ if ($dept_id_filter !== 'all') {
 if ($emp_type_filter !== 'all') {
     $query .= " AND pe.emp_type_stamp = '" . $db->escape_string($emp_type_filter) . "'";
 }
-$query .= " ORDER BY dept.dept_title ASC, e.lastname ASC, e.firstname ASC";
+if ($dept_id_filter !== 'all') {
+    $query .= " ORDER BY dept.dept_title ASC, e.lastname ASC, e.firstname ASC";
+} else {
+    $query .= " ORDER BY e.lastname ASC, e.firstname ASC";
+}
 
 $result = $db->query($query);
 $data_by_dept = [];
 $grand_total = ['gross' => 0, 'deductions' => 0, 'net' => 0];
 
+$dept_label = "All Departments";
+if ($dept_id_filter !== 'all') {
+    $deptRes = $db->query("SELECT dept_title FROM departments_tbl WHERE dept_id = '" . $db->escape_string($dept_id_filter) . "'");
+    if ($deptRow = $deptRes->fetch_assoc()) {
+        $dept_label = $deptRow['dept_title'];
+    }
+}
+
 while ($row = $result->fetch_assoc()) {
     $dept_name = $row['dept_title'];
-    if (!isset($data_by_dept[$dept_name])) {
-        $data_by_dept[$dept_name] = [];
-    }
+    $data_list[] = $row;
+    if (!isset($data_by_dept[$dept_name])) { $data_by_dept[$dept_name] = []; }
     $data_by_dept[$dept_name][] = $row;
+
     $grand_total['gross'] += $row['gross'];
     $grand_total['deductions'] += $row['total_deductions'];
     $grand_total['net'] += $row['net_pay'];
@@ -81,6 +93,7 @@ $pdf->SetFont('helvetica', 'B', 14);
 $pdf->Cell(0, 8, 'SUMMARY LIST OF PAYROLL', 0, 1, 'C');
 $pdf->SetFont('helvetica', '', 10);
 $pdf->Cell(0, 6, 'For the Period: ' . $periodInfo['period_label'], 0, 1, 'C');
+$pdf->Cell(0, 6, 'Department: ' . $dept_label, 0, 1, 'C');
 $pdf->Ln(5);
 
 // Table Header
@@ -97,12 +110,36 @@ $html = '<table border="1" cellpadding="4" cellspacing="0" width="100%">
             </thead>
             <tbody>';
 
-foreach ($data_by_dept as $dept => $employees) {
-    $html .= '<tr style="background-color:#f9f9f9;"><td colspan="6"><b>' . $dept . '</b></td></tr>';
+if ($dept_id_filter !== 'all') {
+    foreach ($data_by_dept as $dept => $employees) {
+        $html .= '<tr style="background-color:#f9f9f9;"><td colspan="6"><b>' . $dept . '</b></td></tr>';
+        $count = 1;
+        $dept_total = ['gross' => 0, 'deductions' => 0, 'net' => 0];
+        
+        foreach ($employees as $emp) {
+            $html .= '<tr>
+                        <td width="5%" align="center">' . $count++ . '</td>
+                        <td width="25%">' . htmlspecialchars($emp['full_name']) . '</td>
+                        <td width="30%">' . htmlspecialchars($emp['position_title']) . '</td>
+                        <td width="13%" align="right">' . number_format($emp['gross'], 2) . '</td>
+                        <td width="13%" align="right">' . number_format($emp['total_deductions'], 2) . '</td>
+                        <td width="14%" align="right">' . number_format($emp['net_pay'], 2) . '</td>
+                      </tr>';
+            $dept_total['gross'] += $emp['gross'];
+            $dept_total['deductions'] += $emp['total_deductions'];
+            $dept_total['net'] += $emp['net_pay'];
+        }
+        
+        $html .= '<tr style="font-style:italic; background-color:#fcfcfc;">
+                    <td width="60%" colspan="3" align="right">Department Total:</td>
+                    <td width="13%" align="right">' . number_format($dept_total['gross'], 2) . '</td>
+                    <td width="13%" align="right">' . number_format($dept_total['deductions'], 2) . '</td>
+                    <td width="14%" align="right">' . number_format($dept_total['net'], 2) . '</td>
+                  </tr>';
+    }
+} else {
     $count = 1;
-    $dept_total = ['gross' => 0, 'deductions' => 0, 'net' => 0];
-
-    foreach ($employees as $emp) {
+    foreach ($data_list as $emp) {
         $html .= '<tr>
                     <td width="5%" align="center">' . $count++ . '</td>
                     <td width="25%">' . htmlspecialchars($emp['full_name']) . '</td>
@@ -111,18 +148,7 @@ foreach ($data_by_dept as $dept => $employees) {
                     <td width="13%" align="right">' . number_format($emp['total_deductions'], 2) . '</td>
                     <td width="14%" align="right">' . number_format($emp['net_pay'], 2) . '</td>
                   </tr>';
-        $dept_total['gross'] += $emp['gross'];
-        $dept_total['deductions'] += $emp['total_deductions'];
-        $dept_total['net'] += $emp['net_pay'];
     }
-
-    // Dept Total (optional but good for COA)
-    $html .= '<tr style="font-style:italic; background-color:#fcfcfc;">
-                <td width="60%" colspan="3" align="right">Department Total:</td>
-                <td width="13%" align="right">' . number_format($dept_total['gross'], 2) . '</td>
-                <td width="13%" align="right">' . number_format($dept_total['deductions'], 2) . '</td>
-                <td width="14%" align="right">' . number_format($dept_total['net'], 2) . '</td>
-              </tr>';
 }
 
 // Grand Total

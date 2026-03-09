@@ -51,7 +51,7 @@
               <div class="inner">
                 <h3><?php echo ViewProcessedPayrollsCount(); ?></h3>
 
-                <p>Processed Payrolls</p>
+                <p>Paid Payrolls</p>
               </div>
               <div class="icon">
                 <i class="fas fa-file-invoice"></i>
@@ -66,7 +66,7 @@
               <div class="inner">
                 <h3>₱<?php echo number_format(ViewTotalPayrollCost(), 2); ?></h3>
 
-                <p>Total Net Pay</p>
+                <p>Total Paid Net Pay</p>
               </div>
               <div class="icon">
                 <i class="fas fa-money-bill-wave"></i>
@@ -121,6 +121,8 @@
 </div>
 <!-- /.content-wrapper -->
 
+
+<?php $page_title = 'Dashboard'; include_once '../includes/layout/appfooter.php'; ?>
 <!-- jQuery -->
 <script src="../plugins/jquery/jquery.min.js"></script>
 <script>

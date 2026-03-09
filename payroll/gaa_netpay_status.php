@@ -318,11 +318,9 @@
   </section>
 </div><!-- /.content-wrapper -->
 
-<!-- Footer -->
-<footer class="main-footer">
-  <div class="float-right d-none d-sm-block"><b>MunSoft</b> HR &amp; Payroll</div>
-  GAA Net Pay Intelligence Module
-</footer>
+<?php $page_title = 'GAA Net Pay Intelligence'; include_once '../includes/layout/appfooter.php'; ?>
+
+
 
 <!-- ═══════════════════════════════════════════════════════════ -->
 <!-- Scripts                                                      -->

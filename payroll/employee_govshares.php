@@ -1,9 +1,9 @@
 <?php
-    include_once '../includes/layout/head.php';
-    include_once '../includes/layout/navbar.php';
-    include_once '../includes/layout/sidebar.php';
-    include_once '../includes/view/view.php';
-    include_once '../includes/view/showModals.php';
+include_once '../includes/layout/head.php';
+include_once '../includes/layout/navbar.php';
+include_once '../includes/layout/sidebar.php';
+include_once '../includes/view/view.php';
+include_once '../includes/view/showModals.php';
 ?>
 
 <!-- Content Wrapper. Contains page content -->
@@ -28,7 +28,7 @@
   <!-- Main Content -->
   <section class="content">
     <div class="container-fluid">
-      
+
       <!-- Employee Government Share Form -->
       <div class="card card-outline card-success">
         <div class="card-header">
@@ -47,7 +47,8 @@
               </div>
               <div class="col-md-6">
                 <label for="monthly_rate">Monthly Rate</label>
-                <input type="text" class="form-control" id="monthly_rate" name="monthly_rate" placeholder="0.00" readonly required>
+                <input type="text" class="form-control" id="monthly_rate" name="monthly_rate" placeholder="0.00"
+                  readonly required>
               </div>
             </div>
 
@@ -81,6 +82,9 @@
   </section>
 </div>
 
+
+<?php $page_title = 'Employee Gov\'t Shares';
+include_once '../includes/layout/appfooter.php'; ?>
 <!-- jQuery -->
 <script src="../plugins/jquery/jquery.min.js"></script>
 <!-- Bootstrap 4 -->
@@ -105,7 +109,8 @@
 <script src="../dist/js/adminlte.js"></script>
 <!-- AdminLTE for demo purposes -->
 <script src="../dist/js/demo.js"></script>
-
+<!-- System Engine -->
+<script src="system.js"></script>
 <!-- Govshare Engine -->
 <script src="scripts/govshares.js"></script>
 
@@ -120,5 +125,5 @@
   });
 </script>
 </body>
-</html>
 
+</html>

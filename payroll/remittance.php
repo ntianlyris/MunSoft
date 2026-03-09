@@ -627,6 +627,8 @@ body {
 </div>
 
 <!-- jQuery & Plugins -->
+
+<?php $page_title = 'Remittance'; include_once '../includes/layout/appfooter.php'; ?>
 <script src="../plugins/jquery/jquery.min.js"></script>
 <script src="../plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
 <script src="../plugins/datatables/jquery.dataTables.min.js"></script>

@@ -37,7 +37,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $query .= " AND pe.emp_type_stamp = '" . $db->escape_string($employment_type) . "'";
         }
 
-        $query .= " ORDER BY dept.dept_title ASC, e.lastname ASC, e.firstname ASC";
+        if ($dept_id !== 'all') {
+            $query .= " ORDER BY dept.dept_title ASC, e.lastname ASC, e.firstname ASC";
+        } else {
+            $query .= " ORDER BY e.lastname ASC, e.firstname ASC";
+        }
 
         $result = $db->query($query);
         $data = [];

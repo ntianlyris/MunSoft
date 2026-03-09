@@ -76,6 +76,7 @@
                 <?php echo ViewSideBarLink('journal_entry'); ?>
                 <?php echo ViewSideBarLink('payslip'); ?>
                 <?php echo ViewSideBarLink('report_slp'); ?>
+                <?php echo ViewSideBarLink('report_abstract'); ?>
               </ul>
               </li>
             <?php } ?>

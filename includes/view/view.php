@@ -372,6 +372,19 @@ function ViewSideBarLink($link_name){
                 }
             break;
 
+        case 'report_abstract':
+            if($user_role == "Payroll Master" || $user_role == "Administrator"){
+                    $link_text = '<li class="nav-item">
+                                    <a href="report_abstract.php" class="nav-link" id="report_abstract">
+                                    <i class="nav-icon fas fa-table"></i>
+                                    <p>
+                                        Abstract of Payroll
+                                    </p>
+                                    </a>
+                                </li>';
+                }
+            break;
+
         case 'payroll_settings':
             if($user_role == "Payroll Master"){
                     $link_text = '<li class="nav-item">
@@ -1375,10 +1388,11 @@ function ViewProcessedPayrollsCount(){
     // Get current year
     $current_year = date('Y');
     
-    // Count all processed payroll entries for the current year
+    // Count only PAID payroll entries for the current year
     $query = "SELECT COUNT(*) as processed_count
               FROM payroll_entries
-              WHERE YEAR(created_at) = $current_year";
+              WHERE status = 'PAID'
+              AND YEAR(created_at) = $current_year";
     
     $result = $db->query($query);
     if ($result && $result->num_rows > 0) {
@@ -1395,9 +1409,14 @@ function ViewTotalPayrollCost(){
     include_once('../includes/class/DB_conn.php');
     $db = new DB_conn();
     
-    // Sum of net pay for all payroll entries
+    // Get current year
+    $current_year = date('Y');
+    
+    // Sum of net pay for all PAID payroll entries in the current year
     $query = "SELECT COALESCE(SUM(net_pay), 0) as total_cost
-              FROM payroll_entries";
+              FROM payroll_entries
+              WHERE status = 'PAID'
+              AND YEAR(created_at) = $current_year";
     
     $result = $db->query($query);
     if ($result && $result->num_rows > 0) {

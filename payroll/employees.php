@@ -74,6 +74,8 @@
   </div>
   <!-- /.content-wrapper -->
 
+
+<?php $page_title = 'Employees'; include_once '../includes/layout/appfooter.php'; ?>
 <!-- jQuery -->
 <script src="../plugins/jquery/jquery.min.js"></script>
 <!-- Bootstrap 4 -->

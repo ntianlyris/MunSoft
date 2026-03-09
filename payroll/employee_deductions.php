@@ -73,6 +73,8 @@
   </div>
   <!-- /.content-wrapper -->
 
+
+<?php $page_title = 'Employee Deductions'; include_once '../includes/layout/appfooter.php'; ?>
 <!-- jQuery -->
 <script src="../plugins/jquery/jquery.min.js"></script>
 <!-- Bootstrap 4 -->

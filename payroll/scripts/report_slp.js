@@ -23,15 +23,18 @@ $(document).ready(function() {
             const api = this.api();
             const rows = api.rows({ page: 'current' }).nodes();
             let last = null;
+            const deptId = $("#department").val();
 
-            api.column(3, { page: 'current' }).data().each(function(group, i) {
-                if (last !== group) {
-                    $(rows).eq(i).before(
-                        '<tr class="group text-primary font-weight-bold" style="background-color: #f8f9fa;"><td colspan="6">' + group + '</td></tr>'
-                    );
-                    last = group;
-                }
-            });
+            if (deptId !== 'all') {
+                api.column(3, { page: 'current' }).data().each(function(group, i) {
+                    if (last !== group) {
+                        $(rows).eq(i).before(
+                            '<tr class="group text-primary font-weight-bold" style="background-color: #f8f9fa;"><td colspan="6">' + group + '</td></tr>'
+                        );
+                        last = group;
+                    }
+                });
+            }
         }
     });
 
@@ -98,6 +101,12 @@ $(document).ready(function() {
                         money(row.total_deductions),
                         money(row.net_pay)
                     ]);
+                    if (deptId === 'all') {
+                        table.order([[1, 'asc']]).column(3).visible(true);
+                    } else {
+                        table.order([[3, 'asc'], [1, 'asc']]).column(3).visible(false);
+                    }
+                    
                     table.rows.add(formatted).draw();
 
                     // Update Grand Totals

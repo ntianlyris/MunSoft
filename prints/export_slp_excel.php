@@ -36,14 +36,28 @@ if ($dept_id_filter !== 'all') {
 if ($emp_type_filter !== 'all') {
     $query .= " AND pe.emp_type_stamp = '" . $db->escape_string($emp_type_filter) . "'";
 }
-$query .= " ORDER BY dept.dept_title ASC, e.lastname ASC, e.firstname ASC";
+if ($dept_id_filter !== 'all') {
+    $query .= " ORDER BY dept.dept_title ASC, e.lastname ASC, e.firstname ASC";
+} else {
+    $query .= " ORDER BY e.lastname ASC, e.firstname ASC";
+}
 
 $result = $db->query($query);
 $data_by_dept = [];
 $grand_total = ['gross' => 0, 'deductions' => 0, 'net' => 0];
 
+$dept_label = "All Departments";
+if ($dept_id_filter !== 'all') {
+    $deptRes = $db->query("SELECT dept_title FROM departments_tbl WHERE dept_id = '" . $db->escape_string($dept_id_filter) . "'");
+    if ($deptRow = $deptRes->fetch_assoc()) {
+        $dept_label = $deptRow['dept_title'];
+    }
+}
+
+$data_list = [];
 while ($row = $result->fetch_assoc()) {
     $dept_name = $row['dept_title'];
+    $data_list[] = $row;
     if (!isset($data_by_dept[$dept_name])) {
         $data_by_dept[$dept_name] = [];
     }
@@ -67,14 +81,29 @@ $rows = [
     [],
     ['<b><center><style font-size="14">SUMMARY LIST OF PAYROLL'],
     ['<center>For the Period: ' . $period_label],
+    ['<center>Department: ' . $dept_label],
     [],
     [$T_HDR . '#', $T_HDR . 'Employee Name', $T_HDR . 'Position', $T_HDR . 'Gross', $T_HDR . 'Deductions', $T_HDR . 'Net Pay']
 ];
 
-foreach ($data_by_dept as $dept => $employees) {
-    $rows[] = ['<b>' . $dept, null, null, null, null, null];
+if ($dept_id_filter !== 'all') {
+    foreach ($data_by_dept as $dept => $employees) {
+        $rows[] = ['<b>' . $dept, null, null, null, null, null];
+        $count = 1;
+        foreach ($employees as $emp) {
+            $rows[] = [
+                $T_TEXT . $count++,
+                $T_TEXT . $emp['full_name'],
+                $T_TEXT . $emp['position_title'],
+                $T_NUM  . $emp['gross'],
+                $T_NUM  . $emp['total_deductions'],
+                $T_NUM  . $emp['net_pay']
+            ];
+        }
+    }
+} else {
     $count = 1;
-    foreach ($employees as $emp) {
+    foreach ($data_list as $emp) {
         $rows[] = [
             $T_TEXT . $count++,
             $T_TEXT . $emp['full_name'],
@@ -124,6 +153,7 @@ $xlsx->mergeCells('A1:F1');
 $xlsx->mergeCells('A2:F2');
 $xlsx->mergeCells('A4:F4');
 $xlsx->mergeCells('A5:F5');
+$xlsx->mergeCells('A6:F6');
 
 $filename = 'SLP_' . str_replace(' ', '_', $period_label) . '.xlsx';
 $xlsx->downloadAs($filename);
