@@ -120,6 +120,7 @@ switch ($action) {
 
         foreach ($employees as $emp) {
             $emp_id     = intval($emp['employee_id']  ?? 0);
+            $emp_name   = htmlspecialchars($emp['name'] ?? "Employee #{$emp_id}");
             $gross      = floatval($emp['gross']      ?? 0);
             $deductions = floatval($emp['total_deductions'] ?? 0);
 
