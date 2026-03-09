@@ -1,25 +1,18 @@
 {
-  "name": "almasaeed2010/adminlte",
-  "description": "AdminLTE - admin control panel and dashboard that's based on Bootstrap 4",
-  "homepage": "https://adminlte.io/",
-  "keywords": [
-    "css",
-    "js",
-    "less",
-    "responsive",
-    "back-end",
-    "template",
-    "theme",
-    "web",
-    "admin"
-  ],
-  "authors": [
-    {
-      "name": "Colorlib"
-    }
-  ],
-  "license": "MIT",
-  "support": {
-    "issues": "https://github.com/ColorlibHQ/AdminLTE/issues"
-  }
+    "name": "user/mun-soft",
+    "description": "Munsoft HR & Payroll Management System",
+    "type": "project",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "User\\MunSoft\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "NtianLyris",
+            "email": "ntianlyris0@gmail.com"
+        }
+    ],
+    "require": {}
 }

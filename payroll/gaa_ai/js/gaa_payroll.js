@@ -435,7 +435,7 @@ const GAAPayroll = (() => {
                         <span class="gaa-badge gaa-badge--${r.status.toLowerCase()}" style="font-size:.72rem; padding:2px 8px;">
                           ${r.icon} ${r.status}
                         </span>
-                        <span class="gaa-emp-name">Employee #${r.employee_id}</span>
+                        <span class="gaa-emp-name">${_esc(r.employee_name || `Employee #${r.employee_id}`)}</span>
                         <span class="gaa-emp-net" style="color:${sc};">${netFmt}</span>
                         ${r.status === 'CRITICAL'
                             ? `<span style="font-size:.72rem; color:#DC2626;">-₱${r.shortfall ?? Math.abs(r.buffer_amount).toFixed(2)}</span>`

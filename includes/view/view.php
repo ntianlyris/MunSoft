@@ -1156,7 +1156,7 @@ function ViewPayFrequenciesDropdown(){
                 $selected = 'selected';
                 $has_active = true;
             }
-            $rendered_frequencies_drpdwn .= "<option value='" . $value["payroll_freq_id"] . "' $selected>" . $value["freq_label"] . "</option>";
+            $rendered_frequencies_drpdwn .= "<option value='" . $value["freq_code"] . "' $selected>" . $value["freq_label"] . "</option>";
         }
     }
     if (!$has_active) {

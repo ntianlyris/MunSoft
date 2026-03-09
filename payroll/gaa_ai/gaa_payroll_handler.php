@@ -54,8 +54,8 @@
  */
 
 // ── Bootstrap ─────────────────────────────────────────────────
-// Path: payroll/ → ../includes/gaa_netpay_module/GAAModule.php
-require_once __DIR__ . '/../includes/gaa_netpay_module/GAAModule.php';
+// Path: payroll/gaa_ai/ → ../../includes/gaa_netpay_module/GAAModule.php
+require_once __DIR__ . '/../../includes/gaa_netpay_module/GAAModule.php';
 
 // ── CORS headers ──────────────────────────────────────────────
 header('Content-Type: application/json; charset=utf-8');
@@ -139,6 +139,7 @@ switch ($action) {
                 'label'          => $cls['label'],
                 'color'          => $cls['color'],
                 'icon'           => $cls['icon'],
+                'employee_name'  => $emp_name,
                 'buffer_amount'  => $cls['buffer_amount'],
                 'buffer_pct'     => $cls['buffer_pct'],
                 'threshold'      => GAAConfig::MIN_NET_PAY,

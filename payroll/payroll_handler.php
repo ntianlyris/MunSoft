@@ -4,6 +4,10 @@ require_once '../includes/class/Employee.php';
 require_once '../includes/class/Employment.php';
 require_once '../includes/class/DB_conn.php';
 
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 if($action = isset($_POST['action'])?$_POST['action']:'') {
     switch ($action) {
         case 'compute_payroll':
@@ -55,7 +59,7 @@ if($action = isset($_POST['action'])?$_POST['action']:'') {
 
             // ========== NEW: GAA VALIDATION (Stage 2) ==========
             require_once '../includes/class/GAANetPayValidator.php';
-            $GAAValidator = new GAANetPayValidator();
+            $GAAValidator = new GAANetPayValidator(null, $_SESSION['uid'] ?? 0);
             $active_frequency = $Payroll->GetCurrentActiveFrequency();
             $payroll_frequency = $active_frequency['freq_code'];
             
@@ -208,13 +212,14 @@ if($action = isset($_POST['action'])?$_POST['action']:'') {
                 $row['position_title'] = trim($position_title);
 
                 $enhanced_payroll_data[] = $row;
-                // keep the array sorted by salary_grade descending
-                usort($enhanced_payroll_data, function($a, $b) {
-                    $sa = isset($a['salary_grade']) ? (int)$a['salary_grade'] : 0;
-                    $sb = isset($b['salary_grade']) ? (int)$b['salary_grade'] : 0;
-                    return $sb <=> $sa;
-                });
             }
+
+            // Sort by salary_grade descending — once after the loop
+            usort($enhanced_payroll_data, function($a, $b) {
+                $sa = isset($a['salary_grade']) ? (int)$a['salary_grade'] : 0;
+                $sb = isset($b['salary_grade']) ? (int)$b['salary_grade'] : 0;
+                return $sb <=> $sa;
+            });
 
             header('Content-Type: application/json');
             echo json_encode($enhanced_payroll_data);
@@ -237,7 +242,6 @@ if($action = isset($_POST['action'])?$_POST['action']:'') {
 
         case 'get_payroll_entry':
             // SECURITY: Validate user session exists
-            session_start();
             if (!isset($_SESSION['uid'])) {
                 http_response_code(401);
                 echo json_encode(['status' => 'error', 'message' => 'Unauthorized - please login']);
@@ -268,7 +272,6 @@ if($action = isset($_POST['action'])?$_POST['action']:'') {
             break;
         case 'get_payroll_audit_trail':
             // SECURITY: Validate user session exists
-            session_start();
             if (!isset($_SESSION['uid'])) {
                 http_response_code(401);
                 echo json_encode(['status' => 'error', 'message' => 'Unauthorized - please login']);
@@ -299,7 +302,6 @@ if($action = isset($_POST['action'])?$_POST['action']:'') {
         case 'delete_payroll_records':
             // BULK DELETE: Delete DRAFT payroll records for a department and period
             // SECURITY: Requires session validation and confirmation
-            session_start();
             
             if (!isset($_SESSION['uid'])) {
                 http_response_code(401);
@@ -334,7 +336,6 @@ if($action = isset($_POST['action'])?$_POST['action']:'') {
             // SECURITY: Requires session validation, workflow rule compliance, AND explicit
             // payroll_period_id / dept_id / emp_type_stamp context so that the update is
             // strictly scoped to the currently selected period + department + employment type.
-            session_start();
             
             if (!isset($_SESSION['uid'])) {
                 http_response_code(401);
@@ -401,7 +402,6 @@ if($action = isset($_POST['action'])?$_POST['action']:'') {
 
         case 'get_payroll_status_counts':
             // Get status distribution for dashboard/summary
-            session_start();
             
             if (!isset($_SESSION['uid'])) {
                 http_response_code(401);
@@ -428,7 +428,6 @@ if($action = isset($_POST['action'])?$_POST['action']:'') {
 
         case 'get_transition_history':
             // Get workflow transition history for a payroll entry
-            session_start();
             
             if (!isset($_SESSION['uid'])) {
                 http_response_code(401);
@@ -460,7 +459,6 @@ if($action = isset($_POST['action'])?$_POST['action']:'') {
             // ========== NEW: STAGE 3 - BATCH APPROVAL VALIDATION ==========
             // Validate all payroll entries for a period before final approval
             
-            session_start();
             if (!isset($_SESSION['uid'])) {
                 http_response_code(401);
                 echo json_encode(['status' => 'error', 'message' => 'Unauthorized - please login']);
@@ -468,7 +466,7 @@ if($action = isset($_POST['action'])?$_POST['action']:'') {
             }
             
             require_once '../includes/class/GAANetPayValidator.php';
-            $GAAValidator = new GAANetPayValidator();
+            $GAAValidator = new GAANetPayValidator(null, $_SESSION['uid'] ?? 0);
             
             $payroll_period_id = isset($_POST['payroll_period_id']) ? intval($_POST['payroll_period_id']) : 0;
             $dept_id = isset($_POST['dept_id']) ? intval($_POST['dept_id']) : null;

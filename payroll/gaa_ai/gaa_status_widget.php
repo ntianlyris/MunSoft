@@ -43,7 +43,7 @@ if (!defined('GAA_WIDGET_ASSETS_LOADED')) {
 <?php if ($gaa_asset_block): ?>
 <!-- ── GAA Net Pay Intelligence — Stylesheets ──────────────── -->
 <link rel="stylesheet"
-      href="/Munsoft/includes/gaa_netpay_module/assets/css/gaa.css">
+      href="/MunSoft/includes/gaa_netpay_module/assets/css/gaa.css">
 <style>
 /* ── Widget shell ─────────────────────────────────────────── */
 #gaa-widget {
@@ -481,9 +481,9 @@ if (!defined('GAA_WIDGET_ASSETS_LOADED')) {
 
 <?php if ($gaa_asset_block): ?>
 <!-- ── GAA Module JS (in dependency order) ─────────────────── -->
-<script src="/Munsoft/includes/gaa_netpay_module/js/gaa.core.js"></script>
-<script src="/Munsoft/includes/gaa_netpay_module/js/gaa.ui.js"></script>
-<script src="/Munsoft/includes/gaa_netpay_module/js/gaa.handlers.js"></script>
+<script src="/MunSoft/includes/gaa_netpay_module/js/gaa.core.js"></script>
+<script src="/MunSoft/includes/gaa_netpay_module/js/gaa.ui.js"></script>
+<script src="/MunSoft/includes/gaa_netpay_module/js/gaa.handlers.js"></script>
 <!-- ── Payroll-specific GAA glue layer ─────────────────────── -->
-<script src="/Munsoft/payroll/js/gaa_payroll.js"></script>
+<script src="/MunSoft/payroll/gaa_ai/js/gaa_payroll.js"></script>
 <?php endif; ?>

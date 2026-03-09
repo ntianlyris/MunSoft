@@ -180,6 +180,31 @@
 <!-- GAA Net Pay Validator Module -->
 <script src="gaa_validator.js"></script>
 
+<!-- GAA AI Module Integration -->
+<?php include_once 'gaa_ai/gaa_status_widget.php'; ?>
+<script>
+    $(document).ready(function() {
+        // Initialize GAA AI Module
+        if (typeof GAAPayroll !== 'undefined') {
+            GAAPayroll.init({
+                tableSelector:        '#payrollTable',
+                rowSelector:          'tbody tr',
+                employeeIdAttr:       'data-employee-id',
+                nameColIndex:         2, // Employee Name
+                grossColIndex:        4, // Earnings
+                deductionsColIndex:   5, // Deductions
+                netColIndex:          6, // Net Pay
+                saveButtonSelector:   '#savePayrollBtn',
+                handlerUrl:           'gaa_ai/gaa_payroll_handler.php',
+                frequencySelector:    '#pay_frequency'
+            });
+            
+            // Watch the table for AJAX updates
+            GAAPayroll.watchTable('#payrollTable');
+        }
+    });
+</script>
+
 <!-- Clear the input fields on form when adding new entry -->
 <script>
     // Ensure the modal has the correct ID

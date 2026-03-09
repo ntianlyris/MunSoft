@@ -362,11 +362,11 @@ function handleGetAuditLog($db, $userId) {
                 l.remarks,
                 et.full_name as employee_name,
                 pr.payroll_period_id,
-                au.username as performed_by_username
+                u.username as performed_by_username
             FROM gaa_audit_log l
             LEFT JOIN employees_tbl et ON et.employee_id = l.employee_id
             LEFT JOIN payroll_entries pr ON pr.payroll_entry_id = l.payroll_entry_id
-            LEFT JOIN admin_users au ON au.admin_id = l.performed_by
+            LEFT JOIN users_tbl u ON u.userID = l.performed_by
             {$whereClause}
             ORDER BY l.performed_at DESC
             LIMIT ? OFFSET ?";

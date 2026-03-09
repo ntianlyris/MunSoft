@@ -209,7 +209,7 @@ function RetrievePayroll() {
                     }
 
                     rows += `
-                      <tr data-payroll-id="${emp.payroll_entry_id}" data-payroll-status="${emp.status || 'DRAFT'}">
+                      <tr data-payroll-id="${emp.payroll_entry_id}" data-employee-id="${emp.employee_id}" data-employee-name="${emp.full_name}" data-payroll-status="${emp.status || 'DRAFT'}">
                         <td class="text-center">${index + 1}</td>
                         <td>${emp.id_num ? emp.id_num : ""}</td>
                         <td>${emp.full_name ? emp.full_name : ""}</td>
@@ -390,6 +390,31 @@ function savePayrollData() {
                 });
               // On success
               $('#savePayrollBtn').addClass('d-none');
+            }
+            else if(response.status === 'validation_failed'){
+              // GAA threshold violation — show detailed per-employee errors
+              let errorList = '<ul style="text-align:left; max-height:300px; overflow-y:auto;">';
+              if (response.validation_errors && response.validation_errors.length > 0) {
+                  response.validation_errors.forEach(function(err) {
+                      errorList += '<li><strong>' + (err.employee || 'Unknown') + '</strong>: '
+                          + 'Net Pay ₱' + Number(err.net_pay || 0).toFixed(2)
+                          + ' (Shortfall: ₱' + Number(err.shortfall || 0).toFixed(2) + ')</li>';
+                  });
+              }
+              errorList += '</ul>';
+
+              Swal.fire({
+                  icon: "warning",
+                  title: "GAA Threshold Violation",
+                  html: '<p>' + (response.message || 'One or more employees fall below the GAA minimum net pay threshold.') + '</p>'
+                      + errorList
+                      + '<p class="text-muted mt-2">Please adjust deductions for the affected employees before saving.</p>',
+                  confirmButtonColor: '#ffc107',
+              });
+              // Re-enable save button so user can retry after fixing deductions
+              $('#savePayrollBtn')
+                  .html('<i class="fas fa-save"></i> Save Payroll')
+                  .prop('disabled', false);
             }
             else {
                 Swal.fire({

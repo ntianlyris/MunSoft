@@ -16,10 +16,12 @@ class GAANetPayValidator {
     
     // ===== PROPERTIES =====
     protected $db;
+    protected $userId;
     
     // ===== CONSTRUCTOR =====
-    public function __construct($db = null) {
+    public function __construct($db = null, $userId = 0) {
         $this->db = $db ?? (new DB_conn());
+        $this->userId = $userId;
     }
     
     // ===================================================
@@ -263,6 +265,7 @@ class GAANetPayValidator {
         $net_pay = floatval($net_pay);
         $shortfall = floatval($shortfall);
         $notes = $this->db->escape_string($notes);
+        $validated_by = intval($this->userId);
         
         $context_query = "SELECT gross, total_deductions FROM payroll_entries WHERE payroll_entry_id = '$payroll_entry_id' LIMIT 1";
         $context_result = $this->db->query($context_query);
@@ -273,10 +276,10 @@ class GAANetPayValidator {
         
         $query = "INSERT INTO gaa_validation_audit 
                     (payroll_entry_id, employee_id, validation_stage, net_pay, shortfall_amount, 
-                     gross_amount, total_deductions_amount, validation_result, notes, validated_date)
+                     gross_amount, total_deductions_amount, validation_result, notes, validated_date, validated_by)
                   VALUES 
                     ('$payroll_entry_id', '$employee_id', '$validation_stage', '$net_pay', '$shortfall',
-                     '$gross', '$total_deductions', '$validation_result', '$notes', NOW())";
+                     '$gross', '$total_deductions', '$validation_result', '$notes', NOW(), '$validated_by')";
         
         $result = $this->db->query($query);
         return $result ? true : false;
