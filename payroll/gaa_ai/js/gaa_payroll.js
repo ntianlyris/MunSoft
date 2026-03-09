@@ -324,8 +324,8 @@ const GAAPayroll = (() => {
             const thead = table.querySelector('thead tr');
             if (thead && !thead.querySelector('.gaa-th')) {
                 const th = document.createElement('th');
-                th.className = 'gaa-th';
-                th.style.cssText = 'white-space:nowrap; font-size:.75rem; color:#6B7280; padding:8px 10px;';
+                th.className = 'gaa-th text-center';
+                th.style.cssText = 'white-space:nowrap; font-size:.75rem; color:#fff; padding:8px 10px; vertical-align:middle;';
                 th.textContent = _cfg.colHeaderLabel;
                 thead.appendChild(th);
             }
