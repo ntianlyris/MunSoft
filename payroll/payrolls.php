@@ -102,6 +102,11 @@
                       <!-- Dynamic payroll data -->
                     </tbody>
                   </table>
+                  
+                  <!-- GAA AI Module Integration (Moved to proper layout container) -->
+                  <div class="mt-4">
+                      <?php include_once 'gaa_ai/gaa_status_widget.php'; ?>
+                  </div>
                 </div>
 
                 <!-- Payroll Masterlist Pane -->
@@ -180,15 +185,14 @@
 <!-- GAA Net Pay Validator Module -->
 <script src="gaa_validator.js"></script>
 
-<!-- GAA AI Module Integration -->
-<?php include_once 'gaa_ai/gaa_status_widget.php'; ?>
+<!-- GAA AI Module Integration scripts -->
 <script>
     $(document).ready(function() {
         // Initialize GAA AI Module
         if (typeof GAAPayroll !== 'undefined') {
             GAAPayroll.init({
                 tableSelector:        '#payrollTable',
-                rowSelector:          'tbody tr',
+                rowSelector:          '#payrollTable tbody tr[data-employee-id]',
                 employeeIdAttr:       'data-employee-id',
                 nameColIndex:         2, // Employee Name
                 grossColIndex:        4, // Earnings

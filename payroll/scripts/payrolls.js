@@ -70,7 +70,7 @@ function computePayroll() {
         if (response.length > 0) {
           response.forEach((emp, index) => {
               rows += `
-                  <tr>
+                  <tr data-employee-id="${emp.employee_id}">
                   <td>${index + 1}</td>
                   <td>${emp.id_num}</td>
                   <td>${emp.name}</td>
