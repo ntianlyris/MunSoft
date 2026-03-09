@@ -463,18 +463,20 @@ const GAAPayroll = (() => {
         const btn = document.querySelector(_cfg.saveButtonSelector);
         if (!btn) return;
 
-        btn.addEventListener('click', async (e) => {
+        const saveHandler = async (e) => {
             e.preventDefault();
             e.stopImmediatePropagation();
 
             await runPreSaveValidation(() => {
                 // Validation passed — re-trigger the original save
                 // Remove guard temporarily, click, re-add guard
-                btn.removeEventListener('click', arguments.callee);
+                btn.removeEventListener('click', saveHandler, true);
                 btn.click();
                 _bindSaveGuard();
             });
-        }, true); // useCapture ensures this fires first
+        };
+
+        btn.addEventListener('click', saveHandler, true); // useCapture ensures this fires first
     };
 
     /**
