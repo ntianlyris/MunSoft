@@ -436,6 +436,19 @@ function ViewSideBarLink($link_name){
                                 </li>';
                 }
             break;
+            
+        case 'database_backup':
+            if($user_role == "Administrator"){
+                    $link_text = '<li class="nav-item">
+                                    <a href="../admin/database_backup.php" class="nav-link" id="database_backup">
+                                        <i class="nav-icon fas fa-database"></i>
+                                        <p>
+                                            Database Backup
+                                        </p>
+                                    </a>
+                                </li>';
+                }
+            break;
     }
     return $link_text;
 }

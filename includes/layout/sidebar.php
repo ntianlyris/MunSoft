@@ -96,6 +96,7 @@
               <?php echo ViewSideBarLink('config_leave_types'); ?>
               <?php echo ViewSideBarLink('signatories'); ?>
               <?php echo ViewSideBarLink('change_password'); ?>
+              <?php echo ViewSideBarLink('database_backup'); ?>
             </ul>
           </li>
         </ul>
