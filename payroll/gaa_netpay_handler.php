@@ -89,8 +89,10 @@ function getCurrentPeriodContext($Payroll)
 // Helper to compute a single employee's projected net pay replicating Payroll.php logic
 function computeEmployeeProjectedNetPay($Payroll, $employee_id, $period_ctx)
 {
-    $start_date = $period_ctx['start_date'];
-    $end_date = $period_ctx['end_date'];
+    // For Monthly Projection, we ALWAYS fetch data for the entire month
+    // regardless of whether the current period is 1st or 2nd half.
+    $start_date = date('Y-m-01', strtotime($period_ctx['start_date']));
+    $end_date = date('Y-m-t', strtotime($period_ctx['end_date']));
     $frequency = $period_ctx['frequency'];
     $is_second_half = $period_ctx['is_second_half'];
 
@@ -147,11 +149,13 @@ function computeEmployeeProjectedNetPay($Payroll, $employee_id, $period_ctx)
     // Call the Single Source of Truth from Payroll Engine
     // This dynamically handles semi-monthly vs monthly computations.
     $net = $Payroll->CalculateNetPay($gross, $total_deductions, $frequency);
+    $monthly_net = $Payroll->CalculateNetPay($gross, $total_deductions, 'monthly');
 
     return [
         'gross' => $gross,
         'total_deductions' => $total_deductions,
         'net_pay' => $net,
+        'monthly_net' => $monthly_net,
         'breakdown' => $breakdown
     ];
 }
@@ -254,7 +258,7 @@ if ($action === 'fetch_department_status') {
 
             // 1. Compute current projected net pay (Always full monthly)
             $computed = computeEmployeeProjectedNetPay($Payroll, $employee_id, $period_ctx);
-            $current_status_data = $GAAModule->classifyNetPayStatus($computed['net_pay']);
+            $current_status_data = $GAAModule->classifyNetPayStatus($computed['monthly_net']);
             $current_status = $current_status_data['status'];
 
             // Increment summary stats
@@ -290,6 +294,7 @@ if ($action === 'fetch_department_status') {
                 'gross' => $computed['gross'],
                 'total_deductions' => $computed['total_deductions'],
                 'net_pay' => $computed['net_pay'],
+                'monthly_net' => $computed['monthly_net'],
                 'current_status' => $current_status,
                 'last_status' => $last_status,
                 'last_net_pay' => $last_net_pay_display,
@@ -329,7 +334,7 @@ if ($action === 'fetch_employee_status') {
     $period_ctx = getCurrentPeriodContext($Payroll);
     $computed = computeEmployeeProjectedNetPay($Payroll, $employee_id, $period_ctx);
 
-    $current_status_data = $GAAModule->classifyNetPayStatus($computed['net_pay']);
+    $current_status_data = $GAAModule->classifyNetPayStatus($computed['monthly_net']);
     $current_status = $current_status_data['status'];
 
     $last_record = getLastSavedPayrollEntry($db, $employee_id);
@@ -358,6 +363,7 @@ if ($action === 'fetch_employee_status') {
             'gross' => $computed['gross'],
             'total_deductions' => $computed['total_deductions'],
             'net_pay' => $computed['net_pay'],
+            'monthly_net' => $computed['monthly_net'],
             'current_status' => $current_status,
             'last_status' => $last_status,
             'last_net_pay' => $last_net_pay_display,

@@ -359,6 +359,19 @@ function ViewSideBarLink($link_name){
                 }
             break;
 
+        case 'report_slp':
+            if($user_role == "Payroll Master" || $user_role == "Administrator"){
+                    $link_text = '<li class="nav-item">
+                                    <a href="report_slp.php" class="nav-link" id="report_slp">
+                                    <i class="nav-icon fas fa-file-alt"></i>
+                                    <p>
+                                        Summary List of Payroll
+                                    </p>
+                                    </a>
+                                </li>';
+                }
+            break;
+
         case 'payroll_settings':
             if($user_role == "Payroll Master"){
                     $link_text = '<li class="nav-item">

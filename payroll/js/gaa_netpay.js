@@ -92,7 +92,7 @@ const GAAStatus = (() => {
                 console.error('GAA fetch error:', err);
                 const msg = err.responseJSON ? err.responseJSON.message : 'Server error. Please try again.';
                 toastr.error(msg, 'Error');
-                
+
                 // Reset UI on error
                 $('#gaa-table-loading').hide();
                 $('#gaa-table-empty').show();
@@ -131,11 +131,11 @@ const GAAStatus = (() => {
                 <td class="text-right align-middle font-weight-bold">${money(emp.net_pay)}</td>
                 <td class="text-center align-middle">
                   ${emp.last_status ? badge(emp.last_status) : '<small class="text-muted">No record</small>'}
-                  ${emp.last_monthly_net !== null ? `<br><small class="text-muted" title="Actual Net: ${money(emp.last_monthly_net)} | Monthly Projection (GAA): ${money(emp.last_monthly_net)}">${money(emp.last_monthly_net)}</small>` : ''}
+                  ${emp.last_monthly_net !== null ? `<br><small class="text-muted" title="Last Period Full Monthly Net: ${money(emp.last_monthly_net)}">Monthly: ${money(emp.last_monthly_net)}</small>` : ''}
                 </td>
                 <td class="text-center align-middle">
                     ${badge(emp.current_status)}
-                    <br><small class="text-muted" style="font-size: 0.7rem;">Monthly Projection</small>
+                    <br><small class="text-muted" style="font-size: 0.7rem;">Monthly: ${money(emp.monthly_net)}</small>
                 </td>
                 <td class="text-center align-middle">${trendIcon(emp.trend)}</td>
             </tr>`;
@@ -241,9 +241,10 @@ const GAAStatus = (() => {
             `<span class="gaa-badge ${meta.cls} gaa-badge-lg">${meta.label}</span>`
         );
         $('#emp-net-amount').text(money(data.net_pay));
-        $('#emp-period-context').text(
+        $('#emp-period-context').html(
             `Projected for ${data.period_context.period_label} (${data.period_context.frequency}` +
-            (data.period_context.is_second_half ? ' — 2nd Half' : ' — 1st Half') + ')'
+            (data.period_context.is_second_half ? ' — 2nd Half' : ' — 1st Half') + ')<br>' +
+            `<span class="text-primary font-weight-bold">Full Monthly Net: ${money(data.monthly_net)}</span>`
         );
 
         // Status message

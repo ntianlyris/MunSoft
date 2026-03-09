@@ -75,6 +75,7 @@
               <ul class="nav nav-treeview">
                 <?php echo ViewSideBarLink('journal_entry'); ?>
                 <?php echo ViewSideBarLink('payslip'); ?>
+                <?php echo ViewSideBarLink('report_slp'); ?>
               </ul>
               </li>
             <?php } ?>
