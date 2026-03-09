@@ -134,7 +134,7 @@ function computeEmployeeProjectedNetPay($Payroll, $employee_id, $period_ctx)
     if (!empty($govshares)) {
         foreach ($govshares as $gs) {
             $amount = floatval($gs['govshare_amount']);
-            $total_deductions += $amount;
+            // FIX: DO NOT add govshares to $total_deductions! As per Payroll.php, employer shares don't deduct from employee gross.
 
             $breakdown[] = [
                 'type' => 'deduction',
@@ -144,10 +144,9 @@ function computeEmployeeProjectedNetPay($Payroll, $employee_id, $period_ctx)
         }
     }
 
-    // As per GAA Validator requirement: 
-    // Always project and display the FULL monthly net pay (Gross - Total Deductions),
-    // regardless of whether the active period is semi-monthly or which half it is.
-    $net = $gross - $total_deductions;
+    // Call the Single Source of Truth from Payroll Engine
+    // This dynamically handles semi-monthly vs monthly computations.
+    $net = $Payroll->CalculateNetPay($gross, $total_deductions, $frequency);
 
     return [
         'gross' => $gross,
@@ -171,8 +170,12 @@ function getLastSavedPayrollEntry($db, $employee_id)
         $row = $result->fetch_assoc();
 
         // Always calculate full monthly net for GAA comparison
-        $monthly_net = floatval($row['gross']) - floatval($row['total_deductions']);
+        // We do this by calling CalculateNetPay and forcing the 'monthly' flag manually
+        $dummyPayroll = new Payroll();
+        $monthly_net = $dummyPayroll->CalculateNetPay(floatval($row['gross']), floatval($row['total_deductions']), 'monthly');
+        
         if ($row['frequency'] === 'semi-monthly') {
+            // However, verify that it doesn't conflict with net_pay*2 for old records
             $monthly_net = $row['net_pay'] * 2;
         }
 

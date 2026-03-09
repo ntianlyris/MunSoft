@@ -562,6 +562,19 @@ class Payroll
     // Payroll Computation Functions
     // ==========================================================
 
+    /**
+     * Single Source of Truth for Net Pay Calculation
+     * Calculates the net pay based on gross, deductions, and frequency.
+     * Can be referenced by any module (e.g. GAA Intelligence) to maintain consistency.
+     */
+    public function CalculateNetPay($gross, $total_deductions, $frequency = 'monthly') {
+        if ($frequency == 'semi-monthly') {
+            return round(($gross - $total_deductions) / 2, 2);
+        } else {
+            return round($gross - $total_deductions, 2);
+        }
+    }
+
     public function ComputePayrollOfEmployees($employees_arr, $start_date, $end_date)
     {
         $employeeData = [];
@@ -649,14 +662,8 @@ class Payroll
                 }
             }
 
-            // Compute net pay
-            if ($payroll_frequency == 'semi-monthly') {
-                //$net = ($gross - $total_deductions) / 2;              // this will not round off the net pay to 2 decimal places which may cause issues in payroll reports and payslip display, so we will round it off to 2 decimal places
-                $net = round(($gross - $total_deductions) / 2, 2); // for semi-monthly, divide the net pay by 2 and round to 2 decimal places
-            }
-            else {
-                $net = $gross - $total_deductions;
-            }
+            // Compute net pay using the single source of truth
+            $net = $this->CalculateNetPay($gross, $total_deductions, $payroll_frequency);
 
             $employeeData[] = [
                 'employee_id' => $employee_id,
