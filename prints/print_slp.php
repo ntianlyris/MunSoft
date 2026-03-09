@@ -70,8 +70,11 @@ $pdf->SetFont('helvetica', '', 9);
 $pdf->AddPage();
 
 // Header
-$pdf->SetFont('helvetica', 'B', 12);
+$pdf->Image('../includes/images/polanco_logo.jpg', 30, 15, 20, 20);
+$pdf->SetFont('helvetica', '', 11);
 $pdf->Cell(0, 7, 'Republic of the Philippines', 0, 1, 'C');
+$pdf->Cell(0, 7, 'Province of Zamboanga del Norte', 0, 1, 'C');
+$pdf->SetFont('helvetica', 'B', 12);
 $pdf->Cell(0, 7, 'Municipality of Polanco', 0, 1, 'C');
 $pdf->Ln(5);
 $pdf->SetFont('helvetica', 'B', 14);
@@ -98,36 +101,36 @@ foreach ($data_by_dept as $dept => $employees) {
     $html .= '<tr style="background-color:#f9f9f9;"><td colspan="6"><b>' . $dept . '</b></td></tr>';
     $count = 1;
     $dept_total = ['gross' => 0, 'deductions' => 0, 'net' => 0];
-    
+
     foreach ($employees as $emp) {
         $html .= '<tr>
-                    <td align="center">' . $count++ . '</td>
-                    <td>' . htmlspecialchars($emp['full_name']) . '</td>
-                    <td>' . htmlspecialchars($emp['position_title']) . '</td>
-                    <td align="right">' . number_format($emp['gross'], 2) . '</td>
-                    <td align="right">' . number_format($emp['total_deductions'], 2) . '</td>
-                    <td align="right">' . number_format($emp['net_pay'], 2) . '</td>
+                    <td width="5%" align="center">' . $count++ . '</td>
+                    <td width="25%">' . htmlspecialchars($emp['full_name']) . '</td>
+                    <td width="30%">' . htmlspecialchars($emp['position_title']) . '</td>
+                    <td width="13%" align="right">' . number_format($emp['gross'], 2) . '</td>
+                    <td width="13%" align="right">' . number_format($emp['total_deductions'], 2) . '</td>
+                    <td width="14%" align="right">' . number_format($emp['net_pay'], 2) . '</td>
                   </tr>';
         $dept_total['gross'] += $emp['gross'];
         $dept_total['deductions'] += $emp['total_deductions'];
         $dept_total['net'] += $emp['net_pay'];
     }
-    
+
     // Dept Total (optional but good for COA)
-    $html .= '<tr style="font-style:italic;">
-                <td colspan="3" align="right">Department Total:</td>
-                <td align="right">' . number_format($dept_total['gross'], 2) . '</td>
-                <td align="right">' . number_format($dept_total['deductions'], 2) . '</td>
-                <td align="right">' . number_format($dept_total['net'], 2) . '</td>
+    $html .= '<tr style="font-style:italic; background-color:#fcfcfc;">
+                <td width="60%" colspan="3" align="right">Department Total:</td>
+                <td width="13%" align="right">' . number_format($dept_total['gross'], 2) . '</td>
+                <td width="13%" align="right">' . number_format($dept_total['deductions'], 2) . '</td>
+                <td width="14%" align="right">' . number_format($dept_total['net'], 2) . '</td>
               </tr>';
 }
 
 // Grand Total
 $html .= '<tr style="background-color:#e9e9e9; font-weight:bold;">
-            <td colspan="3" align="right">GRAND TOTAL:</td>
-            <td align="right">' . number_format($grand_total['gross'], 2) . '</td>
-            <td align="right">' . number_format($grand_total['deductions'], 2) . '</td>
-            <td align="right">' . number_format($grand_total['net'], 2) . '</td>
+            <td width="60%" colspan="3" align="right">GRAND TOTAL:</td>
+            <td width="13%" align="right">' . number_format($grand_total['gross'], 2) . '</td>
+            <td width="13%" align="right">' . number_format($grand_total['deductions'], 2) . '</td>
+            <td width="14%" align="right">' . number_format($grand_total['net'], 2) . '</td>
           </tr>';
 
 $html .= '</tbody></table>';
@@ -141,7 +144,7 @@ $signatories = $Signatory->FetchActiveSignatoriesByReportType('ACCTG');
 if (!empty($signatories)) {
     $sig_html = '<table border="0" cellpadding="4" width="100%"><tr>';
     $col_width = floor(100 / count($signatories)) . '%';
-    
+
     foreach ($signatories as $sig) {
         $sig_html .= '<td width="' . $col_width . '">
                         <br>' . $sig['sign_particulars'] . '<br><br><br>
