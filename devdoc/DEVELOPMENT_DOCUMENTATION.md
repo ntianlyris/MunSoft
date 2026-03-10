@@ -37,22 +37,28 @@
 - Option to include/exclude specific employees from payroll (added Oct 2025).
 - Journal entries auto-generated and separated for Regular and Casual payrolls.
 
-### 2.5 Remittance Processing
+### 2.5 GAA Net Pay Intelligence Module
+- An AI-powered, self-contained module enforcing the ₱5,000 General Appropriations Act (GAA) net pay threshold.
+- Categorizes net pay into 6 status tiers: CRITICAL (< ₱5,000), DANGER, WARNING, CAUTION, STABLE, and SAFE (> ₱10,000).
+- Provides real-time validation during data entry, AI analysis for individual profiles, and batch evaluation of payroll periods.
+- Includes a PHP API (`api/gaa_api.php`) and a comprehensive JavaScript UI integration with real-time badges, prediction charts, and headroom bars.
+
+### 2.6 Remittance Processing
 - Remittances generated from payroll data, grouped by type (Government: GSIS, PhilHealth, Pag-IBIG, BIR/Tax; Payroll Deductions: Loans, Other Payables).
 - Per-employee breakdowns available for both Loans and Other Payables (e.g. PhilAm Life, PMGEA dues).
 - PDF printing supported for remittance details.
 - **Known schema issue (see Section 5):** The `remittance_details` table only stores aggregated amounts per employee per type; granular deduction-level storage requires a database schema enhancement with additional columns (`config_deduction_id`, `govshare_id`, `employee_share`, `employer_share`).
 
-### 2.6 Payslip Generation & Printing
+### 2.7 Payslip Generation & Printing
 - Payslips generated per employee per pay period with full earnings/deductions breakdowns.
 - PDF print functionality implemented and tested.
 - Summary List of Payroll (SLP) report also printable with column layout adjustments.
 
-### 2.7 Leave Management
+### 2.8 Leave Management
 - Leave application submission, approval workflow, and balance tracking.
 - Leave types and credits managed via configuration tables.
 
-### 2.8 Employee Mobile Dashboard (PWA) — v1.0 (Feb 2026)
+### 2.9 Employee Mobile Dashboard (PWA) — v1.0 (Feb 2026)
 - Complete mobile-first redesign of the employee portal with four dashboard cards: **Profile**, **Payrolls**, **Payslips**, **Leave**.
 - Quick actions grid, recent activity sections, and modal dialogs for detailed views.
 - **PWA Features:** Service Worker for offline caching, `manifest.json` for app installation, offline fallback page with auto-reconnect detection.

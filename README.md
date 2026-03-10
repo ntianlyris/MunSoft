@@ -30,31 +30,34 @@ Full payroll computation engine supporting **monthly** and **semi-monthly** pay 
 - Journal entry auto-generation (separate for Regular and Casual)
 - **Workflow status system:** DRAFT → REVIEW → APPROVED → PAID with audit trail logging
 
-### 4. Payroll Edit Blocking (Two-Layer System)
+### 4. GAA Net Pay Intelligence
+An AI-powered module that enforces the ₱5,000 General Appropriations Act (GAA) net pay threshold. It provides real-time UI validation, six risk status tiers (CRITICAL to SAFE), and batch analysis to prevent non-compliant payroll deductions.
+
+### 5. Payroll Edit Blocking (Two-Layer System)
 Protects payroll data integrity through dual protection:
 - **Period-based blocking** prevents config edits during the 1st half of semi-monthly cycles to ensure calculation consistency.
 - **Status-based blocking** prevents edits once payroll advances beyond DRAFT status.
 
-### 5. Remittance Management
+### 6. Remittance Management
 Generates remittance records grouped by type — Government (GSIS, PhilHealth, Pag-IBIG, BIR/Tax) and Payroll Deductions (Loans, Other Payables). Per-employee breakdowns and PDF printing supported.
 
-### 6. Payslip Generation
+### 7. Payslip Generation
 Per-employee payslips with full earnings and deductions breakdowns. PDF generation and download via TCPDF. Summary List of Payroll (SLP) report also available.
 
-### 7. Leave Management
+### 8. Leave Management
 Leave application submission, approval workflow, balance tracking, and credit management with support for multiple leave types.
 
-### 8. Employee Self-Service Portal (Mobile PWA)
+### 9. Employee Self-Service Portal (Mobile PWA)
 Mobile-first responsive dashboard with four main cards — **Profile**, **Payrolls**, **Payslips**, and **Leave**. Includes:
 - Offline support via Service Workers
 - Installable as a native-like app on mobile devices
 - Quick actions grid and recent activity sections
 - Dark mode, accessibility enhancements, and responsive design
 
-### 9. Security
+### 10. Security
 Session-based authentication, CSRF protection, XSS prevention, SQL injection protection, input sanitization, role-based access control, and audit logging with IP tracking.
 
-### 10. Reporting & Printing
+### 11. Reporting & Printing
 PDF generation for payroll records, payslips, remittance details, service records, and journal entries via TCPDF.
 
 ---
