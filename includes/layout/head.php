@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>IntelliGov Nexus</title>
+  <title>IntelliGov</title>
 
   <link rel="icon" href="../includes/images/polanco_logo.png" type="image/png" />
 	<link rel="shortcut icon" href="../includes/images/polanco_logo.png" type="image/png" />

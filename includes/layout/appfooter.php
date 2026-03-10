@@ -8,12 +8,12 @@
  *
  * If $page_title is not set, falls back to a default.
  */
-$footer_page_label = $page_title ?? 'IntelliGov Nexus';
+$footer_page_label = $page_title ?? 'IntelliGov';
 ?>
 <!-- Main Footer -->
 <footer class="main-footer">
     <div class="float-right d-none d-sm-block">
-        <b>IntelliGov</b> Nexus
+        <b>Intelli</b>Gov
     </div>
     <?php echo htmlspecialchars($footer_page_label); ?>
 </footer>
