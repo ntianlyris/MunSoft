@@ -1,9 +1,9 @@
 <?php
-    include_once '../includes/layout/head.php';
-    include_once '../includes/layout/navbar.php';
-    include_once '../includes/layout/sidebar.php';
-    include_once '../includes/view/view.php';
-    include_once '../includes/view/showModals.php';
+include_once '../includes/layout/head.php';
+include_once '../includes/layout/navbar.php';
+include_once '../includes/layout/sidebar.php';
+include_once '../includes/view/view.php';
+include_once '../includes/view/showModals.php';
 ?>
 
 <div id="Loader" style="display: none;">
@@ -77,7 +77,7 @@
                     <h3 class="card-title">Consolidated Abstract Results</h3>
                     <div class="card-tools">
                         <button type="button" id="printAbstractBtn" class="btn btn-warning btn-sm" disabled>
-                            <i class="fas fa-print"></i> Print PDF (Legal Landscape)
+                            <i class="fas fa-print"></i> Print Abstract of Payrolls
                         </button>
                     </div>
                 </div>
@@ -96,7 +96,8 @@
 </div>
 
 
-<?php $page_title = 'Abstract of Payroll'; include_once '../includes/layout/appfooter.php'; ?>
+<?php $page_title = 'Abstract of Payroll';
+include_once '../includes/layout/appfooter.php'; ?>
 <!-- JS Libraries -->
 <script src="../plugins/jquery/jquery.min.js"></script>
 <script src="../plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
@@ -106,4 +107,5 @@
 <script src="scripts/report_abstract.js"></script>
 
 </body>
+
 </html>

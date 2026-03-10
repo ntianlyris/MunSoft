@@ -1,4 +1,7 @@
 <?php
+ob_start();
+error_reporting(E_ALL & ~E_DEPRECATED & ~E_NOTICE);
+ini_set('display_errors', '0');
 // ==========================================================
 // INITIALIZATION & DATA FETCHING (Logic remains same)
 // ==========================================================
@@ -212,7 +215,7 @@ class MYPDF extends TCPDF {
     public function Header() {
         $image_file = '../includes/images/polanco_logo.jpg';
         if (file_exists($image_file)) {
-            $this->Image($image_file, 135, 5, 18, '', 'JPEG', '', 'T', false, 300); 
+            $this->Image($image_file, 135, 5, 18, 0.0, 'JPEG', '', 'T', false, 300); 
         }
         $this->SetY(7);
         $this->SetFont('helvetica', '', 9);
@@ -224,7 +227,7 @@ class MYPDF extends TCPDF {
                     <span>Period: '.$this->customHeaderData['pay_period_start'].' to '.$this->customHeaderData['pay_period_end'].'</span><br>
                     <span>Dept: '.$this->customHeaderData['department_name'].'</span>
                 </div>';
-        $this->writeHTMLCell(0, 0, '', '', $html, 0, 1, 0, true, 'C', true);
+        $this->writeHTMLCell(0, 0, 0.0, 0.0, $html, 0, 1, 0, true, 'C', true);
     }
 
     public function Footer() {

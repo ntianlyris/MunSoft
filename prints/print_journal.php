@@ -1,13 +1,15 @@
 <?php
 ob_start();
-require_once('..//includes/tcpdf/tcpdf.php');
-require_once('..//includes/view/functions.php');
-require_once('..//includes/class/Payroll.php');
-require_once('..//includes/class/Department.php');
-require_once('..//includes/class/Employee.php');
-require_once('..//includes/class/Employment.php');
-require_once('..//includes/class/JournalEntry.php');
-require_once('..//includes/class/Signatory.php');
+error_reporting(E_ALL & ~E_DEPRECATED & ~E_NOTICE);
+ini_set('display_errors', '0');
+require_once('../includes/tcpdf/tcpdf.php');
+require_once('../includes/view/functions.php');
+require_once('../includes/class/Payroll.php');
+require_once('../includes/class/Department.php');
+require_once('../includes/class/Employee.php');
+require_once('../includes/class/Employment.php');
+require_once('../includes/class/JournalEntry.php');
+require_once('../includes/class/Signatory.php');
 
 $Payroll = new Payroll();
 $Department = new Department();

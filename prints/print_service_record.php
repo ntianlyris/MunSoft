@@ -1,15 +1,17 @@
 <?php
 ob_start();
-require_once('..//includes/tcpdf/tcpdf.php');
-require_once('..//includes/class/Department.php');
-require_once('..//includes/view/functions.php');
+error_reporting(E_ALL & ~E_DEPRECATED & ~E_NOTICE);
+ini_set('display_errors', '0');
+require_once('../includes/tcpdf/tcpdf.php');
+require_once('../includes/class/Department.php');
+require_once('../includes/view/functions.php');
 
 $MyDepartment = new Department();
 
 $employee_id = isset($_GET['employee_id']) ? intval($_GET['employee_id']) : 0;
 
 // Get employee details using Employee class
-require_once('..//includes/class/Employee.php');
+require_once('../includes/class/Employee.php');
 $MyEmployee = new Employee();
 $employee = $MyEmployee->GetEmployeeDetails($employee_id);
 

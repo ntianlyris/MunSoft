@@ -1,5 +1,8 @@
 <?php
 ob_start();
+error_reporting(E_ALL & ~E_DEPRECATED & ~E_NOTICE);
+ini_set('display_errors', '0');
+
 require_once('../includes/tcpdf/tcpdf.php');
 require_once('../includes/view/functions.php');
 require_once('../includes/class/DB_conn.php');

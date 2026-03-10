@@ -1,10 +1,21 @@
 <?php
 ob_start();
+error_reporting(E_ALL & ~E_DEPRECATED & ~E_NOTICE);
+ini_set('display_errors', '0');
+
 require_once('../includes/tcpdf/tcpdf.php');
 require_once('../includes/view/functions.php');
 require_once('../includes/class/DB_conn.php');
 require_once('../includes/class/Payroll.php');
 require_once('../includes/class/Signatory.php');
+
+class MYPDF extends TCPDF {
+    public function Footer() {
+        $this->SetY(-15);
+        $this->SetFont('helvetica', 'I', 8);
+        $this->Cell(0, 10, 'Page '.$this->getAliasNumPage().'/'.$this->getAliasNbPages(), 0, false, 'C', 0, '', 0, false, 'T', 'M');
+    }
+}
 
 $db = new DB_conn();
 $Payroll = new Payroll();
@@ -71,14 +82,14 @@ while ($row = $result->fetch_assoc()) {
 }
 
 // Setup PDF
-$pdf = new TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
+$pdf = new MYPDF('P', 'mm', 'A4', true, 'UTF-8', false);
 $pdf->SetCreator('MunSoft Payroll System');
 $pdf->SetTitle('Summary List of Payroll');
 $pdf->setPrintHeader(false);
-$pdf->setPrintFooter(false);
-$pdf->SetMargins(15, 15, 15);
+$pdf->setPrintFooter(true);
+$pdf->SetMargins(10, 15, 10);
 $pdf->SetAutoPageBreak(true, 15);
-$pdf->SetFont('helvetica', '', 9);
+$pdf->SetFont('helvetica', '', 8);
 $pdf->AddPage();
 
 // Header
@@ -100,12 +111,12 @@ $pdf->Ln(5);
 $html = '<table border="1" cellpadding="4" cellspacing="0" width="100%">
             <thead>
                 <tr style="background-color:#f2f2f2; font-weight:bold;">
-                    <th width="5%" align="center">#</th>
-                    <th width="25%" align="center">Employee Name</th>
-                    <th width="30%" align="center">Position</th>
-                    <th width="13%" align="center">Gross</th>
-                    <th width="13%" align="center">Deductions</th>
-                    <th width="14%" align="center">Net Pay</th>
+                    <th width="6%" align="center">#</th>
+                    <th width="22%" align="center">Employee Name</th>
+                    <th width="24%" align="center">Position</th>
+                    <th width="16%" align="center">Gross</th>
+                    <th width="16%" align="center">Deductions</th>
+                    <th width="16%" align="center">Net Pay</th>
                 </tr>
             </thead>
             <tbody>';
@@ -118,12 +129,12 @@ if ($dept_id_filter !== 'all') {
         
         foreach ($employees as $emp) {
             $html .= '<tr>
-                        <td width="5%" align="center">' . $count++ . '</td>
-                        <td width="25%">' . htmlspecialchars($emp['full_name']) . '</td>
-                        <td width="30%">' . htmlspecialchars($emp['position_title']) . '</td>
-                        <td width="13%" align="right">' . number_format($emp['gross'], 2) . '</td>
-                        <td width="13%" align="right">' . number_format($emp['total_deductions'], 2) . '</td>
-                        <td width="14%" align="right">' . number_format($emp['net_pay'], 2) . '</td>
+                        <td width="6%" align="center">' . $count++ . '</td>
+                        <td width="22%">' . htmlspecialchars($emp['full_name']) . '</td>
+                        <td width="24%">' . htmlspecialchars(trim(explode('(', $emp['position_title'])[0])) . '</td>
+                        <td width="16%" align="right">' . number_format($emp['gross'], 2) . '</td>
+                        <td width="16%" align="right">' . number_format($emp['total_deductions'], 2) . '</td>
+                        <td width="16%" align="right">' . number_format($emp['net_pay'], 2) . '</td>
                       </tr>';
             $dept_total['gross'] += $emp['gross'];
             $dept_total['deductions'] += $emp['total_deductions'];
@@ -131,32 +142,32 @@ if ($dept_id_filter !== 'all') {
         }
         
         $html .= '<tr style="font-style:italic; background-color:#fcfcfc;">
-                    <td width="60%" colspan="3" align="right">Department Total:</td>
-                    <td width="13%" align="right">' . number_format($dept_total['gross'], 2) . '</td>
-                    <td width="13%" align="right">' . number_format($dept_total['deductions'], 2) . '</td>
-                    <td width="14%" align="right">' . number_format($dept_total['net'], 2) . '</td>
+                    <td width="52%" colspan="3" align="right">Department Total:</td>
+                    <td width="16%" align="right">' . number_format($dept_total['gross'], 2) . '</td>
+                    <td width="16%" align="right">' . number_format($dept_total['deductions'], 2) . '</td>
+                    <td width="16%" align="right">' . number_format($dept_total['net'], 2) . '</td>
                   </tr>';
     }
 } else {
     $count = 1;
     foreach ($data_list as $emp) {
         $html .= '<tr>
-                    <td width="5%" align="center">' . $count++ . '</td>
-                    <td width="25%">' . htmlspecialchars($emp['full_name']) . '</td>
-                    <td width="30%">' . htmlspecialchars($emp['position_title']) . '</td>
-                    <td width="13%" align="right">' . number_format($emp['gross'], 2) . '</td>
-                    <td width="13%" align="right">' . number_format($emp['total_deductions'], 2) . '</td>
-                    <td width="14%" align="right">' . number_format($emp['net_pay'], 2) . '</td>
+                    <td width="6%" align="center">' . $count++ . '</td>
+                    <td width="22%">' . htmlspecialchars($emp['full_name']) . '</td>
+                    <td width="24%">' . htmlspecialchars(trim(explode('(', $emp['position_title'])[0])) . '</td>
+                    <td width="16%" align="right">' . number_format($emp['gross'], 2) . '</td>
+                    <td width="16%" align="right">' . number_format($emp['total_deductions'], 2) . '</td>
+                    <td width="16%" align="right">' . number_format($emp['net_pay'], 2) . '</td>
                   </tr>';
     }
 }
 
 // Grand Total
 $html .= '<tr style="background-color:#e9e9e9; font-weight:bold;">
-            <td width="60%" colspan="3" align="right">GRAND TOTAL:</td>
-            <td width="13%" align="right">' . number_format($grand_total['gross'], 2) . '</td>
-            <td width="13%" align="right">' . number_format($grand_total['deductions'], 2) . '</td>
-            <td width="14%" align="right">' . number_format($grand_total['net'], 2) . '</td>
+            <td width="52%" colspan="3" align="right">GRAND TOTAL:</td>
+            <td width="16%" align="right">' . number_format($grand_total['gross'], 2) . '</td>
+            <td width="16%" align="right">' . number_format($grand_total['deductions'], 2) . '</td>
+            <td width="16%" align="right">' . number_format($grand_total['net'], 2) . '</td>
           </tr>';
 
 $html .= '</tbody></table>';

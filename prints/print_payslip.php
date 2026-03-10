@@ -1,9 +1,20 @@
 <?php
-require_once('..//includes/tcpdf/tcpdf.php');
-require_once('..//includes/view/functions.php');
-require_once '..//includes/class/Payslip.php';
-require_once '..//includes/class/Employee.php';
-require_once '..//includes/class/Employment.php';
+/**
+ * Suppress PHP 8.x deprecation notices emitted by TCPDF 6.x.
+ * Those notices are printed before any header is sent, which makes
+ * TCPDF unable to deliver the PDF ("headers already sent" error).
+ * Output buffering + display_errors=0 ensure no stray output reaches
+ * the browser before ob_end_clean() is called just before Output().
+ */
+ob_start();
+error_reporting(E_ALL & ~E_DEPRECATED & ~E_NOTICE);
+ini_set('display_errors', '0');
+
+require_once('../includes/tcpdf/tcpdf.php');
+require_once('../includes/view/functions.php');
+require_once '../includes/class/Payslip.php';
+require_once '../includes/class/Employee.php';
+require_once '../includes/class/Employment.php';
 
 // ── Parameters ────────────────────────────────────────────────────────────────
 $employee_id = $_POST['employee_id'] ?? $_GET['employee_id'] ?? '';
