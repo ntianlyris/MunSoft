@@ -42,6 +42,13 @@ if (count($period_parts) < 2) {
 // ── Generate payslip data ─────────────────────────────────────────────────────
 try {
     $PaySlip = new Payslip();
+    
+    // Check if the user is authorized to download/view the payslip yet
+    $is_downloadable = $PaySlip->IsPayslipDownloadable($employee_id, $payroll_period);
+    if (!$is_downloadable) {
+        die('Error: Payslip is locked and not yet available for download. Wait until it is approved/paid and the period ends.');
+    }
+    
     $payslip = $PaySlip->GeneratePayslip($employee_id, $year, $payroll_period);
 } catch (Exception $e) {
     die('Error generating payslip: ' . htmlspecialchars($e->getMessage()));

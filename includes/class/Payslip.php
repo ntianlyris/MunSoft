@@ -124,6 +124,96 @@ class Payslip extends Payroll {
         return $payslip;
     }
 
+    public function IsPayslipDownloadable($employee_id, $payroll_period) {
+        $period_parts = explode('_', $payroll_period);
+        if (count($period_parts) < 2) {
+            return false;
+        }
+        
+        $start_date = trim($period_parts[0]);
+        $end_date = trim($period_parts[1]);
+        
+        $active_frequency = $this->GetCurrentActiveFrequency();
+        $frequency = $active_frequency['freq_code'];
+        
+        $period_ids = $this->GetPeriodsByStartDateAndFrequency($start_date, $frequency);    // array of period ids
+        
+        $all_approved_or_paid = true;
+        $has_entries = false;
+        
+        foreach ($period_ids as $period_id) {
+            $payroll_entry = $this->GetPayrollEntryByEmployeeAndPeriod($employee_id, $period_id['payroll_period_id']);
+            if (!empty($payroll_entry)) {
+                $has_entries = true;
+                if ($payroll_entry['status'] !== 'APPROVED' && $payroll_entry['status'] !== 'PAID') {
+                    $all_approved_or_paid = false;
+                }
+            } else {
+                $all_approved_or_paid = false;
+            }
+        }
+        
+        if (!$has_entries || !$all_approved_or_paid) {
+            return false; // Not fully computed and approved
+        }
+        
+        // 1. Verify through the Global variables of the roles
+        $is_manager = false;
+        global $manage_system;
+        
+        if (isset($manage_system)) {
+            $is_manager = $manage_system;
+        } else {
+            // Re-evaluate using session if not defined globally
+            if (session_status() === PHP_SESSION_NONE) {
+                session_start();
+            }
+            global $user_id;
+            $uid = isset($user_id) && $user_id ? $user_id : (isset($_SESSION['uid']) ? $_SESSION['uid'] : null);
+            
+            if ($uid) {
+                if (!class_exists('PrivilegedUser')) {
+                    if (file_exists(__DIR__ . '/PrivilegedUser.php')) {
+                        require_once __DIR__ . '/PrivilegedUser.php';
+                    }
+                }
+                
+                if (class_exists('PrivilegedUser')) {
+                    $privUser = new PrivilegedUser();
+                    $roles = $privUser->initRoles($uid);
+                    $perms = [];
+                    foreach ($roles as $key => $value) {
+                        foreach ($value as $k => $v) {
+                            $perms[] = $v;
+                        }
+                    }
+                    $is_manager = in_array('Manage System', $perms, true);
+                }
+            }
+        }
+        
+        if ($is_manager) {
+            return true; // Manager bypasses the date lock requirement if APPROVED/PAID
+        }
+        
+        // 2. Normal Employees - strictly check if current date is strictly after month's end period
+        $current_date = new DateTime();
+        $current_date->setTime(0, 0, 0);
+        
+        $period_end = DateTime::createFromFormat('Y-m-d', $end_date);
+        if ($period_end === false) {
+            return false;
+        }
+        $period_end->setTime(0, 0, 0);
+        
+        // Only downloadable AFTER the payroll period has ended
+        if ($current_date > $period_end) {
+            return true;
+        }
+        
+        return false;
+    }
+
     public function SumEarningsBreakdown($earnings_breakdown) {
         // $earnings_breakdown = array of earning breakdown arrays for each payroll entry
         $combined = [];

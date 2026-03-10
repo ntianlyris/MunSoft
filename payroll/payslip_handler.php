@@ -31,6 +31,14 @@ if($action = isset($_POST['action'])?$_POST['action']:'') {
             $year = isset($_POST['payslipYear']) ? $_POST['payslipYear'] : '';
             $payroll_period = isset($_POST['payslipPeriod']) ? $_POST['payslipPeriod'] : '';
             
+            // Re-use logic to block restricted unapproved / time-locked payslips
+            $is_downloadable = $PaySlip->IsPayslipDownloadable($employee_id, $payroll_period);
+            if (!$is_downloadable) {
+                header('Content-Type: application/json');
+                echo json_encode(['message' => 'Payslip is locked and not yet available for downloading/printing. Ensure payroll is approved and the period has ended.']);
+                exit;
+            }
+            
             $payslip = $PaySlip->GeneratePayslip($employee_id, $year, $payroll_period);
             header('Content-Type: application/json');
             echo json_encode($payslip);

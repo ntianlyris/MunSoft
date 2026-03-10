@@ -93,6 +93,15 @@ A comprehensive dual-protection system prevents unauthorized modifications to pa
 - Fix: Removed `AND b.status NOT IN ('DRAFT')` condition so `locked_period = 1` alone determines editability.
 - Key design principle: `locked_period` (config editability) and `status` (workflow state) are separate concerns.
 
+### 3.3 Payslip Download/Print Blocking System (Mar 10, 2026)
+A dual-layer security restriction has been implemented to control access to employee payslips:
+- **Status-Based Blocking:** Payslips are strictly locked and unviewable unless the corresponding payroll period calculates to an `APPROVED` or `PAID` status.
+- **Date-Based Lock:** Regular employees are prevented from downloading their payslips until the current payroll period has officially concluded (e.g., March 1-15 period becomes available at midnight on March 16).
+- **Role-Based Privilege Bypass:** Administrative users carrying the `Manage System` global privilege bypass the Date-Based Lock to allow early access to printing approved payslips.
+- **Dual-Layer Enforcement:** 
+  - *Frontend:* Blocks UI elements in `employee/index.php` with disabled "Locked" buttons if eligibility fails.
+  - *Backend Gatekeeper:* The `Payslip->IsPayslipDownloadable()` method intercepts direct PDF API generation (`prints/print_payslip.php`) and internal previews (`payroll/payslip_handler.php`), outright neutralizing URL/Endpoint manipulation exploits.
+
 ---
 
 ## 4. Payroll Workflow Status System

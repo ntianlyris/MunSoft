@@ -81,7 +81,7 @@ if ($action === 'fetch_months_by_year') {
             'gross' => $gross,
             'deductions' => $deductions,
             'net_pay' => $net_pay,
-            'has_data' => ($gross > 0 && $net_pay > 0) // Security flag
+            'has_data' => ($gross > 0 && $net_pay > 0 && $payslip->IsPayslipDownloadable($employee_id, $payroll_period_str)) // Security flag
         ];
     }
     
