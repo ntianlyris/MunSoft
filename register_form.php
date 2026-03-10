@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>MunSoft | Register</title>
+  <title>IntelliGov Nexus | Register</title>
 
   <link rel="icon" href="includes/images/polanco_logo.png" type="image/png" />
 	<link rel="shortcut icon" href="includes/images/coin.png" type="image/png" />
@@ -54,7 +54,8 @@
 <div class="register-box">
   <div class="card card-outline card-primary">
     <div class="card-header text-center">
-      <a class="h1"><b>MUN</b>SOFT</a>
+      <a class="h1"><b>INTELLIGOV</b> NEXUS</a><br>
+      <span style="font-size: 1rem; color: #6c757d; font-style: italic;">Smart Governance. Seamless Operations.</span>
     </div>
     <div class="card-body register-card-body">
       <p class="login-box-msg">Register</p>

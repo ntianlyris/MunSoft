@@ -1,75 +1,86 @@
-# MunSoft — Municipal HRIS & Payroll Management System
+# IntelliGov Nexus
+### Intelligent Payroll & HRIS Management System for Local Government Units
 
-**MunSoft** is an integrated Human Resource Information System (HRIS) and Payroll Management platform designed for local government units. It streamlines employee records management, payroll processing, remittance handling, leave administration, and employee self-service — all accessible through a modern web-based interface with mobile PWA support.
+> **"Smart Governance. Seamless Operations."**
+
+**IntelliGov Nexus** is an integrated Human Resource Information System (HRIS) and Payroll Management platform purpose-built for local government units. It streamlines employee records management, payroll processing, remittance handling, leave administration, and employee self-service — all accessible through a modern web-based interface with mobile PWA support.
+
+Powered by an intelligent computation engine and AI-assisted compliance modules, IntelliGov Nexus delivers end-to-end workforce management with real-time decision support, audit-grade data integrity, and a seamless experience across all government roles.
 
 Built on **AdminLTE 3** (Bootstrap 4), the system provides role-based access across four main portals: **Admin**, **HRIS**, **Payroll**, and **Employee Self-Service**.
 
 ---
 
-## System Requirements
+## ⚙️ System Requirements
 
-- **Server:** PHP 7.4+, MySQL 5.7+ / MariaDB 10.2+, Apache or Nginx
-- **Client:** Chrome 51+, Firefox 44+, Safari 11.1+, Edge 79+, modern mobile browsers
-- **HTTPS** required for production (PWA/Service Worker requirement)
+| Component | Requirement |
+|---|---|
+| **Server** | PHP 7.4+, MySQL 5.7+ / MariaDB 10.2+, Apache or Nginx |
+| **Client** | Chrome 51+, Firefox 44+, Safari 11.1+, Edge 79+, modern mobile browsers |
+| **Security** | HTTPS required for production (PWA/Service Worker requirement) |
 
 ---
 
-## Modules & Features
+## 🧩 Modules & Features
 
-### 1. Employee Records Management
+### 1. 🗂️ Employee Records Management
 Centralized employee master data with personal info, employment history, and position tracking. Includes a photo upload feature with automatic square crop/resize and a photo viewer modal.
 
-### 2. HRIS Configuration
+### 2. 🏛️ HRIS Configuration
 Management of departments, positions, and organizational structure. Role-based access control restricts Employee users from edit/delete operations at both the frontend (CSS/JS hiding) and backend (HTTP 403) layers.
 
-### 3. Payroll Processing
+### 3. 💰 Payroll Processing
 Full payroll computation engine supporting **monthly** and **semi-monthly** pay frequencies, separated by employment type (Regular vs. Casual). Features include:
 - Automatic earnings, deductions, and government shares computation
 - Payroll snapshot saving for audit history
 - Configurable employee inclusion/exclusion per pay period
 - Journal entry auto-generation (separate for Regular and Casual)
-- **Workflow status system:** DRAFT → REVIEW → APPROVED → PAID with audit trail logging
+- **Intelligent Workflow Status System:** `DRAFT` → `REVIEW` → `APPROVED` → `PAID` with full audit trail logging
 
-### 4. GAA Net Pay Intelligence
-An AI-powered module that enforces the ₱5,000 General Appropriations Act (GAA) net pay threshold. It provides real-time UI validation, six risk status tiers (CRITICAL to SAFE), and batch analysis to prevent non-compliant payroll deductions.
+### 4. 🤖 GAA Net Pay Intelligence *(AI-Powered)*
+An AI-powered compliance module that enforces the ₱5,000 General Appropriations Act (GAA) net pay threshold. It provides:
+- Real-time UI validation and alerts
+- Six intelligent risk status tiers: `CRITICAL` → `HIGH` → `MODERATE` → `LOW` → `MINIMAL` → `SAFE`
+- Batch analysis to prevent non-compliant payroll deductions
+- Proactive flagging before payroll approval
 
-### 5. Payroll Edit Blocking (Two-Layer System)
-Protects payroll data integrity through dual protection:
-- **Period-based blocking** prevents config edits during the 1st half of semi-monthly cycles to ensure calculation consistency.
-- **Status-based blocking** prevents edits once payroll advances beyond DRAFT status.
+### 5. 🔒 Payroll Edit Blocking (Two-Layer Intelligence)
+Protects payroll data integrity through dual-layer smart protection:
+- **Period-based blocking** prevents configuration edits during the 1st half of semi-monthly cycles to ensure calculation consistency.
+- **Status-based blocking** prevents edits once payroll advances beyond `DRAFT` status.
 
-### 6. Remittance Management
+### 6. 🏦 Remittance Management
 Generates remittance records grouped by type — Government (GSIS, PhilHealth, Pag-IBIG, BIR/Tax) and Payroll Deductions (Loans, Other Payables). Per-employee breakdowns and PDF printing supported.
 
-### 7. Payslip Generation
+### 7. 🧾 Payslip Generation
 Per-employee payslips with full earnings and deductions breakdowns. PDF generation and download via TCPDF. Summary List of Payroll (SLP) report also available.
 
-### 8. Leave Management
+### 8. 📅 Leave Management
 Leave application submission, approval workflow, balance tracking, and credit management with support for multiple leave types.
 
-### 9. Employee Self-Service Portal (Mobile PWA)
-Mobile-first responsive dashboard with four main cards — **Profile**, **Payrolls**, **Payslips**, and **Leave**. Includes:
+### 9. 📱 Employee Self-Service Portal *(Mobile PWA)*
+Mobile-first responsive dashboard — **IntelliGov Nexus ESS** — with four main cards: **Profile**, **Payrolls**, **Payslips**, and **Leave**. Features include:
 - Offline support via Service Workers
 - Installable as a native-like app on mobile devices
 - Quick actions grid and recent activity sections
 - Dark mode, accessibility enhancements, and responsive design
 
-### 10. Security
+### 10. 🛡️ Security
 Session-based authentication, CSRF protection, XSS prevention, SQL injection protection, input sanitization, role-based access control, and audit logging with IP tracking.
 
-### 11. Reporting & Printing
+### 11. 📊 Reporting & Printing
 PDF generation for payroll records, payslips, remittance details, service records, and journal entries via TCPDF.
 
 ---
 
-## Project Structure
+## 🗃️ Project Structure
 
 ```
-/MunSoft
+/IntelliGovNexus
 ├── /admin/             # Admin portal
-├── /hris/              # HR management module
-├── /payroll/           # Payroll processing module
-├── /employee/          # Employee self-service (PWA dashboard)
+├── /hris/              # IntelliGov Nexus HRIS module
+├── /payroll/           # IntelliGov Nexus Payroll module
+├── /employee/          # IntelliGov Nexus ESS (PWA dashboard)
 ├── /includes/
 │   ├── /class/         # PHP classes (Employee, Payroll, Remittance, etc.)
 │   ├── /view/          # View helpers & data functions
@@ -88,17 +99,17 @@ PDF generation for payroll records, payslips, remittance details, service record
 
 ---
 
-## Getting Started
+## 🚀 Getting Started
 
-1. **Import the database** from `db/munsoft_polanco.sql` into MySQL/MariaDB.
-2. **Run migration files** in `db/` folder for additional schema updates (photos, workflow).
+1. **Import the database** from `db/intelligovnexus.sql` into MySQL/MariaDB.
+2. **Run migration files** in the `db/` folder for additional schema updates (photos, workflow).
 3. **Configure** database connection in `includes/class/DB_conn.php`.
 4. **Start** Apache and MySQL via XAMPP (or equivalent).
-5. **Access** the system at `http://localhost/MunSoft/`.
+5. **Access** the system at `http://localhost/IntelliGovNexus/`.
 
 ---
 
-## Development Documentation
+## 📖 Development Documentation
 
 All development notes, implementation plans, and technical details have been consolidated into:
 
@@ -108,23 +119,50 @@ This includes module history, bug fixes, deployment guides, security details, an
 
 ---
 
-## Conclusion
+## 🌐 System Portals
 
-MunSoft provides a comprehensive, production-ready solution for local government HRIS and payroll operations. The system covers the full payroll lifecycle — from employee configuration through computation, approval workflows, remittance processing, and payslip distribution — while maintaining data integrity through multi-layer blocking and audit trail mechanisms. The mobile PWA dashboard extends accessibility to employees on any device.
-
-## Future Recommendations
-
-- **Remittance granularity** — Enhance the `remittance_details` schema for per-deduction-level storage.
-- **Permission matrix** — Expand role-based access to per-operation granularity across different user roles.
-- **Email & push notifications** — Automated alerts for payroll releases, leave approvals, and status changes.
-- **Export capabilities** — CSV/Excel export for payroll, remittance, and service record data.
-- **Enhanced reporting** — Admin audit dashboard for workflow transitions and system activity.
-- **Multi-language support** — Internationalization for broader deployment.
-- **Biometric/2FA** — Stronger authentication for production environments.
+| Portal | Description | Access |
+|---|---|---|
+| **Admin** | System configuration and user management | `/admin` |
+| **IntelliGov Nexus HRIS** | HR records, departments, positions | `/hris` |
+| **IntelliGov Nexus Payroll** | Payroll computation and approval workflow | `/payroll` |
+| **IntelliGov Nexus ESS** | Employee self-service mobile PWA | `/employee` |
 
 ---
 
-## License
+## 🔮 Future Roadmap
 
-See [LICENSE](LICENSE) for details.  
+| Feature | Description |
+|---|---|
+| **Remittance Granularity** | Enhanced `remittance_details` schema for per-deduction-level storage |
+| **Permission Matrix** | Expand role-based access to per-operation granularity across all user roles |
+| **Smart Notifications** | Automated alerts for payroll releases, leave approvals, and status changes |
+| **Export Capabilities** | CSV/Excel export for payroll, remittance, and service record data |
+| **AI Audit Dashboard** | Enhanced admin reporting for workflow transitions and system activity |
+| **Multi-language Support** | Internationalization for broader government deployment |
+| **Biometric / 2FA** | Stronger authentication mechanisms for production environments |
+| **Predictive Analytics** | AI-driven workforce cost forecasting and payroll trend insights |
+
+---
+
+## 🏆 Conclusion
+
+**IntelliGov Nexus** provides a comprehensive, production-ready solution for local government HRIS and payroll operations. The system covers the full payroll lifecycle — from employee configuration through intelligent computation, approval workflows, remittance processing, and payslip distribution — while maintaining data integrity through multi-layer blocking, AI-assisted compliance enforcement, and a complete audit trail mechanism.
+
+The mobile PWA dashboard extends seamless accessibility to every employee on any device, embodying the core mission of IntelliGov Nexus:
+
+> **"Smart Governance. Seamless Operations."**
+
+---
+
+## 📄 License
+
+See [LICENSE](LICENSE) for details.
 Built with [AdminLTE 3](https://adminlte.io) — Bootstrap 4 Admin Dashboard Framework.
+
+---
+
+<div align="center">
+  <strong>IntelliGov Nexus</strong> — Intelligent Payroll & HRIS Management System for Local Government Units<br/>
+  <em>Smart Governance. Seamless Operations.</em>
+</div>

@@ -5,7 +5,7 @@
     <!-- Brand Logo -->
     <a href="./" class="brand-link">
       <img src="../includes/images/polanco_logo.png" alt="polanco logo" class="brand-image img-circle elevation-3" style="opacity: .8">
-      <span class="brand-text font-weight-light"><strong><b>MUN</b>SOFT</strong></span>
+      <span class="brand-text font-weight-light"><strong><b>INTELLIGOV</b> NEXUS</strong></span>
     </a>
 
     <!-- Sidebar -->

@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>MunSoft | Login</title>
+  <title>IntelliGov Nexus | Login</title>
 
   <link rel="icon" href="includes/images/polanco_logo.png" type="image/png" />
 	<link rel="shortcut icon" href="includes/images/polanco_logo.png" type="image/png" />
@@ -58,7 +58,8 @@
   <!-- /.login-logo -->
   <div class="card card-outline card-primary">
     <div class="card-header text-center">
-      <a class="h1"><b>MUN</b>SOFT</a>
+      <a class="h1"><b>INTELLIGOV</b> NEXUS</a><br>
+      <span style="font-size: 1rem; color: #6c757d; font-style: italic;">Smart Governance. Seamless Operations.</span>
     </div>
     <div class="card-body login-card-body">
       <p class="login-box-msg">Sign in to start your session</p>
