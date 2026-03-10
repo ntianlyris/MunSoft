@@ -620,9 +620,10 @@ const GAAPayroll = (() => {
     };
 
     const proceedSave = () => {
+        const cb = _savedOnPassCallback;
         closeSaveModal();
-        if (typeof _savedOnPassCallback === 'function') {
-            _savedOnPassCallback();
+        if (typeof cb === 'function') {
+            cb();
         }
     };
 
