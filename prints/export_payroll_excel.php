@@ -130,7 +130,7 @@ function buildEarningsArray($configured_earnings, $earnings) {
     foreach ([1, 2] as $id) {
         if (isset($map[$id]) && $map[$id]['amount'] > 0) { $basic_amount += $map[$id]['amount']; }
     }
-    if ($basic_amount > 0) { $result[] = ['label' => 'Basic', 'amount' => $basic_amount]; }
+    $result[] = ['label' => 'Basic', 'amount' => $basic_amount];
     $result[] = ['label' => 'PERA',   'amount' => $map[3]['amount'] ?? 0];
     $others   = 0;
     foreach ($configured_earnings as $conf) {

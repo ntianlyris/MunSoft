@@ -133,9 +133,7 @@ function buildEarningsArray($configured_earnings, $earnings) {
             $basic_amount += $earnings_map[$id]['amount'];
         }
     }
-    if ($basic_amount > 0) {
-        $result[] = ['label' => 'Basic', 'amount' => $basic_amount];
-    }
+    $result[] = ['label' => 'Basic', 'amount' => $basic_amount];
 
     // Handle PERA (ID 3) directly
     if (isset($earnings_map[3])) {

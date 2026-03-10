@@ -401,15 +401,34 @@ $( document ).ready(function(){
       var earning_code_id = $('#cmbEarningCodes').find('option:selected').val();
       var earning_code = $('#cmbEarningCodes').find('option:selected').text();
 
-      var input = '<div class="row" style="padding-bottom:15px;" id="dynamic_field">';
-          input += '<div class="col-3"><label>'+ earning_code +'</label></div>';
-          input += '<div class="col-9"><div class="input-group">';
-          input += '<input type="hidden" name="earning_code_ids[]" value="'+ earning_code_id +'">';
-          input += '<input type="text" style="text-align:right;" class="form-control form-control-sm emp-earnings-amt" name="emp-earnings-amt[]" onkeyup="CalculateSum(); ValidateInputAmount();" placeholder="0.00" required>';
-          input += '<span class="input-group-btn"><a href="javascript:void(0);" class="btn btn-danger btn-sm btn-flat remove_button"><i class="fa fa-times"></i></a></span>';
-          input += '</div></div></div>';
-
       if (earning_code_id != "") {
+        var isDuplicate = false;
+        $('input[name="earning_code_ids[]"]').each(function() {
+            if ($(this).val() == earning_code_id) {
+                isDuplicate = true;
+                return false;
+            }
+        });
+
+        if (isDuplicate) {
+            Swal.fire({
+                title: 'Duplicate Earning',
+                text: 'This earning code has already been added to the list.',
+                icon: 'warning',
+                confirmButtonColor: '#ffc107',
+                confirmButtonText: 'Ok'
+            });
+            return;
+        }
+
+        var input = '<div class="row" style="padding-bottom:15px;" id="dynamic_field">';
+            input += '<div class="col-3"><label>'+ earning_code +'</label></div>';
+            input += '<div class="col-9"><div class="input-group">';
+            input += '<input type="hidden" name="earning_code_ids[]" value="'+ earning_code_id +'">';
+            input += '<input type="text" style="text-align:right;" class="form-control form-control-sm emp-earnings-amt" name="emp-earnings-amt[]" onkeyup="CalculateSum(); ValidateInputAmount();" placeholder="0.00" required>';
+            input += '<span class="input-group-btn"><a href="javascript:void(0);" class="btn btn-danger btn-sm btn-flat remove_button"><i class="fa fa-times"></i></a></span>';
+            input += '</div></div></div>';
+
         $(wrapper).append(input);
       }
     });  

@@ -158,15 +158,34 @@
       var config_deduction_id = $('#cmbDeductionCodes').find('option:selected').val();
       var deduction_code = $('#cmbDeductionCodes').find('option:selected').text();
 
-      var input = '<div class="row" style="padding-bottom:15px;" id="dynamic_field">';
-          input += '<div class="col-3"><label>'+ deduction_code +'</label></div>';
-          input += '<div class="col-8"><div class="input-group">';
-          input += '<input type="hidden" name="config_deduction_ids[]" value="'+ config_deduction_id +'">';
-          input += '<input type="text" style="text-align:right;" class="form-control form-control-sm emp-deductions-amt" name="emp-deductions-amt[]" onkeyup="CalculateSum(); ValidateInputAmount();" placeholder="0.00" required>';
-          input += '<span class="input-group-btn"><a href="javascript:void(0);" class="btn btn-danger btn-sm btn-flat remove_button"><i class="fa fa-times"></i></a></span>';
-          input += '</div></div></div>';
-
       if (config_deduction_id != "") {
+        var isDuplicate = false;
+        $('input[name="config_deduction_ids[]"]').each(function() {
+            if ($(this).val() == config_deduction_id) {
+                isDuplicate = true;
+                return false;
+            }
+        });
+
+        if (isDuplicate) {
+            Swal.fire({
+                title: 'Duplicate Deduction',
+                text: 'This deduction code has already been added to the list.',
+                icon: 'warning',
+                confirmButtonColor: '#ffc107',
+                confirmButtonText: 'Ok'
+            });
+            return;
+        }
+
+        var input = '<div class="row" style="padding-bottom:15px;" id="dynamic_field">';
+            input += '<div class="col-3"><label>'+ deduction_code +'</label></div>';
+            input += '<div class="col-8"><div class="input-group">';
+            input += '<input type="hidden" name="config_deduction_ids[]" value="'+ config_deduction_id +'">';
+            input += '<input type="text" style="text-align:right;" class="form-control form-control-sm emp-deductions-amt" name="emp-deductions-amt[]" onkeyup="CalculateSum(); ValidateInputAmount();" placeholder="0.00" required>';
+            input += '<span class="input-group-btn"><a href="javascript:void(0);" class="btn btn-danger btn-sm btn-flat remove_button"><i class="fa fa-times"></i></a></span>';
+            input += '</div></div></div>';
+
         $(wrapper).append(input);
       }
     });  
