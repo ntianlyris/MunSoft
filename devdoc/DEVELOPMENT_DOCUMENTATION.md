@@ -55,6 +55,7 @@
 - Payslips generated per employee per pay period with full earnings/deductions breakdowns.
 - PDF print functionality implemented and tested.
 - Summary List of Payroll (SLP) report also printable with column layout adjustments.
+- **Payslip Aggregation Fix (Mar 11, 2026):** Enhanced `get_payslip_months.php` to support dual-frequency (monthly/semi-monthly) data aggregation; implements `MAX()` for gross/deductions and `SUM()` for net pay to correctly represent split pay periods on the employee dashboard.
 
 ### 2.8 Leave Management
 - Leave application submission, approval workflow, and balance tracking.
@@ -67,7 +68,7 @@
 - **Performance Optimization:** Implemented utilizing MariaDB's native `ON DELETE CASCADE` foreign key constraints, firing a single parent deletion query rather than slow PHP-based manual loops.
 - **Security:** Access is strictly restricted to users with both the `Administrator` role and the `Manage System` privilege.
 - **Standalone Auditing:** To prevent the cascade from destroying the proof of deletion, actions are logged to a detached `system_logs` table instead of the standard per-entry audit trail.
-
+### 2.11 Mobile Dashboard & Employee Portal (Mar 2026)
 - Complete mobile-first redesign of the employee portal with four dashboard cards: **Profile**, **Payrolls**, **Payslips**, **Leave**.
 - Quick actions grid, recent activity sections, and modal dialogs for detailed views.
 - **PWA Features:** Service Worker for offline caching, `manifest.json` for app installation, offline fallback page with auto-reconnect detection.
