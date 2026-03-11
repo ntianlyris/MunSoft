@@ -1,11 +1,11 @@
-# IntelliGov Nexus
+# IntelliGov
 ### Intelligent Payroll & HRIS Management System for Local Government Units
 
 > **"Smart Governance. Seamless Operations."**
 
-**IntelliGov Nexus** is an integrated Human Resource Information System (HRIS) and Payroll Management platform purpose-built for local government units. It streamlines employee records management, payroll processing, remittance handling, leave administration, and employee self-service — all accessible through a modern web-based interface with mobile PWA support.
+**IntelliGov** is an integrated Human Resource Information System (HRIS) and Payroll Management platform purpose-built for local government units. It streamlines employee records management, payroll processing, remittance handling, leave administration, and employee self-service — all accessible through a modern web-based interface with mobile PWA support.
 
-Powered by an intelligent computation engine and AI-assisted compliance modules, IntelliGov Nexus delivers end-to-end workforce management with real-time decision support, audit-grade data integrity, and a seamless experience across all government roles.
+Powered by an intelligent computation engine and AI-assisted compliance modules, IntelliGov delivers end-to-end workforce management with real-time decision support, audit-grade data integrity, and a seamless experience across all government roles.
 
 Built on **AdminLTE 3** (Bootstrap 4), the system provides role-based access across four main portals: **Admin**, **HRIS**, **Payroll**, and **Employee Self-Service**.
 
@@ -59,7 +59,7 @@ Per-employee payslips with full earnings and deductions breakdowns. PDF generati
 Leave application submission, approval workflow, balance tracking, and credit management with support for multiple leave types.
 
 ### 9. 📱 Employee Self-Service Portal *(Mobile PWA)*
-Mobile-first responsive dashboard — **IntelliGov Nexus ESS** — with four main cards: **Profile**, **Payrolls**, **Payslips**, and **Leave**. Features include:
+Mobile-first responsive dashboard — **IntelliGov ESS** — with four main cards: **Profile**, **Payrolls**, **Payslips**, and **Leave**. Features include:
 - Offline support via Service Workers
 - Installable as a native-like app on mobile devices
 - Quick actions grid and recent activity sections
@@ -76,11 +76,11 @@ PDF generation for payroll records, payslips, remittance details, service record
 ## 🗃️ Project Structure
 
 ```
-/IntelliGovNexus
+/MunSoft
 ├── /admin/             # Admin portal
-├── /hris/              # IntelliGov Nexus HRIS module
-├── /payroll/           # IntelliGov Nexus Payroll module
-├── /employee/          # IntelliGov Nexus ESS (PWA dashboard)
+├── /hris/              # IntelliGov HRIS module
+├── /payroll/           # IntelliGov Payroll module
+├── /employee/          # IntelliGov ESS (PWA dashboard)
 ├── /includes/
 │   ├── /class/         # PHP classes (Employee, Payroll, Remittance, etc.)
 │   ├── /view/          # View helpers & data functions
@@ -99,34 +99,14 @@ PDF generation for payroll records, payslips, remittance details, service record
 
 ---
 
-## 🚀 Getting Started
-
-1. **Import the database** from `db/intelligovnexus.sql` into MySQL/MariaDB.
-2. **Run migration files** in the `db/` folder for additional schema updates (photos, workflow).
-3. **Configure** database connection in `includes/class/DB_conn.php`.
-4. **Start** Apache and MySQL via XAMPP (or equivalent).
-5. **Access** the system at `http://localhost/IntelliGovNexus/`.
-
----
-
-## 📖 Development Documentation
-
-All development notes, implementation plans, and technical details have been consolidated into:
-
-> **[devdoc/DEVELOPMENT_DOCUMENTATION.md](devdoc/DEVELOPMENT_DOCUMENTATION.md)**
-
-This includes module history, bug fixes, deployment guides, security details, and architecture decisions.
-
----
-
 ## 🌐 System Portals
 
 | Portal | Description | Access |
 |---|---|---|
 | **Admin** | System configuration and user management | `/admin` |
-| **IntelliGov Nexus HRIS** | HR records, departments, positions | `/hris` |
-| **IntelliGov Nexus Payroll** | Payroll computation and approval workflow | `/payroll` |
-| **IntelliGov Nexus ESS** | Employee self-service mobile PWA | `/employee` |
+| **IntelliGov HRIS** | HR records, departments, positions | `/hris` |
+| **IntelliGov Payroll** | Payroll computation and approval workflow | `/payroll` |
+| **IntelliGov ESS** | Employee self-service mobile PWA | `/employee` |
 
 ---
 
@@ -147,9 +127,9 @@ This includes module history, bug fixes, deployment guides, security details, an
 
 ## 🏆 Conclusion
 
-**IntelliGov Nexus** provides a comprehensive, production-ready solution for local government HRIS and payroll operations. The system covers the full payroll lifecycle — from employee configuration through intelligent computation, approval workflows, remittance processing, and payslip distribution — while maintaining data integrity through multi-layer blocking, AI-assisted compliance enforcement, and a complete audit trail mechanism.
+**IntelliGov** provides a comprehensive, production-ready solution for local government HRIS and payroll operations. The system covers the full payroll lifecycle — from employee configuration through intelligent computation, approval workflows, remittance processing, and payslip distribution — while maintaining data integrity through multi-layer blocking, AI-assisted compliance enforcement, and a complete audit trail mechanism.
 
-The mobile PWA dashboard extends seamless accessibility to every employee on any device, embodying the core mission of IntelliGov Nexus:
+The mobile PWA dashboard extends seamless accessibility to every employee on any device, embodying the core mission of IntelliGov:
 
 > **"Smart Governance. Seamless Operations."**
 
@@ -163,6 +143,6 @@ Built with [AdminLTE 3](https://adminlte.io) — Bootstrap 4 Admin Dashboard Fra
 ---
 
 <div align="center">
-  <strong>IntelliGov Nexus</strong> — Intelligent Payroll & HRIS Management System for Local Government Units<br/>
+  <strong>IntelliGov</strong> — Intelligent Payroll & HRIS Management System for Local Government Units<br/>
   <em>Smart Governance. Seamless Operations.</em>
 </div>

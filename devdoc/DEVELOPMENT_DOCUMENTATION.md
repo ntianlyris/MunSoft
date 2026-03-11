@@ -1,4 +1,4 @@
-# IntelliGov Nexus Development Documentation
+# IntelliGov Development Documentation
 
 > **Synthesized from:** Notes.txt, BUG_FIX_BLOCKING_LOGIC.md, DEPLOYMENT_CHECKLIST.md, DEPLOYMENT_COMPLETE_STATUS_BASED_EDITING.md, IMPLEMENTATION_CHANGE_SUMMARY.md, IMPLEMENTATION_REPORT.md, IMPLEMENTATION_SUMMARY.md, MOBILE_SETUP_GUIDE.md, PAYROLL_EDITING_FLOW_ANALYSIS.md, PAYROLL_STATUS_BASED_EDITING.md, PAYROLL_WORKFLOW_SETUP.md, PROJECT_COMPLETION_REPORT.md, QUICK_START.md, REMITTANCE_ISSUE_ANALYSIS.md, SECURITY_IMPLEMENTATION.md, TWO_LAYER_BLOCKING_SYSTEM.md  
 > **Date Compiled:** March 11, 2026
@@ -7,9 +7,9 @@
 
 ## 1. Project Overview
 
-**IntelliGov Nexus** is an integrated HRIS (Human Resource Information System) and Payroll Management system designed for local government use. Built on the AdminLTE 3 (Bootstrap 4) framework, it provides comprehensive employee records management, payroll computation, remittance processing, leave management, and a mobile-first employee self-service dashboard powered by Progressive Web App (PWA) technology.
+**IntelliGov** is an integrated HRIS (Human Resource Information System) and Payroll Management system designed for local government use. Built on the AdminLTE 3 (Bootstrap 4) framework, it provides comprehensive employee records management, payroll computation, remittance processing, leave management, and a mobile-first employee self-service dashboard powered by Progressive Web App (PWA) technology.
 
-> **Development History Note:** During the initial phases of development through early 2026, the project was originally named **"MunSoft"**. It was later rebranded to **"IntelliGov Nexus"** to better reflect its integration of smart governance features, AI-assisted compliance modules (like the GAA Net Pay Intelligence), and seamless operational capabilities.
+> **Development History Note:** During the initial phases of development through early 2026, the project was originally named **"MunSoft"**. It was later rebranded to **"IntelliGov"** to better reflect its integration of smart governance features, AI-assisted compliance modules (like the GAA Net Pay Intelligence), and seamless operational capabilities.
 
 **Technology Stack:** PHP 7.4+, MySQL/MariaDB, Bootstrap 4, AdminLTE 3, jQuery, Font Awesome 5, SweetAlert2, DataTables, Service Workers, TCPDF (PDF generation).
 
