@@ -14,12 +14,12 @@ $user = new User();
         if ($register = $user->reg_user()){ 
              // Registration Success
             echo "<script language='javascript'>
-                            window.location='./register_form.php?reg=success';
+                            window.location='./index.php?register=success';
                     </script>";    
         }
         else{
             echo "<script language='javascript'>
-                            window.location='./register_form.php?reg=failed';
+                            window.location='./index.php?register=failed';
                     </script>"; 
         }   
     }
