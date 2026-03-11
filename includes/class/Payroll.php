@@ -49,8 +49,7 @@ class Payroll
         $query = $this->db->query($sql) or die($this->db->error);
         if ($query) {
             return true;
-        }
-        else {
+        } else {
             return false;
         }
     }
@@ -63,8 +62,7 @@ class Payroll
         $count_row = $this->db->num_rows($result);
         if ($count_row == 1) {
             return $active_frequency = $this->db->fetch_array($result);
-        }
-        else {
+        } else {
             return false;
         }
     }
@@ -90,8 +88,7 @@ class Payroll
         $query = $this->db->query($sql) or die($this->db->error);
         if ($query) {
             return true;
-        }
-        else {
+        } else {
             return false;
         }
     }
@@ -103,8 +100,7 @@ class Payroll
         $count_row = $this->db->num_rows($result);
         if ($count_row == 1) {
             return $last_year = $this->db->fetch_array($result);
-        }
-        else {
+        } else {
             return false;
         }
     }
@@ -262,7 +258,7 @@ class Payroll
 
     public function GetEmployeeGovShares($employee_id, $start_date, $end_date)
     {
-        $employee_id = (int)$employee_id; // sanitize
+        $employee_id = (int) $employee_id; // sanitize
 
         $start_date = $this->db->escape_string($start_date);
         $end_date = $this->db->escape_string($end_date);
@@ -342,8 +338,7 @@ class Payroll
 
                 $temp = true;
 
-            }
-            else { // semi-monthly
+            } else { // semi-monthly
                 $start1 = "$useYear-" . str_pad($month, 2, '0', STR_PAD_LEFT) . "-01";
                 $end1 = "$useYear-" . str_pad($month, 2, '0', STR_PAD_LEFT) . "-15";
                 $label1 = "$monthText 1–15, $useYear";
@@ -408,8 +403,7 @@ class Payroll
         $count_row = $this->db->num_rows($result);
         if ($count_row == 1) {
             return $row = $this->db->fetch_array($result);
-        }
-        else {
+        } else {
             return false;
         }
     }
@@ -477,8 +471,7 @@ class Payroll
         $result = $this->db->query($query) or die($this->db->error);
         if ($this->db->num_rows($result) == 1) {
             return $this->db->fetch_array($result);
-        }
-        else {
+        } else {
             return false;
         }
     }
@@ -513,8 +506,7 @@ class Payroll
 
         if ($count_row == 1) {
             return $this->db->fetch_array($result);
-        }
-        else {
+        } else {
             return false;
         }
     }
@@ -567,7 +559,8 @@ class Payroll
      * Calculates the net pay based on gross, deductions, and frequency.
      * Can be referenced by any module (e.g. GAA Intelligence) to maintain consistency.
      */
-    public function CalculateNetPay($gross, $total_deductions, $frequency = 'monthly') {
+    public function CalculateNetPay($gross, $total_deductions, $frequency = 'monthly')
+    {
         if ($frequency == 'semi-monthly') {
             return round(($gross - $total_deductions) / 2, 2);
         } else {
@@ -637,8 +630,7 @@ class Payroll
                             'amount' => $amount
                         ];
                         $display_total_deductions += $amount; // display total deductions during the 1st half only
-                    }
-                    else {
+                    } else {
                         $deductions_list = []; // empty array, no deductions applied
                         $display_total_deductions = 0; // no deductions total deductions must be displayed during 2nd half
                     }
@@ -655,8 +647,7 @@ class Payroll
                             'label' => $gs['govshare_code'],
                             'amount' => $amount
                         ];
-                    }
-                    else {
+                    } else {
                         $govshares_list = []; // empty array, no govshares applied
                     }
                 }
@@ -781,8 +772,7 @@ class Payroll
                         } else {
                             throw new Exception("Failed to update payroll entry for employee ID: $employee_id");
                         }
-                    }
-                    else {
+                    } else {
                         // No existing payroll - INSERT new
                         $insert_query = "INSERT INTO payroll_entries 
                                 (employee_id, employment_id, payroll_period_id, locked_period, dept_id, locked_basic, gross, total_deductions, net_pay, earnings_breakdown, deductions_breakdown, govshares_breakdown, emp_type_stamp, status, created_at) 
@@ -824,8 +814,7 @@ class Payroll
                         'message' => "$success_count payroll records saved/updated.",
                         'saved' => $success_count
                     ];
-                }
-                else {
+                } else {
                     $return_arr = [
                         'status' => 'error',
                         'message' => "Payroll exist for the current period. Failed to save/update payroll records.",
@@ -841,8 +830,7 @@ class Payroll
                     'saved' => 0
                 ];
             }
-        }
-        else {
+        } else {
             $return_arr = [
                 'status' => 'not_set',
                 'message' => "Payroll Data not set.",
@@ -925,10 +913,11 @@ class Payroll
      * @param string $payroll_frequency - From GetCurrentActiveFrequency()
      * @return array - Validation result
      */
-    public function validatePayrollAgainstGAA($gross, $total_deductions, $payroll_frequency = 'monthly') {
+    public function validatePayrollAgainstGAA($gross, $total_deductions, $payroll_frequency = 'monthly')
+    {
         include_once("GAANetPayValidator.php");
         $GAAValidator = new GAANetPayValidator();
-        
+
         // Use minimal params - validator only needs to validate, not modify
         return $GAAValidator->validatePayrollEntry(
             0,  // employee_id not used in validation logic, only for logging
@@ -1039,8 +1028,7 @@ class Payroll
         $query = $this->db->query($sql) or die($this->db->error);
         if ($query) {
             return true;
-        }
-        else {
+        } else {
             return false;
         }
     }
@@ -1059,8 +1047,7 @@ class Payroll
         $count_row = $this->db->num_rows($result);
         if ($count_row == 1) {
             return $row = $this->db->fetch_array($result);
-        }
-        else {
+        } else {
             return false;
         }
     }
@@ -1150,10 +1137,31 @@ class Payroll
                 'total_net_pay' => floatval($row['total_net_pay'] ?? 0),
                 'period_label' => $row['period_label'] ?? 'N/A'
             ];
-        }
-        else {
+        } else {
             return false;
         }
+    }
+
+    public function GetEmployeePayrollHistoryByYear($employee_id, $year, $frequency = 'monthly')
+    {
+        $employee_id = intval($employee_id);
+        $year = intval($year);
+        $frequency = $this->db->escape_string($frequency);
+
+        $query = "SELECT pe.*, pp.period_label, pp.date_start, pp.date_end, pp.frequency
+                  FROM payroll_entries pe
+                  INNER JOIN payroll_periods pp ON pe.payroll_period_id = pp.payroll_period_id
+                  WHERE pe.employee_id = $employee_id
+                  AND YEAR(pp.date_start) = $year
+                  AND pp.frequency = '$frequency'
+                  ORDER BY pp.date_start ASC";
+
+        $result = $this->db->query($query) or die($this->db->error);
+        $history = [];
+        while ($row = $this->db->fetch_array($result)) {
+            $history[] = $row;
+        }
+        return $history;
     }
 
     // ========== NEW METHODS FOR PAYROLL EDIT/DELETE FUNCTIONALITY ==========
@@ -1214,8 +1222,7 @@ class Payroll
         // Add approval/lock tracking
         if ($new_status === 'APPROVED') {
             $query .= ", approved_by = $user_id, approved_date = NOW()";
-        }
-        elseif ($new_status === 'PAID' || $new_status === 'LOCKED') {
+        } elseif ($new_status === 'PAID' || $new_status === 'LOCKED') {
             $query .= ", locked_by = $user_id, locked_date = NOW()";
         }
 
@@ -1313,9 +1320,8 @@ class Payroll
         $user_id = intval($user_id);
 
         try {
-            // STEP 1: Get ONLY DRAFT payroll entries for this period/dept/type combo for audit logging
-            // SECURITY: ONLY allows deletion of DRAFT status entries
-            $query_get_payrolls = "SELECT payroll_entry_id, employee_id, gross, total_deductions, net_pay, status 
+            // STEP 1: Get ALL DRAFT payroll entries for this period/dept/type combo
+            $query_get_payrolls = "SELECT payroll_entry_id, employee_id, gross, total_deductions, net_pay 
                                    FROM payroll_entries 
                                    WHERE payroll_period_id = $payroll_period_id 
                                    AND dept_id = $dept_id 
@@ -1324,7 +1330,6 @@ class Payroll
 
             $result_payrolls = $this->db->query($query_get_payrolls) or die($this->db->error);
             $payroll_ids = [];
-            $deleted_count = 0;
             $total_gross_deleted = 0;
 
             if ($this->db->num_rows($result_payrolls) > 0) {
@@ -1334,82 +1339,59 @@ class Payroll
                 }
             }
 
-            // STEP 2: Check if there are non-DRAFT entries (for reporting)
-            $query_non_draft = "SELECT COUNT(*) as non_draft_count FROM payroll_entries 
-                                WHERE payroll_period_id = $payroll_period_id 
-                                AND dept_id = $dept_id 
-                                AND emp_type_stamp = '$emp_type_stamp'
-                                AND status != 'DRAFT'";
-            $result_non_draft = $this->db->query($query_non_draft);
-            $non_draft_row = $this->db->fetch_array($result_non_draft);
-            $non_draft_count = intval($non_draft_row['non_draft_count'] ?? 0);
+            // Check if there are non-DRAFT records that will be protected
+            $query_check_protected = "SELECT COUNT(*) as protected_count
+                                      FROM payroll_entries 
+                                      WHERE payroll_period_id = $payroll_period_id 
+                                      AND dept_id = $dept_id 
+                                      AND emp_type_stamp = '$emp_type_stamp'
+                                      AND status != 'DRAFT'";
+            $res_protected = $this->db->query($query_check_protected);
+            $protected_count = ($res_protected && $row = $this->db->fetch_array($res_protected)) ? $row['protected_count'] : 0;
 
             if (empty($payroll_ids)) {
-                // No DRAFT records found
-                if ($non_draft_count > 0) {
-                    return [
-                        'status' => 'warning',
-                        'message' => "No DRAFT payroll records found for this period and department. There are $non_draft_count non-DRAFT records that cannot be deleted.",
-                        'deleted' => 0,
-                        'deleted_entries' => 0,
-                        'deleted_deductions' => 0,
-                        'deleted_govshares' => 0,
-                        'non_draft_count' => $non_draft_count
-                    ];
-                }
-                else {
-                    return [
-                        'status' => 'info',
-                        'message' => 'No payroll records found for this period and department.',
-                        'deleted' => 0,
-                        'deleted_entries' => 0,
-                        'deleted_deductions' => 0,
-                        'deleted_govshares' => 0
-                    ];
-                }
+                return [
+                    'status' => 'warning',
+                    'message' => 'No DRAFT payroll records found for this period and department.',
+                    'non_draft_count' => $protected_count,
+                    'deleted' => 0,
+                    'deleted_entries' => 0,
+                    'deleted_deductions' => 0,
+                    'deleted_govshares' => 0
+                ];
             }
 
-            // STEP 3: Build list of IDs for bulk deletion
+            // STEP 2: Build list of IDs
             $payroll_ids_str = implode(',', $payroll_ids);
 
-            // STEP 4: Log bulk deletion to audit trail BEFORE deletion (CRITICAL - before FK constraint violation)
-            // Must log BEFORE deleting entries since audit has FK constraint to payroll_entries
+            // STEP 3: Log bulk deletion to audit trail BEFORE deletion
             $audit_data = [
                 'action' => 'BULK_DELETE',
                 'payroll_period_id' => $payroll_period_id,
                 'dept_id' => $dept_id,
                 'emp_type_stamp' => $emp_type_stamp,
                 'deleted_count' => count($payroll_ids),
-                'total_gross_deleted' => $total_gross_deleted,
-                'only_draft_deleted' => true,
-                'non_draft_protected' => $non_draft_count
+                'total_gross_deleted' => $total_gross_deleted
             ];
 
-            // Log as special BULK_DELETE action with summary data
+            // Log as special BULK_DELETE action on the first entry
             $this->LogPayrollAudit(
-                $payroll_ids[0], // Use first ID as reference
+                $payroll_ids[0], 
                 'BULK_DELETE',
                 $user_id,
                 $audit_data,
-            ['deleted_at' => date('Y-m-d H:i:s')]
+                ['deleted_at' => date('Y-m-d H:i:s')]
             );
 
-            // ===== DELETION CASCADE (CRITICAL ORDER) =====
+            // Fetch actual deduction and govshare counts for reporting (since ON DELETE CASCADE will silently wipe them)
+            $res_count_ded = $this->db->query("SELECT COUNT(*) as count FROM payroll_deductions WHERE payroll_entry_id IN ($payroll_ids_str)");
+            $deleted_deductions = ($res_count_ded && $row_count = $this->db->fetch_array($res_count_ded)) ? $row_count['count'] : 0;
+            
+            $res_count_gov = $this->db->query("SELECT COUNT(*) as count FROM payroll_govshares WHERE payroll_entry_id IN ($payroll_ids_str)");
+            $deleted_govshares = ($res_count_gov && $row_count = $this->db->fetch_array($res_count_gov)) ? $row_count['count'] : 0;
 
-            // DELETE from payroll_deductions FIRST (child table)
-            $query_deductions = "DELETE FROM payroll_deductions 
-                                WHERE payroll_entry_id IN ($payroll_ids_str)";
-            $result_deductions = $this->db->query($query_deductions);
-            $deleted_deductions = $this->db->affectedRows();
-
-            // DELETE from payroll_govshares (child table)
-            $query_govshares = "DELETE FROM payroll_govshares 
-                               WHERE payroll_entry_id IN ($payroll_ids_str)";
-            $result_govshares = $this->db->query($query_govshares);
-            $deleted_govshares = $this->db->affectedRows();
-
-            // DELETE from payroll_entries MAIN TABLE (NOW SAFE - all children deleted)
-            // SECURITY: Explicitly filter by status = 'DRAFT' for safety
+            // STEP 4: DELETE from payroll_entries MAIN TABLE
+            // Let the database ON DELETE CASCADE handle child tables perfectly
             $query_entries = "DELETE FROM payroll_entries 
                              WHERE payroll_period_id = $payroll_period_id 
                              AND dept_id = $dept_id 
@@ -1419,44 +1401,102 @@ class Payroll
             $deleted_entries = $this->db->affectedRows();
 
             if ($result_entries) {
-                // STEP 5: Deletion completed successfully
-                $message = "Successfully deleted $deleted_entries DRAFT payroll records for this period and department.";
-                if ($non_draft_count > 0) {
-                    $message .= " $non_draft_count non-DRAFT records were protected and not deleted.";
-                }
-
                 return [
                     'status' => 'success',
-                    'message' => $message,
+                    'message' => "Successfully deleted $deleted_entries DRAFT payroll records.",
                     'deleted' => $deleted_entries,
                     'deleted_entries' => $deleted_entries,
                     'deleted_deductions' => $deleted_deductions,
                     'deleted_govshares' => $deleted_govshares,
                     'total_gross_deleted' => $total_gross_deleted,
-                    'non_draft_protected' => $non_draft_count
+                    'non_draft_protected' => $protected_count
                 ];
             }
 
-        }
-        catch (Exception $e) {
+        } catch (Exception $e) {
             return [
                 'status' => 'error',
                 'message' => 'Error during bulk deletion: ' . $e->getMessage(),
-                'deleted' => 0,
-                'deleted_entries' => 0,
-                'deleted_deductions' => 0,
-                'deleted_govshares' => 0
+                'deleted' => 0
             ];
         }
 
         return [
             'status' => 'error',
             'message' => 'Failed to delete payroll records.',
-            'deleted' => 0,
-            'deleted_entries' => 0,
-            'deleted_deductions' => 0,
-            'deleted_govshares' => 0
+            'deleted' => 0
         ];
+    }
+
+    /**
+     * EMERGENCY BULK DELETE: Overrides DRAFT status rule to wipe out entire scope.
+     * Uses DB ON DELETE CASCADE for massive performance gains, and logs to standalone `system_logs`.
+     * SECURITY: HIGHLY DESTRUCTIVE - Bypasses standard workflow!
+     */
+    public function EmergencyDeleteAllPayrollRecordsForPeriodAndDept($payroll_period_id, $dept_id, $emp_type_stamp, $user_id)
+    {
+        $payroll_period_id = intval($payroll_period_id);
+        $dept_id = intval($dept_id);
+        $emp_type_stamp = $this->db->escape_string($emp_type_stamp);
+        $user_id = intval($user_id);
+
+        try {
+            // STEP 1: Assess scope (ignoring status)
+            $query_get_payrolls = "SELECT SUM(gross) as total_gross, COUNT(*) as record_count 
+                                   FROM payroll_entries 
+                                   WHERE payroll_period_id = $payroll_period_id 
+                                   AND dept_id = $dept_id 
+                                   AND emp_type_stamp = '$emp_type_stamp'";
+
+            $res = $this->db->query($query_get_payrolls);
+            $row = $this->db->fetch_array($res);
+
+            $record_count = intval($row['record_count'] ?? 0);
+            $total_gross = floatval($row['total_gross'] ?? 0);
+
+            if ($record_count === 0) {
+                return [
+                    'status' => 'warning',
+                    'message' => 'No records found to delete.',
+                ];
+            }
+
+            // STEP 2: Safe standalone audit logging
+            $ip_address = $_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN';
+            $user_agent = array_key_exists('HTTP_USER_AGENT', $_SERVER) ? substr($_SERVER['HTTP_USER_AGENT'], 0, 255) : 'UNKNOWN';
+            
+            $log_details = json_encode([
+                'payroll_period_id' => $payroll_period_id,
+                'dept_id' => $dept_id,
+                'emp_type_stamp' => $emp_type_stamp,
+                'records_deleted' => $record_count,
+                'total_gross' => $total_gross
+            ]);
+
+            $log_query = "INSERT INTO system_logs (action_type, user_id, log_details, ip_address, user_agent) 
+                          VALUES ('EMERGENCY_PAYROLL_DELETE', $user_id, '" . $this->db->escape_string($log_details) . "', '$ip_address', '" . $this->db->escape_string($user_agent) . "')";
+            $this->db->query($log_query);
+
+            // STEP 3: Swift annihilation relying entirely on MariaDB's ON DELETE CASCADE
+            $query_delete = "DELETE FROM payroll_entries 
+                             WHERE payroll_period_id = $payroll_period_id 
+                             AND dept_id = $dept_id 
+                             AND emp_type_stamp = '$emp_type_stamp'";
+            $result_entries = $this->db->query($query_delete) or die($this->db->error);
+            $deleted_entries = $this->db->affectedRows();
+
+            return [
+                'status' => 'success',
+                'message' => "Emergency Delete Complete! <b>$deleted_entries records</b> completely purged (ignoring workflow status). Actions permanently recorded in System Logs.",
+                'deleted' => $deleted_entries
+            ];
+
+        } catch (Exception $e) {
+            return [
+                'status' => 'error',
+                'message' => 'Critical Error during Emergency Override: ' . $e->getMessage()
+            ];
+        }
     }
 
     // ==========================================================
@@ -1510,7 +1550,7 @@ class Payroll
      */
     public function BulkUpdatePayrollStatus($payroll_entry_ids, $new_status, $user_id, $reason = null, $payroll_period_id = 0, $dept_id = 0, $emp_type_stamp = '')
     {
-        $payroll_entry_ids = array_map('intval', (array)$payroll_entry_ids);
+        $payroll_entry_ids = array_map('intval', (array) $payroll_entry_ids);
         $user_id = intval($user_id);
         $new_status = strtoupper($this->db->escape_string($new_status));
 
@@ -1630,8 +1670,8 @@ class Payroll
                 $payroll_entry_ids[0],
                 'BULK_STATUS_UPDATE',
                 $user_id,
-            ['from_statuses' => $payroll_entries, 'count' => count($payroll_entry_ids)],
-            ['to_status' => $new_status, 'reason' => $reason, 'affected' => $affected_count]
+                ['from_statuses' => $payroll_entries, 'count' => count($payroll_entry_ids)],
+                ['to_status' => $new_status, 'reason' => $reason, 'affected' => $affected_count]
             );
 
             return [
@@ -1642,8 +1682,7 @@ class Payroll
                 'failed' => []
             ];
 
-        }
-        catch (Exception $e) {
+        } catch (Exception $e) {
             return [
                 'status' => 'error',
                 'message' => 'Error during bulk status update: ' . $e->getMessage(),

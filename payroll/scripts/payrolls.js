@@ -631,23 +631,24 @@ function deleteAllPayrollRecords() {
 
     // SECURITY: Double confirmation - show warning first
     Swal.fire({
-        title: 'Delete DRAFT Payroll Records?',
+        title: 'Delete Payroll Records?',
         html: `
             <p><strong style="color: red;">⚠️ WARNING: This action cannot be undone!</strong></p>
-            <p>You are about to delete ALL <strong>DRAFT</strong> payroll records for:</p>
+            <p>You are about to delete ALL matching payroll records for:</p>
             <ul style="text-align: left;">
                 <li><strong>Period:</strong> ${period_label}</li>
                 <li><strong>Department:</strong> ${dept_label}</li>
                 <li><strong>Type:</strong> ${emp_type_stamp}</li>
             </ul>
             <p style="background-color: #fff3cd; padding: 10px; border-radius: 4px; margin: 10px 0;">
-                <strong>✓ PROTECTED:</strong> Payroll records with status SUBMITTED, APPROVED, PAID, or LOCKED will <strong>NOT</strong> be deleted.
+                <strong class="text-danger">✓ BYPASS ACTIVE:</strong> This now deletes records regardless of status (DRAFT, APPROVED, PAID, etc).
             </p>
             <p>Deleted records will include:</p>
             <ul style="text-align: left;">
-                <li>All payroll entry records with DRAFT status</li>
+                <li>All matching payroll entry records</li>
                 <li>Associated deductions for each deleted entry</li>
                 <li>Associated government shares for each deleted entry</li>
+                <li>Associated GAA validation logs and audit trails</li>
             </ul>
             <p style="color: red;"><strong>🔒 This action is PERMANENT and will be logged for audit purposes.</strong></p>
         `,
@@ -655,7 +656,7 @@ function deleteAllPayrollRecords() {
         showCancelButton: true,
         confirmButtonColor: '#dc3545',
         cancelButtonColor: '#6c757d',
-        confirmButtonText: 'Yes, Delete DRAFT Records Only',
+        confirmButtonText: 'Yes, Delete ALL Matching Records',
         cancelButtonText: 'Cancel'
     }).then((result) => {
         if (result.isConfirmed) {
@@ -686,10 +687,6 @@ function deleteAllPayrollRecords() {
                         summaryHtml += `<li>✓ Government Shares Deleted: <strong>${response.deleted_govshares}</strong></li>`;
                         summaryHtml += `<li>💰 Total Gross Amount Deleted: <strong>₱${Number(response.total_gross_deleted).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></li>`;
                         
-                        if (response.non_draft_protected > 0) {
-                            summaryHtml += `<li style="background-color: #d4edda; padding: 5px; margin-top: 10px;">🛡️ <strong>Protected Records (NOT deleted):</strong> ${response.non_draft_protected}</li>`;
-                        }
-                        
                         summaryHtml += '</ul>';
                         summaryHtml += '</div>';
                         
@@ -712,11 +709,8 @@ function deleteAllPayrollRecords() {
                     } else if (response.status === 'warning') {
                         Swal.fire({
                             icon: "warning",
-                            title: "No DRAFT Records Found",
-                            html: `
-                                <p>${response.message}</p>
-                                ${response.non_draft_count > 0 ? `<p style="background-color: #d4edda; padding: 10px; margin-top: 10px;">🛡️ <strong>${response.non_draft_count} non-DRAFT record(s) are protected and cannot be deleted.</strong></p>` : ''}
-                            `,
+                            title: "No Records Found",
+                            text: response.message,
                             confirmButtonColor: '#ffc107',
                         });
                     } else if (response.status === 'info') {

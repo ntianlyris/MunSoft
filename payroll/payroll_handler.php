@@ -191,10 +191,22 @@ if($action = isset($_POST['action'])?$_POST['action']:'') {
             $Employee = new Employee();
             $Employment = new Employment();
 
-            //$year = intval($_POST['year']);
-            $payroll_period_id = intval($_POST['payroll_period_id']);
+            $payroll_period_id_raw = $_POST['payroll_period_id'];
             $department_id = intval($_POST['department_id']);
             $employment_type = isset($_POST['employment_type']) ? $_POST['employment_type'] : 'Regular';
+
+            if (strpos($payroll_period_id_raw, '_') !== false) {
+                list($start_date, $end_date) = explode('_', $payroll_period_id_raw);
+                $periodRow = $Payroll->GetPayrollPeriodByDates($start_date, $end_date);
+                if (!$periodRow) {
+                    http_response_code(400);
+                    echo json_encode(['status' => 'error', 'message' => 'Payroll period not found.']);
+                    exit;
+                }
+                $payroll_period_id = $periodRow['payroll_period_id'];
+            } else {
+                $payroll_period_id = intval($payroll_period_id_raw);
+            }
 
             $payroll_data = $Payroll->FetchPayrollByPayPeriodAndDept($payroll_period_id, $department_id, $employment_type);
 

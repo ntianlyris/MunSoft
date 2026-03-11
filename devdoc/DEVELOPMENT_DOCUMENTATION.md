@@ -1,7 +1,7 @@
 # IntelliGov Nexus Development Documentation
 
 > **Synthesized from:** Notes.txt, BUG_FIX_BLOCKING_LOGIC.md, DEPLOYMENT_CHECKLIST.md, DEPLOYMENT_COMPLETE_STATUS_BASED_EDITING.md, IMPLEMENTATION_CHANGE_SUMMARY.md, IMPLEMENTATION_REPORT.md, IMPLEMENTATION_SUMMARY.md, MOBILE_SETUP_GUIDE.md, PAYROLL_EDITING_FLOW_ANALYSIS.md, PAYROLL_STATUS_BASED_EDITING.md, PAYROLL_WORKFLOW_SETUP.md, PROJECT_COMPLETION_REPORT.md, QUICK_START.md, REMITTANCE_ISSUE_ANALYSIS.md, SECURITY_IMPLEMENTATION.md, TWO_LAYER_BLOCKING_SYSTEM.md  
-> **Date Compiled:** March 10, 2026
+> **Date Compiled:** March 11, 2026
 
 ---
 
@@ -60,7 +60,14 @@
 - Leave application submission, approval workflow, and balance tracking.
 - Leave types and credits managed via configuration tables.
 
-### 2.9 Employee Mobile Dashboard (PWA) — v1.0 (Feb 2026)
+### 2.10 Emergency Payroll Deletion Module (Mar 11, 2026)
+- **Feature:** A high-level administrative bypass tool created for critical data corrections in production environments.
+- **Filtering Scope:** Precisely isolates records by `payroll_period_id`, `dept_id`, and `employment_type`.
+- **Administrative Bypass:** Unlike standard deletion tools, this module ignores workflow status (`APPROVED`, `PAID`, etc.), allowing administrators to wipe processed payrolls that are otherwise locked by the system.
+- **Performance Optimization:** Implemented utilizing MariaDB's native `ON DELETE CASCADE` foreign key constraints, firing a single parent deletion query rather than slow PHP-based manual loops.
+- **Security:** Access is strictly restricted to users with both the `Administrator` role and the `Manage System` privilege.
+- **Standalone Auditing:** To prevent the cascade from destroying the proof of deletion, actions are logged to a detached `system_logs` table instead of the standard per-entry audit trail.
+
 - Complete mobile-first redesign of the employee portal with four dashboard cards: **Profile**, **Payrolls**, **Payslips**, **Leave**.
 - Quick actions grid, recent activity sections, and modal dialogs for detailed views.
 - **PWA Features:** Service Worker for offline caching, `manifest.json` for app installation, offline fallback page with auto-reconnect detection.
@@ -116,6 +123,7 @@ A dual-layer security restriction has been implemented to control access to empl
 
 ### 4.2 Transitions
 - DRAFT → REVIEW (submit), REVIEW → APPROVED (approve), REVIEW → DRAFT (return with reason), APPROVED → PAID (mark paid, final).
+- **Administrative Override:** Emergency Delete bypasses the entire workflow graph for specialized cleanup (logs to `system_logs`).
 - Bulk status updates with atomic pre-validation (all-or-nothing).
 - All transitions logged in `payroll_workflow_transitions` table with user, IP, timestamp, and reason.
 

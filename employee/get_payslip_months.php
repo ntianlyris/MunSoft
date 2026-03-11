@@ -1,5 +1,7 @@
 <?php
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 header('Content-Type: application/json');
 
 include_once '../includes/class/Employee.php';
@@ -31,17 +33,16 @@ $year = isset($_GET['year']) ? intval($_GET['year']) : date('Y');
 if ($action === 'fetch_months_by_year') {
     // Get monthly payroll periods for the specified year
     $payroll = new Payroll();
-    
-    // Get periods for this year - try 'monthly' first, then fallback to any frequency
+    $payslip = new Payslip();
+
+    // EXPLICIT ASSIGNMENT: Force 'monthly' view for employees for now as per requirements.
     $frequency = 'monthly';
-    $periods = $payroll->GetPayrollPeriodsByYear($year, $frequency);
-    
-    // If no monthly periods found, try without frequency filter
-    if (!$periods || count($periods) == 0) {
-        error_log("DEBUG: No monthly periods found for year $year, checking all frequencies");
-    }
-    
-    if (!$periods) {
+
+    // OPTIMIZED: Fetch all payroll entries for the year in one query from already saved/locked data
+    // This avoids heavy re-regeneration of dozens of payslips in a loop
+    $history = $payroll->GetEmployeePayrollHistoryByYear($employee_id, $year, $frequency);
+
+    if (!$history || count($history) == 0) {
         echo json_encode([
             'success' => true,
             'data' => [],
@@ -49,58 +50,60 @@ if ($action === 'fetch_months_by_year') {
         ]);
         exit;
     }
-    
-    // Transform to month data and fetch payslip financial data
-    $payslip = new Payslip();
+
     $months = [];
-    
-    foreach ($periods as $period) {
-        $payroll_period_str = $period['date_start'] . '_' . $period['date_end'];
+
+    foreach ($history as $entry) {
+        $payroll_period_str = $entry['date_start'] . '_' . $entry['date_end'];
+
+        $gross = floatval($entry['gross']);
+        $deductions = floatval($entry['total_deductions']);
+        $saved_net = floatval($entry['net_pay']);
         
-        // Generate payslip to get financial data
-        try {
-            $payslip_data = $payslip->GeneratePayslip($employee_id, $year, $payroll_period_str);
-            
-            $gross = isset($payslip_data['gross']) ? floatval($payslip_data['gross']) : 0;
-            $deductions = isset($payslip_data['deductions']['total_deductions']) ? floatval($payslip_data['deductions']['total_deductions']) : 0;
-            $net_pay = isset($payslip_data['net_pay']) ? floatval($payslip_data['net_pay']) : 0;
-        } catch (Exception $e) {
-            error_log("Error generating payslip: " . $e->getMessage());
-            $gross = 0;
-            $deductions = 0;
-            $net_pay = 0;
-        }
-        
+        // CUSTOM REQUIREMENT: Calculate monthly_net manually. 
+        // Logic: Stored gross - stored total deductions.
+        // Reason: Saved net_pay might be halved for semi-monthly, but dashboard should show full period net.
+        $monthly_net = $gross - $deductions;
+
         $months[] = [
-            'month' => date('m', strtotime($period['date_start'])),
+            'month' => date('m', strtotime($entry['date_start'])),
             'year' => $year,
-            'label' => $period['period_label'],
-            'date_start' => $period['date_start'],
-            'date_end' => $period['date_end'],
+            'label' => $entry['period_label'],
+            'date_start' => $entry['date_start'],
+            'date_end' => $entry['date_end'],
             'payroll_period' => $payroll_period_str,
             'gross' => $gross,
             'deductions' => $deductions,
-            'net_pay' => $net_pay,
-            'has_data' => ($gross > 0 && $net_pay > 0 && $payslip->IsPayslipDownloadable($employee_id, $payroll_period_str)) // Security flag
+            'net_pay' => $saved_net, // Literal DB value
+            'monthly_net' => $monthly_net, // Recalculated value for UI display
+            'has_data' => ($gross > 0 && $payslip->IsPayslipDownloadable($employee_id, $payroll_period_str))
         ];
     }
-    
-    error_log("DEBUG: Months fetched = " . count($months));
-    
+
     echo json_encode([
         'success' => true,
         'data' => $months,
         'debug' => ['count' => count($months), 'year' => $year]
     ]);
 } elseif ($action === 'get_available_years') {
-    // Get all available years for employee payslips
     $payroll = new Payroll();
-    $years = $payroll->GetAvailableYearsByEmployee($employee_id, 'monthly');
-    
+
+    // Get all available years for employee payslips
+    // Get current active frequency to leave it ready for future toggle
+    $active_freq = $payroll->GetCurrentActiveFrequency();
+    $system_frequency = $active_freq ? $active_freq['freq_code'] : 'monthly';
+
+    // EXPLICIT ASSIGNMENT: Force 'monthly' view for employees for now as per requirements.
+    // To revert to dynamic system frequency in the future, change this to: $frequency = $system_frequency;
+    $employee_view_frequency = 'monthly';
+    $frequency = $employee_view_frequency;
+
+    $years = $payroll->GetAvailableYearsByEmployee($employee_id, $frequency);
+
     // Debug: Log what we're querying
     error_log("DEBUG: Employee ID = " . $employee_id);
     error_log("DEBUG: Years returned = " . json_encode($years));
-    
+
     echo json_encode([
         'success' => true,
         'data' => $years,
@@ -112,16 +115,16 @@ if ($action === 'fetch_months_by_year') {
 } elseif ($action === 'debug_payroll_data') {
     // Debug endpoint to check what data exists
     $payroll = new Payroll();
-    
+
     // Check if employee has any payroll entries
     $debug_data = [];
-    
+
     // Try to fetch available years
     $years = $payroll->GetAvailableYearsByEmployee($employee_id, 'monthly');
     $debug_data['available_years'] = $years;
     $debug_data['employee_id'] = $employee_id;
     $debug_data['frequency_filter'] = 'monthly';
-    
+
     echo json_encode([
         'success' => true,
         'debug_info' => $debug_data,
@@ -134,4 +137,3 @@ if ($action === 'fetch_months_by_year') {
     ]);
 }
 ?>
-

@@ -135,7 +135,7 @@
                                     <div class="form-group row">
                                         <label class="col-sm-4">Registered User:</label>
                                         <div class="col-sm-8">          
-                                            <select id="cmbUser" name="userID" class="form-control form-control-sm" placeholder="" required>
+                                            <select id="cmbUser" name="userID" class="form-control form-control-sm select2" placeholder="" required>
                                                 <option value="" selected disabled hidden>Select User...</option>       
                                                 <?php
                                                     include_once('../includes/class/Admin.php'); 
@@ -153,7 +153,7 @@
                                     <div class="form-group row">
                                         <label class="control-label col-sm-4">Employee Data:</label>
                                         <div class="col-sm-8">
-                                            <select id="cmbEmployeeData" name="employeeID" class="form-control form-control-sm" placeholder="" required>
+                                            <select id="cmbEmployeeData" name="employeeID" class="form-control form-control-sm select2" placeholder="" required>
                                                 <option value="" selected disabled hidden>Select Employee Data...</option>
                                                 <?php
                                                     include_once('../includes/class/Employee.php'); 
@@ -172,7 +172,7 @@
                                     <div class="form-group row">
                                         <label class="control-label col-sm-4" for="">Roles:</label>
                                         <div class="col-sm-8">     
-                                            <select id="cmbUserRole" name="UserRoles[]" class="form-control form-control-sm" placeholder="" required>
+                                            <select id="cmbUserRole" name="UserRoles[]" class="form-control form-control-sm select2" placeholder="" required>
                                                 <option value="" selected disabled hidden>Select Role...</option>
                                                 <?php
                                                     include_once('../includes/class/Role.php'); 
@@ -291,6 +291,13 @@
 
 <script>
   $(function () {
+    //Initialize Select2 Elements
+    $('.select2').select2({
+      theme: 'bootstrap4',
+      width: '100%',
+      dropdownParent: $('#systemUserModal') // ensures it works inside modal
+    });
+
     $("#example1").DataTable({
       "responsive": true, 
       "lengthChange": false, 

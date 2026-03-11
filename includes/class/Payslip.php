@@ -4,14 +4,17 @@ include_once("Employee.php");
 include_once("Employment.php");
 include_once("Payroll.php");
 
-class Payslip extends Payroll {
+class Payslip extends Payroll
+{
     protected $db;
 
-    public function __construct(){
+    public function __construct()
+    {
         parent::__construct();
     }
 
-    public function GeneratePayslip($employee_id, $year, $payroll_period){
+    public function GeneratePayslip($employee_id, $year, $payroll_period)
+    {
         $Employee = new Employee();
         $Employment = new Employment();
 
@@ -34,25 +37,25 @@ class Payslip extends Payroll {
             // If "(" exists, cut before it. Otherwise return full title.
             $position = ($pos !== false) ? substr($posTitle, 0, $pos) : $posTitle;
         }
-        
+
         $department = $employment_details['dept_name'] ?: '';
 
         // Fetch Payslip Details from Payroll Entry Details
         // Parse payroll_period in format "YYYY-MM-DD_YYYY-MM-DD"
         $period_parts = explode('_', $payroll_period);
-        
+
         // Validate that period has both start and end dates
         if (count($period_parts) < 2) {
             throw new Exception('Invalid payroll period format. Expected format: YYYY-MM-DD_YYYY-MM-DD');
         }
-        
+
         $start_date = trim($period_parts[0]) ?: '';
         $end_date = trim($period_parts[1]) ?: '';
-        
+
         // Validate date parsing
         $start = DateTime::createFromFormat('Y-m-d', $start_date);
-        $end   = DateTime::createFromFormat('Y-m-d', $end_date);
-        
+        $end = DateTime::createFromFormat('Y-m-d', $end_date);
+
         // Check if dates parsed successfully
         if ($start === false || $end === false) {
             throw new Exception('Invalid date format in payroll period. Expected Y-m-d format.');
@@ -68,12 +71,12 @@ class Payslip extends Payroll {
         $all_earnings_breakdown = []; // holder for all periods' earnings breakdown
         $all_deductions_breakdown = []; // holder for all periods' deductions breakdown
         $earnings_breakdown = []; // Initialize to avoid undefined variable warning
-        
+
         $period_ids = $this->GetPeriodsByStartDateAndFrequency($start_date, $frequency);    // array of period ids
         foreach ($period_ids as $period_id) {
 
             $payroll_entry = $this->GetPayrollEntryByEmployeeAndPeriod($employee_id, $period_id['payroll_period_id']);
-            
+
             if (!empty($payroll_entry)) {
 
                 // Take the most recent basic & gross from the LAST payroll period
@@ -85,7 +88,7 @@ class Payslip extends Payroll {
 
                 // Decode earnings and deductions breakdown and add to list
                 $earnings_breakdown = json_decode($payroll_entry['earnings_breakdown'], true) ?? [];
-                $deductions_breakdown =  json_decode($payroll_entry['deductions_breakdown'], true) ?? [];
+                $deductions_breakdown = json_decode($payroll_entry['deductions_breakdown'], true) ?? [];
 
                 // Add to all_earnings_breakdown array
                 if (is_array($earnings_breakdown)) {
@@ -97,15 +100,15 @@ class Payslip extends Payroll {
                 }
             }
         }
-        
+
 
         // Now pass ALL period earnings breakdowns
         $final_earnings = $this->SumEarningsBreakdown($all_earnings_breakdown);
         $total_other_earnings = $final_earnings['total_earnings'] - $basic;
         $final_deductions = $this->SumDeductionsBreakdown($all_deductions_breakdown);
         $net_pay = $gross - $final_deductions['total_deductions'];
-                      
-        
+
+
 
         // Logic to generate payslip for the given employee, year, and payroll period
         // This is a placeholder implementation
@@ -124,43 +127,41 @@ class Payslip extends Payroll {
         return $payslip;
     }
 
-    public function IsPayslipDownloadable($employee_id, $payroll_period) {
+    public function IsPayslipDownloadable($employee_id, $payroll_period)
+    {
         $period_parts = explode('_', $payroll_period);
         if (count($period_parts) < 2) {
             return false;
         }
-        
+
         $start_date = trim($period_parts[0]);
         $end_date = trim($period_parts[1]);
-        
+
         $active_frequency = $this->GetCurrentActiveFrequency();
         $frequency = $active_frequency['freq_code'];
-        
+
         $period_ids = $this->GetPeriodsByStartDateAndFrequency($start_date, $frequency);    // array of period ids
-        
-        $all_approved_or_paid = true;
+
+        $existing_entries_approved = true;
+        $all_periods_completed = true;
         $has_entries = false;
-        
+
         foreach ($period_ids as $period_id) {
             $payroll_entry = $this->GetPayrollEntryByEmployeeAndPeriod($employee_id, $period_id['payroll_period_id']);
             if (!empty($payroll_entry)) {
                 $has_entries = true;
                 if ($payroll_entry['status'] !== 'APPROVED' && $payroll_entry['status'] !== 'PAID') {
-                    $all_approved_or_paid = false;
+                    $existing_entries_approved = false;
                 }
             } else {
-                $all_approved_or_paid = false;
+                $all_periods_completed = false;
             }
         }
-        
-        if (!$has_entries || !$all_approved_or_paid) {
-            return false; // Not fully computed and approved
-        }
-        
+
         // 1. Verify through the Global variables of the roles
         $is_manager = false;
         global $manage_system;
-        
+
         if (isset($manage_system)) {
             $is_manager = $manage_system;
         } else {
@@ -170,51 +171,70 @@ class Payslip extends Payroll {
             }
             global $user_id;
             $uid = isset($user_id) && $user_id ? $user_id : (isset($_SESSION['uid']) ? $_SESSION['uid'] : null);
-            
+
             if ($uid) {
                 if (!class_exists('PrivilegedUser')) {
                     if (file_exists(__DIR__ . '/PrivilegedUser.php')) {
                         require_once __DIR__ . '/PrivilegedUser.php';
                     }
                 }
-                
+
                 if (class_exists('PrivilegedUser')) {
                     $privUser = new PrivilegedUser();
                     $roles = $privUser->initRoles($uid);
                     $perms = [];
-                    foreach ($roles as $key => $value) {
-                        foreach ($value as $k => $v) {
-                            $perms[] = $v;
+                    if (is_array($roles)) {
+                        foreach ($roles as $key => $value) {
+                            if (is_array($value)) {
+                                foreach ($value as $k => $v) {
+                                    $perms[] = $v;
+                                }
+                            }
                         }
                     }
                     $is_manager = in_array('Manage System', $perms, true);
                 }
             }
         }
-        
-        if ($is_manager) {
-            return true; // Manager bypasses the date lock requirement if APPROVED/PAID
+
+        if (!$has_entries) {
+            return false; // No payroll records at all
         }
-        
+
+        if ($is_manager) {
+            // Manager bypasses the date lock and period completion requirement
+            // as long as the existing payroll records are approved.
+            if ($existing_entries_approved) {
+                return true;
+            }
+            return false;
+        }
+
+        // Employee logic - must be fully approved and fully completed
+        if (!$all_periods_completed || !$existing_entries_approved) {
+            return false; // Not fully computed and approved
+        }
+
         // 2. Normal Employees - strictly check if current date is strictly after month's end period
         $current_date = new DateTime();
         $current_date->setTime(0, 0, 0);
-        
+
         $period_end = DateTime::createFromFormat('Y-m-d', $end_date);
         if ($period_end === false) {
             return false;
         }
         $period_end->setTime(0, 0, 0);
-        
+
         // Only downloadable AFTER the payroll period has ended
         if ($current_date > $period_end) {
             return true;
         }
-        
+
         return false;
     }
 
-    public function SumEarningsBreakdown($earnings_breakdown) {
+    public function SumEarningsBreakdown($earnings_breakdown)
+    {
         // $earnings_breakdown = array of earning breakdown arrays for each payroll entry
         $combined = [];
         $total_earnings = 0;
@@ -265,7 +285,8 @@ class Payslip extends Payroll {
         return $final;
     }
 
-    public function SumDeductionsBreakdown($deductions_breakdown) {
+    public function SumDeductionsBreakdown($deductions_breakdown)
+    {
         // $deductions_periods = array of deduction breakdown arrays for each payroll entry
 
         $combined = [];
@@ -311,10 +332,11 @@ class Payslip extends Payroll {
     /**
      * Get employee payslip history
      */
-    function getEmployeePayslipHistory($employee_id, $limit = 6){
+    function getEmployeePayslipHistory($employee_id, $limit = 6)
+    {
         include_once('../includes/class/DB_conn.php');
         $db = new DB_conn();
-        
+
         $employee_id = $db->escape_string($employee_id);
         $query = "SELECT pe.payroll_entry_id, pe.employee_id, pe.gross, pe.total_deductions, pe.net_pay,
                 pp.period_label, pp.date_start, pp.date_end, YEAR(pp.date_start) as year
@@ -323,7 +345,7 @@ class Payslip extends Payroll {
                 WHERE pe.employee_id = '$employee_id'
                 ORDER BY pp.date_start DESC
                 LIMIT $limit";
-        
+
         $result = $db->query($query);
         if ($result && $result->num_rows > 0) {
             $payslips = [];
@@ -334,7 +356,7 @@ class Payslip extends Payroll {
         }
         return null;
     }
-    
+
 }
 
 ?>

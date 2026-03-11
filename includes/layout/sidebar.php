@@ -53,7 +53,6 @@
           <?php echo ViewSideBarLink('employee_payslip'); ?>
           <?php echo ViewSideBarLink('employee_gaa_status'); ?>
           <?php echo ViewSideBarLink('leave_application'); ?>
-          <?php echo ViewSideBarLink('admin_settings'); ?>
           <?php echo ViewSideBarLink('employee_earnings'); ?>
           <?php echo ViewSideBarLink('employee_deductions'); ?>
           <?php echo ViewSideBarLink('employee_govshares'); ?>
@@ -94,10 +93,12 @@
               <?php echo ViewSideBarLink('config_earnings'); ?>
               <?php echo ViewSideBarLink('config_deductions'); ?>
               <?php echo ViewSideBarLink('govshares'); ?>
+              <?php echo ViewSideBarLink('emergency_payroll_delete'); ?>
               <?php echo ViewSideBarLink('payroll_settings'); ?>
               <?php echo ViewSideBarLink('config_leave_types'); ?>
               <?php echo ViewSideBarLink('signatories'); ?>
               <?php echo ViewSideBarLink('change_password'); ?>
+              <?php echo ViewSideBarLink('user_management'); ?>
               <?php echo ViewSideBarLink('database_backup'); ?>
             </ul>
           </li>

@@ -184,26 +184,15 @@ function ViewSideBarLink($link_name){
                                         </li>';
                 }
             break;
-        case 'admin_settings':
-                if($user_role == "Administrator"){
+        case 'user_management':
+                if($user_role == "Administrator" || $manage_system){
                     $link_text = '<li class="nav-item">
-                                    <a href="#" class="nav-link">
-                                    <i class="nav-icon fas fa-cogs"></i>
+                                    <a href="../admin/user_management.php" class="nav-link" id="user_management">
+                                    <i class="nav-icon fas fa-user-check"></i>
                                     <p>
-                                        Settings
-                                        <i class="right fas fa-angle-left"></i>
+                                        User Management
                                     </p>
                                     </a>
-                                    <ul class="nav nav-treeview">
-                                        <li class="nav-item">
-                                            <a href="user_management.php" class="nav-link" id="user_management">
-                                            <i class="nav-icon fas fa-user-check"></i>
-                                            <p>
-                                                User Management
-                                            </p>
-                                            </a>
-                                        </li>
-                                    </ul>
                                 </li>';
                 }
             break;
@@ -327,6 +316,19 @@ function ViewSideBarLink($link_name){
                                     <i class="nav-icon fas fa-cog"></i>
                                     <p>
                                         Government Shares
+                                    </p>
+                                    </a>
+                                </li>';
+                }
+            break;
+
+        case 'emergency_payroll_delete':
+            if($user_role == "Administrator" && $manage_system){
+                    $link_text = '<li class="nav-item">
+                                    <a href="../admin/emergency_payroll_delete.php" class="nav-link" id="emergency_payroll_delete">
+                                    <i class="nav-icon fas fa-exclamation-triangle"></i>
+                                    <p>
+                                        Emergency Delete
                                     </p>
                                     </a>
                                 </li>';
@@ -623,14 +625,18 @@ function ViewUserEmployees(){
         $count = 0;
         foreach($employee_users as $key => $value) {
             $count++;
+            
+            $emp_id = empty($value['employee_id']) ? 0 : $value['employee_id'];
+            $employee_name = empty($value['employee_id']) ? '<span class="text-danger"><i>No Employee Data</i></span>' : '<a href="employee_profile.php?emp_id='.$value['employee_id'].'">' . trim($value['firstname'] . " " . $value['middlename'] . " " . $value['lastname'] . " " . $value['extension']) . '</a>';
+            
             echo '<tr>
                     <td>' . $count . '</td>
                     <td>' . $value['username'] . '</td>
                     <td>' . $value['mobile'] . '</td>
-                    <td><a href="employee_profile.php?emp_id='.$value['employee_id'].'">' . $value['firstname'] . " " . $value['middlename'] . " " . $value['lastname'] . " " . $value['extension'] . '</a></td>
+                    <td>' . $employee_name . '</td>
                     <td class="text-center">
                         <div class="btn-group action-buttons-group">
-                            <button class="btn btn-warning btn-sm" onclick="UnlinkUser('.$value['employee_id'].','.$value['userID'].')" data-toggle="tooltip" title="Unlink User" data-placement="bottom">
+                            <button class="btn btn-warning btn-sm" onclick="UnlinkUser('.$emp_id.','.$value['userID'].')" data-toggle="tooltip" title="Unlink User" data-placement="bottom">
                                 <i class="fa fa-user-minus"></i> Unlink
                             </button>
                             <button class="btn btn-success btn-sm" onclick="EditUser('.$value['userID'].')" data-toggle="tooltip" title="Edit" data-placement="bottom">

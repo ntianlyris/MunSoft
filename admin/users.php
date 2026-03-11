@@ -105,6 +105,13 @@
 
 <script>
   $(function () {
+    //Initialize Select2 Elements
+    $('.select2').select2({
+      theme: 'bootstrap4',
+      width: '100%',
+      dropdownParent: $('#user_employee_modal') // ensures it works inside modal
+    });
+
     $("#example1").DataTable({
       "responsive": false, 
       "lengthChange": false, 

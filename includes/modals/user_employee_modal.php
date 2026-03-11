@@ -19,7 +19,7 @@
                                     <div class="form-group row">
                                         <label class="col-sm-4">Registered User:</label>
                                         <div class="col-sm-8">          
-                                            <select id="cmbUser" class="form-control form-control-sm" placeholder="" required>
+                                            <select id="cmbUser" class="form-control form-control-sm select2" placeholder="" required>
                                                 <option value="" selected disabled hidden>Select User...</option>       
                                                 <?php
                                                     include_once('../includes/class/Admin.php'); 
@@ -37,7 +37,7 @@
                                     <div class="form-group row">
                                         <label class="control-label col-sm-4">Employee Data:</label>
                                         <div class="col-sm-8">
-                                            <select id="cmbEmployeeData" class="form-control form-control-sm" placeholder="" required>
+                                            <select id="cmbEmployeeData" class="form-control form-control-sm select2" placeholder="" required>
                                                 <option value="" selected disabled hidden>Select Employee Data...</option>
                                                 <?php
                                                     include_once('../includes/class/Employee.php'); 

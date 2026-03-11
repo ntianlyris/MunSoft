@@ -116,16 +116,26 @@ if (isset($_POST['action'])){
 			$role_id = 0;	// default role id for no role
 
 			# update userid table of employees tbl with the user id given # update the role id in roles tbl using the user id given
-			if($MyEmployee->UpdateUserIDOfEmployee($employee_id, "")){
+			if ($employee_id == 0 || $employee_id == null || $employee_id == '0') {
+				// The employee data was likely manually removed; just unlink the user account role safely
 				if($UserEmployeeRole->UpdateUserRole($user_id, $role_id)){
 					$json_data = '{"result":"success"}';
 				}
 				else{
 					$json_data = '{"result":"xxx"}'; 
 				}
-			}
-			else{
-				$json_data = '{"result":"xxx"}'; 
+			} else {
+				if($MyEmployee->UpdateUserIDOfEmployee($employee_id, "")){
+					if($UserEmployeeRole->UpdateUserRole($user_id, $role_id)){
+						$json_data = '{"result":"success"}';
+					}
+					else{
+						$json_data = '{"result":"xxx"}'; 
+					}
+				}
+				else{
+					$json_data = '{"result":"xxx"}'; 
+				}
 			}
 			echo $json_data;
 			break;
