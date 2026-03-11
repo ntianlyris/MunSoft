@@ -351,13 +351,14 @@ $payslip_history = [];
               <tr>
                 <th>Period</th>
                 <th>Gross</th>
+                <th>Deductions</th>
                 <th>Net Pay</th>
                 <th>Action</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td colspan="4" class="text-center text-muted"><i class="fas fa-spinner fa-spin"></i> Loading...</td>
+                <td colspan="5" class="text-center text-muted"><i class="fas fa-spinner fa-spin"></i> Loading...</td>
               </tr>
             </tbody>
           </table>
@@ -496,17 +497,17 @@ $payslip_history = [];
 
     payrolls.forEach(function (p) {
       cardHtml += '<div class="list-group-item p-3 border-bottom">' +
-                    '<div class="d-flex justify-content-between align-items-start">' +
-                      '<div><h6 class="mb-1">' + p.period_label + '</h6>' +
-                      '<small class="text-muted">' + (p.year || '') + '</small></div>' +
-                      '<div class="text-right"><div class="font-weight-bold">₱' + formatCurrency(p.net_pay) + '</div>' +
-                      '<small class="text-muted">Net Pay</small></div>' +
-                    '</div></div>';
+        '<div class="d-flex justify-content-between align-items-start">' +
+        '<div><h6 class="mb-1">' + p.period_label + '</h6>' +
+        '<small class="text-muted">' + (p.year || '') + '</small></div>' +
+        '<div class="text-right"><div class="font-weight-bold">₱' + formatCurrency(p.net_pay) + '</div>' +
+        '<small class="text-muted">Net Pay</small></div>' +
+        '</div></div>';
 
       modalHtml += '<tr><td>' + p.period_label + '</td>' +
-                     '<td>₱' + formatCurrency(p.gross) + '</td>' +
-                     '<td>₱' + formatCurrency(p.total_deductions) + '</td>' +
-                     '<td><strong>₱' + formatCurrency(p.net_pay) + '</strong></td></tr>';
+        '<td>₱' + formatCurrency(p.gross) + '</td>' +
+        '<td>₱' + formatCurrency(p.total_deductions) + '</td>' +
+        '<td><strong>₱' + formatCurrency(p.net_pay) + '</strong></td></tr>';
     });
 
     $('#payrollsSection .list-group').html(cardHtml);
@@ -518,11 +519,11 @@ $payslip_history = [];
     leaves.forEach(function (l) {
       var badge = l.status === 'Approved' ? 'success' : (l.status === 'Disapproved' ? 'danger' : 'warning');
       html += '<div class="list-group-item p-3 border-bottom">' +
-                '<div class="d-flex justify-content-between align-items-start">' +
-                  '<div><h6 class="mb-1">' + (l.leave_name || 'Leave Request') + '</h6>' +
-                  '<small class="text-muted">' + l.date_filed + '</small></div>' +
-                  '<div class="text-right"><span class="badge badge-' + badge + '">' + l.status + '</span></div>' +
-                '</div></div>';
+        '<div class="d-flex justify-content-between align-items-start">' +
+        '<div><h6 class="mb-1">' + (l.leave_name || 'Leave Request') + '</h6>' +
+        '<small class="text-muted">' + l.date_filed + '</small></div>' +
+        '<div class="text-right"><span class="badge badge-' + badge + '">' + l.status + '</span></div>' +
+        '</div></div>';
     });
     $('#leavesSection .list-group').html(html);
   }
@@ -538,13 +539,13 @@ $payslip_history = [];
       var label = e.employment_status == '1' ? 'Active' : 'Ended';
 
       html += '<div class="list-group-item p-3 border-bottom">' +
-                '<div class="d-flex justify-content-between align-items-start">' +
-                  '<div><h6 class="mb-1">' + pos + ' <small class="text-muted">(' + dept + ')</small></h6>' +
-                  '<small class="text-muted">' + start + ' — ' + end + '</small></div>' +
-                  '<div class="text-right"><div class="mb-2"><span class="badge badge-' + badge + '">' + label + '</span></div>' +
-                  '<a class="btn btn-sm btn-outline-primary" href="employment.php?emp_id=' + e.employee_id + '&employment_id=' + e.employment_id + '">' +
-                  '<i class="fas fa-eye"></i> View</a></div>' +
-                '</div></div>';
+        '<div class="d-flex justify-content-between align-items-start">' +
+        '<div><h6 class="mb-1">' + pos + ' <small class="text-muted">(' + dept + ')</small></h6>' +
+        '<small class="text-muted">' + start + ' — ' + end + '</small></div>' +
+        '<div class="text-right"><div class="mb-2"><span class="badge badge-' + badge + '">' + label + '</span></div>' +
+        '<a class="btn btn-sm btn-outline-primary" href="employment.php?emp_id=' + e.employee_id + '&employment_id=' + e.employment_id + '">' +
+        '<i class="fas fa-eye"></i> View</a></div>' +
+        '</div></div>';
     });
     $('#employmentsSection .list-group').html(html);
   }
@@ -568,7 +569,7 @@ $payslip_history = [];
           createPayslipYearSelector(response.data);
           loadPayslipsByYear(response.data[0]); // Auto-load latest year
         } else {
-          $('#payslipsModal table tbody').html('<tr><td colspan="4" class="text-center text-muted">No payslips available.</td></tr>');
+          $('#payslipsModal table tbody').html('<tr><td colspan="5" class="text-center text-muted">No payslips available.</td></tr>');
         }
       },
       error: function (err) {
@@ -579,11 +580,11 @@ $payslip_history = [];
   }
 
   function createPayslipYearSelector(years) {
-    var options = years.map(function(y) { return '<option value="' + y + '">' + y + '</option>'; }).join('');
+    var options = years.map(function (y) { return '<option value="' + y + '">' + y + '</option>'; }).join('');
     var html = '<div class="year-selector-container p-3 border-bottom"><div class="row align-items-center">' +
-                 '<div class="col-auto"><label class="mb-0">Year:</label></div>' +
-                 '<div class="col-md-3"><select id="payslipYearSelector" class="form-control form-control-sm" onchange="loadPayslipsByYear(this.value)">' +
-                 options + '</select></div></div></div>';
+      '<div class="col-auto"><label class="mb-0">Year:</label></div>' +
+      '<div class="col-md-3"><select id="payslipYearSelector" class="form-control form-control-sm" onchange="loadPayslipsByYear(this.value)">' +
+      options + '</select></div></div></div>';
 
     var container = $('#payslipsModal .table-responsive');
     container.find('.year-selector-container').remove();
@@ -592,8 +593,8 @@ $payslip_history = [];
 
   function loadPayslipsByYear(year) {
     if (!year) return;
-    
-    $('#payslipsModal table tbody').html('<tr><td colspan="4" class="text-center text-muted"><i class="fas fa-spinner fa-spin"></i> Loading records for ' + year + '...</td></tr>');
+
+    $('#payslipsModal table tbody').html('<tr><td colspan="5" class="text-center text-muted"><i class="fas fa-spinner fa-spin"></i> Loading records for ' + year + '...</td></tr>');
 
     $.ajax({
       url: 'get_payslip_months.php',
@@ -604,7 +605,7 @@ $payslip_history = [];
         if (response.success && response.data && response.data.length > 0) {
           populatePayslipsTable(response.data);
         } else {
-          $('#payslipsModal table tbody').html('<tr><td colspan="4" class="text-center text-muted">No data found for ' + year + '.</td></tr>');
+          $('#payslipsModal table tbody').html('<tr><td colspan="5" class="text-center text-muted">No data found for ' + year + '.</td></tr>');
         }
       },
       error: function (err) {
@@ -617,6 +618,7 @@ $payslip_history = [];
   function populatePayslipsTable(months) {
     var html = '';
     months.forEach(function (m) {
+      //var isReady = true && m.gross > 0;  //toggle this for testing downloadable
       var isReady = m.has_data && m.gross > 0;
       var btnClass = isReady ? 'btn btn-sm btn-primary' : 'btn btn-sm btn-secondary disabled';
       var btnIcon = isReady ? 'fas fa-download' : 'fas fa-lock';
@@ -627,11 +629,12 @@ $payslip_history = [];
       var displayNet = m.monthly_net || m.net_pay;
 
       html += '<tr>' +
-                '<td>' + m.label + '</td>' +
-                '<td>₱' + formatCurrency(m.gross) + '</td>' +
-                '<td>' + (isReady ? '<strong>₱' + formatCurrency(displayNet) + '</strong>' : '<span class="text-muted">—</span>') + '</td>' +
-                '<td><button class="' + btnClass + '" ' + btnAttr + '><i class="' + btnIcon + '"></i> ' + btnText + '</button></td>' +
-              '</tr>';
+        '<td>' + m.label + '</td>' +
+        '<td>₱' + formatCurrency(m.gross) + '</td>' +
+        '<td>₱' + formatCurrency(m.deductions) + '</td>' +
+        '<td>' + (isReady ? '<strong>₱' + formatCurrency(displayNet) + '</strong>' : '<span class="text-muted">—</span>') + '</td>' +
+        '<td><button class="' + btnClass + '" ' + btnAttr + '><i class="' + btnIcon + '"></i> ' + btnText + '</button></td>' +
+        '</tr>';
     });
     $('#payslipsModal table tbody').html(html);
   }
@@ -645,7 +648,7 @@ $payslip_history = [];
     form.action = '../prints/print_payslip.php';
     form.target = '_blank';
 
-    [ ['user_id', user_id], ['year', year], ['payroll_period', payroll_period] ].forEach(function(pair) {
+    [['user_id', user_id], ['year', year], ['payroll_period', payroll_period]].forEach(function (pair) {
       var input = document.createElement('input');
       input.type = 'hidden';
       input.name = pair[0];
@@ -662,9 +665,9 @@ $payslip_history = [];
   function showPayslipsModal() { $('#payslipsModal').modal('show'); }
 
   // Visual enhancement: Hover cards
-  $(document).on('mouseenter', '.clickable-card', function() {
+  $(document).on('mouseenter', '.clickable-card', function () {
     $(this).css({ 'transform': 'translateY(-5px)', 'box-shadow': '0 5px 15px rgba(0,0,0,0.15)', 'transition': 'all 0.3s ease' });
-  }).on('mouseleave', '.clickable-card', function() {
+  }).on('mouseleave', '.clickable-card', function () {
     $(this).css({ 'transform': 'translateY(0)', 'box-shadow': 'none' });
   });
 </script>
