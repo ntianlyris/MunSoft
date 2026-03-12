@@ -29,9 +29,9 @@
     	}
 
         public function AddAdminUser($employee_id){
-            $userID = $this->getUserID();
-            $employeeID = $employee_id;
-            $status = $this->Status;
+            $userID = $this->db->escape_string($this->getUserID());
+            $employeeID = $this->db->escape_string($employee_id);
+            $status = $this->db->escape_string($this->Status);
 
             if($this->isAdminExist($userID)){
                 $sql = "UPDATE admins_tbl 
@@ -204,6 +204,7 @@
 
         public function RemoveAdminUser($admin_id){
             $user_id = '';
+            $admin_id = $this->db->escape_string($admin_id);
             if($admin = $this->getAdminInfoByAdminID($admin_id)){
                 $user_id = $admin['userID'];
             }

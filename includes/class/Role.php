@@ -16,6 +16,7 @@ class Role
 
     public static function getRolePerms($roleID) {
         $role = new Role();
+        $roleID = $role->db->escape_string($roleID);
         $sql = "SELECT b.perm_desc FROM role_perm_tbl a
                 JOIN permissions_tbl b 
                 ON a.perm_id = b.perm_id
@@ -37,6 +38,7 @@ class Role
     // return a perm id with associated permissions
     public static function getRolePermID($roleID) {
         $role = new Role();
+        $roleID = $role->db->escape_string($roleID);
         $sql = "SELECT b.perm_id FROM role_perm_tbl a
                 JOIN permissions_tbl b 
                 ON a.perm_id = b.perm_id
@@ -109,6 +111,8 @@ class Role
     // insert array of roles for specified user id
     public static function AddUserRoles($user_id, $role_id) {
         $role = new Role();
+        $user_id = $role->db->escape_string($user_id);
+        $role_id = $role->db->escape_string($role_id);
 
         $query = "SELECT * FROM user_role_tbl WHERE userID = '$user_id';";
 
@@ -136,6 +140,8 @@ class Role
 
     // update roles for specified user id
     public function UpdateUserRole($user_id, $role_id) {
+            $user_id = $this->db->escape_string($user_id);
+            $role_id = $this->db->escape_string($role_id);
             $sql = "UPDATE user_role_tbl
                         SET roleID = '".$role_id."'
                         WHERE userID ='".$user_id."'";
@@ -150,6 +156,7 @@ class Role
     // insert a new role
     public static function insertRole($role_name) {
         $role = new Role();
+        $role_name = $role->db->escape_string($role_name);
 
         $query = "SELECT * FROM roles_tbl WHERE roleName = '$role_name'";
 
@@ -166,7 +173,7 @@ class Role
 
             $query = $role->db->query($sql) or die($role->db->error);
             if($query){
-                return $role->db->insert_id();
+                return $role->db->last_id();
             }
             else{return false;}
         }
@@ -175,6 +182,8 @@ class Role
     // update role name
     public static function updateRoleName($role_id, $role_name) {
         $role = new Role();
+        $role_id = $role->db->escape_string($role_id);
+        $role_name = $role->db->escape_string($role_name);
         $sql = "UPDATE roles_tbl SET roleName = '$role_name' WHERE roleID = '$role_id'";
         return $role->db->query($sql) or die($role->db->error);
     }
@@ -200,6 +209,7 @@ class Role
     // delete ALL roles for specified user id
     public static function deleteUserRoles($user_id) {
         $role = new Role();
+        $user_id = $role->db->escape_string($user_id);
         $sql = "DELETE FROM user_role_tbl WHERE userID = '$user_id'";
         
         $query = $role->db->query($sql) or die($role->db->error);
@@ -214,6 +224,7 @@ class Role
     // delete ALL permissions for specified role id
     public static function deleteRolePerms($role_id) {
         $role = new Role();
+        $role_id = $role->db->escape_string($role_id);
         $sql = "DELETE FROM role_perm_tbl WHERE roleID = '$role_id'";
         
         $query = $role->db->query($sql) or die($role->db->error);
@@ -227,9 +238,14 @@ class Role
     // delete role entirely
     public static function deleteRole($role_id) {
         $role = new Role();
+        $role_id = $role->db->escape_string($role_id);
         
         // delete associated permissions first
         if($role->deleteRolePerms($role_id)){
+            // Also delete user assignments to prevent orphaned records
+            $sql_user = "DELETE FROM user_role_tbl WHERE roleID = '$role_id'";
+            $role->db->query($sql_user) or die($role->db->error);
+
             $sql = "DELETE FROM roles_tbl WHERE roleID = '$role_id'";
             $query = $role->db->query($sql) or die($role->db->error);
 

@@ -1,71 +1,28 @@
 <?php
+/**
+ * INTELLIGOV VIEW INITIALIZATION
+ * 
+ * This file handles the setup of global permissions and roles using the AccessControl class.
+ * It ensures that navigation and action buttons are rendered based on user privileges.
+ */
+
 include_once '../includes/view/functions.php';
-include_once('../includes/class/Admin.php');
-include_once('../includes/class/Role.php');
+include_once '../includes/class/Admin.php';
+include_once '../includes/class/AccessControl.php';
 
+// Instantiate core classes
 $MyAdmin = new Admin();
-$user_id = $MyAdmin->getSessionUID();
-$roles = $MyAdmin->initRoles($user_id);
-$role = "";
-$perms = [];  // Initialize as empty array
+$Access = new AccessControl($MyAdmin);
 
-foreach ($roles as $key => $value) {
-    $role = $key;
-    foreach ($value as $k => $v) {
-        $perms[] = $v;
-    }
-}
-
-$admin_perms = $perms;
-$manage_system = false;
-$update_data = false;
-$manage_hr = false;
-$manage_payroll = false;
-$access_hr = false;
-$access_payroll = false;
-
-if (in_array('Manage System', $admin_perms, true)) {
-    $manage_system = true;
-}
-if (in_array('Update Data', $admin_perms, true)) {
-    $update_data = true;
-}
-if (in_array('Manage HR', $admin_perms, true)) {
-    $manage_hr = true;
-}
-if (in_array('Manage Payroll', $admin_perms, true)) {
-    $manage_payroll = true;
-}
-if (in_array('Access HR', $admin_perms, true)) {
-    $access_hr = true;
-}
-if (in_array('Access Payroll', $admin_perms, true)) {
-    $access_payroll = true;
-}
-
-// Master Bypass for Manage System
-if ($manage_system) {
-    $update_data = true;
-    $manage_hr = true;
-    $manage_payroll = true;
-    $access_hr = true;
-    $access_payroll = true;
-}
-
-// Store user role and permissions in global variables
-$GLOBALS['manage_system'] = $manage_system;
-$GLOBALS['update_data'] = $update_data;
-$GLOBALS['manage_hr'] = $manage_hr;
-$GLOBALS['manage_payroll'] = $manage_payroll;
-$GLOBALS['access_hr'] = $access_hr;
-$GLOBALS['access_payroll'] = $access_payroll;
-$GLOBALS['role'] = $role;
-$GLOBALS['user_id'] = $user_id;
-$GLOBALS['user_role_for_js'] = isset($role) ? $role : 'Guest';
+// Sync permissions to $GLOBALS for backward compatibility with nested functions
+$Access->syncToGlobals();
 ?>
 <script>
-    // Set the global user role variable that head.php checks
-    window.currentUserRole = '<?php echo htmlspecialchars(isset($GLOBALS['user_role_for_js']) ? $GLOBALS['user_role_for_js'] : 'Guest', ENT_QUOTES, 'UTF-8'); ?>';
+    /**
+     * GLOBAL AUTHENTICATION DATA
+     * Used by client-side scripts to toggle UI elements or validate routes.
+     */
+    window.currentUserRole = '<?php echo htmlspecialchars($Access->roleName, ENT_QUOTES, 'UTF-8'); ?>';
 </script>
 <?php
 
@@ -80,7 +37,7 @@ function ViewSideBarLink($link_name)
     $manage_payroll = $GLOBALS['manage_payroll'];
     $access_hr = $GLOBALS['access_hr'];
     $access_payroll = $GLOBALS['access_payroll'];
-    
+
     $link_text = '';
     switch ($link_name) {
         case 'users':
@@ -644,7 +601,7 @@ function ViewEmployeeEmployments($employee_id)
             $employment_end = ($value['employment_status'] == 1 && ($value['employment_end'] == "0000-00-00" || empty($value['employment_end']))) ? "PRESENT" : OutputShortDate($value['employment_end']);
 
             $department_assigned = $MyDepartment->GetDepartmentDetails($value['dept_assigned'])['dept_title'];
-            
+
             $delete_btn = $GLOBALS['manage_hr'] ? '
                             <button class="btn btn-danger btn-sm" onclick="DeleteEmployment(' . $value["employment_id"] . ',' . $value["position_id"] . ')" data-toggle="tooltip" title="Delete" data-placement="bottom">
                                 <i class="fa fa-times"></i>

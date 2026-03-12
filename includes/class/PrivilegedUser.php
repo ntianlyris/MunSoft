@@ -105,6 +105,8 @@ class PrivilegedUser extends User
     // insert a new role permission association
     public static function insertPerm($role_id, $perm_id) {
         $privUser = new PrivilegedUser();
+        $role_id = $privUser->db->escape_string($role_id);
+        $perm_id = $privUser->db->escape_string($perm_id);
         $sql = "INSERT INTO role_perm_tbl (roleID, perm_id) VALUES ('".$role_id."', '".$perm_id."')";
         $query = $privUser->db->query($sql) or die($privUser->db->error);
         if($query){
