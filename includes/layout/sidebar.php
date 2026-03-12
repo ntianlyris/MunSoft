@@ -1,4 +1,19 @@
 <?php include_once "../includes/view/view.php"; ?>
+<?php 
+  include_once "../includes/class/EmployeePhoto.php";
+  $MyPhoto = new EmployeePhoto();
+  $sidebar_user_id = $GLOBALS['user_id'];
+  $sidebar_employee_id = $MyAdmin->getEmployeeIDByUserId($sidebar_user_id);
+  $sidebar_user_photo = "../includes/images/avatar.jpg";
+  if ($sidebar_employee_id) {
+      $photo_data = $MyPhoto->getPhotoByEmployeeID($sidebar_employee_id);
+      if ($photo_data) {
+          // The path in DB is relative to root, e.g., assets/images/employees/xxx.jpg
+          // From subdirectories like admin/ or payroll/, we need to prepend ../
+          $sidebar_user_photo = "../" . $photo_data['photo_path'];
+      }
+  }
+?>
 
 <!-- Main Sidebar Container -->
 <aside class="main-sidebar sidebar-dark-primary elevation-4">
@@ -13,7 +28,7 @@
       <!-- Sidebar user panel (optional) -->
       <div class="user-panel mt-3 pb-3 mb-3 d-flex">
         <div class="image">
-          <img src="../includes/images/avatar.jpg" class="img-circle elevation-2" alt="User Image">
+          <img src="<?php echo $sidebar_user_photo; ?>" class="img-circle elevation-2" alt="User Image">
         </div>
         <div class="info">
           <a href="#" class="d-block"><?php echo $_SESSION['emailusername']; ?></a>
