@@ -3,8 +3,8 @@
 include_once("DB_interface.php");
 
 define('DB_SERVER', 'localhost');
-define('DB_USERNAME', 'root');
-define('DB_PASSWORD', '');
+define('DB_USERNAME', 'acctg_polanco');
+define('DB_PASSWORD', 'Vmo9ulk6JPVJWR@Polanco');
 define('DB_DATABASE', 'munsoft_polanco');
 
 class DB_conn implements DB
