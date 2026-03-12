@@ -511,6 +511,70 @@
 
     .is-invalid { border-color: #dc3545 !important; background: rgba(220, 53, 69, 0.05) !important; }
     .text-red { color: #dc3545 !important; font-size: 0.75rem; margin-top: 4px; display: block; }
+
+    /* ── PRIVACY MODAL ── */
+    #privacy-overlay {
+      position: fixed; inset: 0; z-index: 300;
+      background: rgba(4,6,20,0.92);
+      backdrop-filter: blur(15px);
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.4s ease;
+    }
+    #privacy-overlay.show { opacity: 1; pointer-events: all; }
+
+    .privacy-card {
+      background: linear-gradient(145deg, rgba(15,22,55,0.98), rgba(10,15,46,1));
+      border: 1px solid rgba(41,182,246,0.25);
+      border-radius: 24px;
+      padding: 0;
+      width: 100%; max-width: 800px;
+      max-height: 85vh;
+      box-shadow: 0 40px 100px rgba(0,0,0,0.8);
+      position: relative; overflow: hidden;
+      display: flex; flex-direction: column;
+    }
+
+    .privacy-header {
+      padding: 24px 40px;
+      border-bottom: 1px solid var(--glass-border);
+      background: rgba(255,255,255,0.02);
+    }
+    .privacy-header h2 {
+      font-family: 'Syne', sans-serif; font-size: 1.5rem; font-weight: 800;
+      margin: 0; color: var(--cyan);
+    }
+    .privacy-header p { font-size: 0.85rem; color: var(--muted); margin: 5px 0 0; }
+
+    .privacy-body {
+      padding: 40px;
+      overflow-y: auto;
+      font-size: 0.92rem; color: rgba(173,210,255,0.85);
+      line-height: 1.8;
+    }
+    .privacy-body h3 {
+      font-family: 'Syne', sans-serif; font-size: 1.1rem; color: #fff;
+      margin: 25px 0 12px;
+    }
+    .privacy-body p { margin-bottom: 15px; }
+    .privacy-body ul { margin-bottom: 15px; padding-left: 20px; list-style-type: square; }
+    .privacy-body li { margin-bottom: 8px; }
+
+    .privacy-footer {
+      padding: 20px 40px;
+      border-top: 1px solid var(--glass-border);
+      background: rgba(255,255,255,0.02);
+      text-align: right;
+    }
+
+    .privacy-close-btn {
+      background: rgba(255,255,255,0.06); border: 1px solid var(--glass-border);
+      color: #fff; padding: 10px 24px; border-radius: 10px;
+      cursor: pointer; font-family: 'Syne', sans-serif; font-weight: 700;
+      transition: background 0.2s;
+    }
+    .privacy-close-btn:hover { background: rgba(255,255,255,0.12); }
   </style>
 </head>
 
@@ -605,6 +669,72 @@
         </div>
 
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- PRIVACY MODAL -->
+<div id="privacy-overlay" onclick="if(event.target.id === 'privacy-overlay') hidePrivacy()">
+  <div class="privacy-card reveal visible">
+    <div class="privacy-header">
+      <h2>PRIVACY NOTICE</h2>
+      <p>IntelliGov: Intelligent Payroll Management System | LGU Polanco, Zamboanga del Norte</p>
+    </div>
+    <div class="privacy-body">
+      <h3>1. Introduction</h3>
+      <p>The Office of the Municipal Accountant of LGU Polanco ("the Office") is committed to protecting the privacy and security of the personal and sensitive personal information of all municipal employees. This Privacy Notice explains how IntelliGov collects, processes, and stores your data in accordance with the Data Privacy Act of 2012.</p>
+      
+      <h3>2. Data We Collect</h3>
+      <p>To facilitate accurate payroll processing and statutory compliance, IntelliGov processes the following information:</p>
+      <ul>
+        <li><strong>Personal Identification:</strong> Full name, employee ID number, and position/designation.</li>
+        <li><strong>Salary & Compensation:</strong> Basic Pay, PERA, RATA, and other authorized allowances.</li>
+        <li><strong>Statutory Identification:</strong> GSIS, PhilHealth, and Pag-IBIG membership numbers, and BIR TIN.</li>
+        <li><strong>Deductions:</strong> Loan amortizations, tax withholdings, and mandatory contributions.</li>
+      </ul>
+      <p><em>Note: IntelliGov does not collect, store, or process employee bank account numbers. Payroll distribution remains subject to existing LGU disbursement protocols.</em></p>
+
+      <h3>3. Purpose of Processing</h3>
+      <p>Your data is processed strictly for the following purposes:</p>
+      <ul>
+        <li>Calculation of monthly and supplemental payrolls.</li>
+        <li>Generation of Payroll Registers (GOP) and individual Payslips.</li>
+        <li>Preparation of mandatory remittance files for GSIS, PhilHealth, Pag-IBIG, and BIR.</li>
+        <li>Internal accounting audits and budget monitoring.</li>
+      </ul>
+
+      <h3>4. Data Storage and Local Hosting</h3>
+      <p>IntelliGov is hosted locally on a secured server managed by the Office of the Municipal Accountant. Your data is not stored in the cloud nor transferred to any external third-party hosting providers. Access is restricted to authorized personnel through Role-Based Access Control (RBAC).</p>
+
+      <h3>5. Data Sharing and Disclosure</h3>
+      <p>We only share your information with the following government agencies as required by law:</p>
+      <ul>
+        <li><strong>GSIS, PhilHealth, and Pag-IBIG:</strong> For membership contributions and loan remittances.</li>
+        <li><strong>Bureau of Internal Revenue (BIR):</strong> For income tax reporting (Form 1601-C).</li>
+        <li><strong>Commission on Audit (COA):</strong> For official auditing purposes.</li>
+      </ul>
+
+      <h3>6. Data Retention</h3>
+      <p>Payroll records are retained in the IntelliGov system for the duration required by the National Archives of the Philippines (NAP) and COA regulations. Once the retention period expires, physical and digital records will be disposed of via secure shredding or permanent digital deletion.</p>
+
+      <h3>7. Your Rights</h3>
+      <p>Under the Data Privacy Act, you have the right to:</p>
+      <ol style="margin-left: 20px; margin-bottom: 15px;">
+        <li>Access your payroll data.</li>
+        <li>Correct or update any inaccuracies in your records.</li>
+        <li>Object to processing in case of unauthorized use.</li>
+        <li>File a complaint if you feel your privacy rights have been violated.</li>
+      </ol>
+
+      <h3>8. Contact Information</h3>
+      <p>For any concerns regarding your data privacy, please contact:</p>
+      <p style="color: #fff; font-weight: 600;">Proserphine G. Godinez, CPA</p>
+      <p>Municipal Accountant<br>
+      Office of the Municipal Accountant, LGU Polanco<br>
+      Polanco, Zamboanga del Norte</p>
+    </div>
+    <div class="privacy-footer">
+      <button class="privacy-close-btn" onclick="hidePrivacy()">I Understand</button>
     </div>
   </div>
 </div>
@@ -773,6 +903,7 @@
     <div class="footer-links">
       <h4>Resources</h4>
       <ul>
+        <li><a href="#" onclick="showPrivacy(event)">Privacy Notice</a></li>
         <li><a href="#">Security Protocols</a></li>
         <li><a href="#">Compliance Center</a></li>
         <li><a href="#">Internal Documentation</a></li>
@@ -896,6 +1027,17 @@
     if (e.target.id === 'login-overlay') hideLogin();
   }
 
+  // ── PRIVACY UI ──
+  function showPrivacy(e) {
+    if (e) e.preventDefault();
+    document.getElementById('privacy-overlay').classList.add('show');
+    document.body.style.overflow = 'hidden';
+  }
+  function hidePrivacy() {
+    document.getElementById('privacy-overlay').classList.remove('show');
+    document.body.style.overflow = '';
+  }
+
   function switchTab(tab) {
     const tabs = document.getElementById('auth-tabs');
     const track = document.getElementById('auth-forms-track');
@@ -911,7 +1053,12 @@
     }
   }
 
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') hideLogin(); });
+  document.addEventListener('keydown', e => { 
+    if (e.key === 'Escape') {
+      hideLogin();
+      hidePrivacy();
+    }
+  });
 
   // ── SCROLL REVEAL ──
   const revealEls = document.querySelectorAll('.reveal');
