@@ -50,6 +50,9 @@
 - Per-employee breakdowns available for both Loans and Other Payables (e.g. PhilAm Life, PMGEA dues).
 - PDF printing supported for remittance details.
 - **Known schema issue (see Section 5):** The `remittance_details` table only stores aggregated amounts per employee per type; granular deduction-level storage requires a database schema enhancement with additional columns (`config_deduction_id`, `govshare_id`, `employee_share`, `employer_share`).
+- **Consistency Fix (Mar 12, 2026):** Implemented strict filtering to ensure remittances are only generated from payrolls with `APPROVED` or `PAID` status.
+- **Auto-Cleanup Logic:** Added automatic deletion of existing `remittance_details` records before saving new ones during remittance regeneration. This ensures that corrected payroll deductions (like the Pagibig MPL loan case) are accurately reflected and stale data is replaced.
+- **UI & Feedback Enhancements (Mar 12, 2026):** Integrated SweetAlert2 for all notifications, added a loading spinner (`#Loader`) for background processing feedback, and implemented a confirmation dialog before save operations.
 
 ### 2.7 Payslip Generation & Printing
 - Payslips generated per employee per pay period with full earnings/deductions breakdowns.
@@ -109,6 +112,12 @@ A dual-layer security restriction has been implemented to control access to empl
 - **Dual-Layer Enforcement:** 
   - *Frontend:* Blocks UI elements in `employee/index.php` with disabled "Locked" buttons if eligibility fails.
   - *Backend Gatekeeper:* The `Payslip->IsPayslipDownloadable()` method intercepts direct PDF API generation (`prints/print_payslip.php`) and internal previews (`payroll/payslip_handler.php`), outright neutralizing URL/Endpoint manipulation exploits.
+
+### 3.4 Remittance Save Blocking (Mar 12, 2026)
+To maintain the integrity of finalized financial reports, a blocking mechanism prevents updating or regenerating remittances once they are officially remitted:
+- **Locking Criteria:** Any remittance record with `status = 'Remitted'` is considered locked.
+- **Backend Gatekeeper:** The `Remittance->IsRemittanceLocked($period, $types)` method performs an atomic check against the `remittances` table before any save or delete operation in the `SaveRemittances` flow.
+- **Atomic Operations:** If even one remittance type in a batch (e.g., GSIS in a monthly run) is locked, the entire batch save is blocked to ensure consistency.
 
 ---
 

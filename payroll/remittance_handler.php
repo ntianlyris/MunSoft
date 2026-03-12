@@ -207,8 +207,24 @@ if($action = isset($_POST['action'])?$_POST['action']:'') {
                 "other_deductions" => $data['others']       // <-- Pass the other deductions array here
             ];
 
+            // BLOCKER: Check if any of these remittances are already locked (status = 'Remitted')
+            $remit_types_to_save = array_keys($totals);
+            $lock_check = $Remittance->IsRemittanceLocked($period, $remit_types_to_save);
+
+            if ($lock_check['locked']) {
+                header('Content-Type: application/json');
+                echo json_encode([
+                    "success" => false,
+                    "reason" => "remitted",
+                    "locked_types" => $lock_check['locked_types'],
+                    "message" => "Operation Blocked: The following remittance types for this period are already marked as 'Remitted' and cannot be modified: " . implode(", ", $lock_check['locked_types'])
+                ]);
+                break;
+            }
+
             $success = $Remittance->SaveRemittances($remittance_arr, $status, $orNo, $refNo);
 
+            header('Content-Type: application/json');
             echo json_encode([
                 "success" => $success ? true : false,
                 "message" => $success ? "Remittance saved successfully." : "Failed to save remittance."

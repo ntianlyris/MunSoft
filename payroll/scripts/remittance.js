@@ -28,7 +28,13 @@ $(document).ready(function() {
                     }
                 },
                 error: function() {
-                    alert("Error fetching remittance periods. Please try again.");
+                    Swal.fire({
+                        title: 'Error',
+                        text: "Error fetching remittance periods. Please try again.",
+                        icon: 'error',
+                        confirmButtonColor: '#dc3545',
+                        confirmButtonText: 'Ok'
+                    });
                 }
             });
         } else {
@@ -51,7 +57,13 @@ $(document).on('click', '#btnGenerateRemittance', function () {
     //let dept = $('#remitDept').val();
 
     if (!year || !period) {
-        alert("Please select Year and Pay Period.");
+        Swal.fire({
+            title: 'Selection Required',
+            text: "Please select Year and Pay Period.",
+            icon: 'warning',
+            confirmButtonColor: '#ffc107',
+            confirmButtonText: 'Ok'
+        });
         return;
     }
 
@@ -198,7 +210,13 @@ $(document).on('click', '#btnGenerateRemittance', function () {
         },
         error: function (xhr, status, error) {
             console.error(error);
-            alert("Failed to load remittance data.");
+            Swal.fire({
+                title: 'Data Load Error',
+                text: "Failed to load remittance data.",
+                icon: 'error',
+                confirmButtonColor: '#dc3545',
+                confirmButtonText: 'Ok'
+            });
         },
         complete: function() {
             // Minimum 800ms delay to show spinner
@@ -218,7 +236,13 @@ $(document).on('click', '.view-breakdown', function() {
     let period = $('#remitPeriod').val();
 
     if (!period) {
-        alert("Please select a remittance period first.");
+        Swal.fire({
+            title: 'Period Required',
+            text: "Please select a remittance period first.",
+            icon: 'info',
+            confirmButtonColor: '#17a2b8',
+            confirmButtonText: 'Ok'
+        });
         return;
     }
 
@@ -298,33 +322,88 @@ $(document).on('click', '#btnSaveRemittance', function () {
     let refNumber = $('#remitRefNo').val();
 
     if (!year || !period) {
-        alert("Please select Year and Pay Period before saving.");
+        Swal.fire({
+            title: 'Selection Required',
+            text: "Please select Year and Pay Period before saving.",
+            icon: 'warning',
+            confirmButtonColor: '#ffc107',
+            confirmButtonText: 'Ok'
+        });
         return;
     }
 
-    // Send to PHP
-    $.ajax({
-        url: "remittance_handler.php",
-        type: "POST",
-        data: {
-            action: "save_remittance",
-            year: year,
-            period: period,
-            status: status,
-            or_number: orNumber,
-            reference_no: refNumber
-        },
-        dataType: "json",
-        success: function (response) {
-            if (response.success) {
-                alert("Remittance saved successfully with status: " + status);
-            } else {
-                alert("Failed to save: " + response.message);
-            }
-        },
-        error: function (xhr, status, error) {
-            console.error(error);
-            alert("Error saving remittance.");
+    // Confirmation dialog
+    Swal.fire({
+        title: 'Confirm Save',
+        text: "Are you sure you want to save/update these remittances? This will overwrite existing data for this period (unless already remitted).",
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#28a745',
+        cancelButtonColor: '#dc3545',
+        confirmButtonText: 'Yes, Save',
+        cancelButtonText: 'Cancel'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Show loader
+            $('#Loader').fadeIn();
+
+            // Send to PHP
+            $.ajax({
+                url: "remittance_handler.php",
+                type: "POST",
+                data: {
+                    action: "save_remittance",
+                    year: year,
+                    period: period,
+                    status: status,
+                    or_number: orNumber,
+                    reference_no: refNumber
+                },
+                dataType: "json",
+                success: function (response) {
+                    if (response.success) {
+                        Swal.fire({
+                            title: 'Success',
+                            text: "Remittance saved successfully with status: " + status,
+                            icon: 'success',
+                            confirmButtonColor: '#28a745',
+                            confirmButtonText: 'Ok'
+                        });
+                    } else if (response.reason === 'remitted') {
+                        Swal.fire({
+                            title: 'Operation Blocked',
+                            text: response.message,
+                            icon: 'error',
+                            confirmButtonColor: '#dc3545',
+                            confirmButtonText: 'Ok'
+                        });
+                    } else {
+                        Swal.fire({
+                            title: 'Save Failed',
+                            text: "Failed to save: " + response.message,
+                            icon: 'error',
+                            confirmButtonColor: '#dc3545',
+                            confirmButtonText: 'Ok'
+                        });
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error(error);
+                    Swal.fire({
+                        title: 'Operation Failed',
+                        text: "Error saving remittance.",
+                        icon: 'error',
+                        confirmButtonColor: '#dc3545',
+                        confirmButtonText: 'Ok'
+                    });
+                },
+                complete: function() {
+                    // Minimum 800ms delay to show spinner
+                    setTimeout(function () {
+                        $('#Loader').fadeOut();
+                    }, 800);
+                }
+            });
         }
     });
 });
@@ -334,7 +413,13 @@ $('#btnViewRemittances').on('click', function() {
   let type = $('#remitType').val();
 
   if (!year || !type) {
-    alert("Please select both Year and Remittance Type.");
+    Swal.fire({
+        title: 'Input Required',
+        text: "Please select both Year and Remittance Type.",
+        icon: 'info',
+        confirmButtonColor: '#17a2b8',
+        confirmButtonText: 'Ok'
+    });
     return;
   }
     // Fetch and display remittances 

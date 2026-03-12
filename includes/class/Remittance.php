@@ -21,6 +21,36 @@ class Remittance {
         }
     }
 
+    public function IsRemittanceLocked($period, $types) {
+        if (empty($types)) return ['locked' => false, 'locked_types' => []];
+
+        $period_parts = explode("_", $period);
+        $period_start = $this->db->escape_string(trim($period_parts[0]));
+        $period_end   = $this->db->escape_string(trim($period_parts[1]));
+
+        $types_escaped = array_map(function($t) { return "'" . $this->db->escape_string($t) . "'"; }, $types);
+        $types_str = implode(",", $types_escaped);
+
+        $sql = "SELECT remittance_type FROM remittances 
+                WHERE period_start = '$period_start' 
+                AND period_end = '$period_end' 
+                AND remittance_type IN ($types_str) 
+                AND status = 'Remitted'";
+        
+        $result = $this->db->query($sql);
+        $locked_types = [];
+        if ($result && $this->db->num_rows($result) > 0) {
+            while ($row = $this->db->fetch_array($result)) {
+                $locked_types[] = $row['remittance_type'];
+            }
+        }
+
+        return [
+            'locked' => !empty($locked_types),
+            'locked_types' => $locked_types
+        ];
+    }
+
     public function GetRemittancePhilHealth($year, $period) {        //  public function GetRemittancePhilHealth($year, $period, $dept)
         //$deptCondition = $dept !== '' ? "AND a.dept_id = '$dept'" : "";       --> in case department field is added in payroll_entries table in the future
         list($start_date, $end_date) = explode('_', $period); // Split to get start and end
@@ -82,6 +112,7 @@ class Remittance {
                 ) gov ON gov.payroll_entry_id = a.payroll_entry_id
 
                 WHERE emp.employment_status = '1'
+                AND a.status IN ('APPROVED', 'PAID')
                 AND YEAR(pp.date_start) = '$year'
                 AND pp.date_start >= '$start_date'
                 AND pp.date_end <= '$end_date'
@@ -138,6 +169,7 @@ class Remittance {
                 ) ded ON ded.payroll_entry_id = a.payroll_entry_id
 
                 WHERE emp.employment_status = '1'
+                AND a.status IN ('APPROVED', 'PAID')
                 AND YEAR(pp.date_start) = '$year'
                 AND pp.date_start >= '$start_date'
                 AND pp.date_end <= '$end_date'
@@ -220,6 +252,7 @@ class Remittance {
                 ) gov ON gov.payroll_entry_id = a.payroll_entry_id
 
                 WHERE emp.employment_status = '1'
+                AND a.status IN ('APPROVED', 'PAID')
                 AND YEAR(pp.date_start) = '$year'
                 AND pp.date_start >= '$start_date'
                 AND pp.date_end <= '$end_date'
@@ -280,6 +313,7 @@ class Remittance {
                 ) gov ON gov.payroll_entry_id = a.payroll_entry_id
 
                 WHERE emp.employment_status = '1'
+                AND a.status IN ('APPROVED', 'PAID')
                 AND YEAR(pp.date_start) = '$year'
                 AND pp.date_start >= '$start_date'
                 AND pp.date_end <= '$end_date'
@@ -359,6 +393,7 @@ class Remittance {
                 ) gov ON gov.payroll_entry_id = a.payroll_entry_id
 
                 WHERE emp.employment_status = '1'
+                AND a.status IN ('APPROVED', 'PAID')
                 AND YEAR(pp.date_start) = '$year'
                 AND pp.date_start >= '$start_date'
                 AND pp.date_end <= '$end_date'
@@ -418,6 +453,7 @@ class Remittance {
                 ) ded ON ded.payroll_entry_id = a.payroll_entry_id
 
                 WHERE emp.employment_status = '1'
+                AND a.status IN ('APPROVED', 'PAID')
                 AND YEAR(pp.date_start) = '$year'
                 AND pp.date_start >= '$start_date'
                 AND pp.date_end <= '$end_date'
@@ -456,6 +492,7 @@ class Remittance {
                     ON e.deduction_type_id = f.deduction_type_id
                 INNER JOIN payroll_periods pp ON a.payroll_period_id = pp.payroll_period_id
                 WHERE emp.employment_status = '1'
+                AND a.status IN ('APPROVED', 'PAID')
                 AND YEAR(pp.date_start) = '$year'
                 AND pp.date_start >= '$start_date'
                 AND pp.date_end <= '$end_date'
@@ -493,6 +530,7 @@ class Remittance {
                     ON e.deduction_type_id = f.deduction_type_id
                 INNER JOIN payroll_periods pp ON a.payroll_period_id = pp.payroll_period_id
                 WHERE emp.employment_status = '1'
+                AND a.status IN ('APPROVED', 'PAID')
                 AND YEAR(pp.date_start) = '$year'
                 AND pp.date_start >= '$start_date'
                 AND pp.date_end <= '$end_date'
@@ -531,6 +569,7 @@ class Remittance {
                 INNER JOIN config_deductions e ON d.config_deduction_id = e.config_deduction_id
                 INNER JOIN payroll_periods pp ON a.payroll_period_id = pp.payroll_period_id
                 WHERE emp.employment_status = '1'
+                AND a.status IN ('APPROVED', 'PAID')
                 AND pp.date_start >= '$start_date'
                 AND pp.date_end <= '$end_date'
                 AND e.config_deduction_id = '$loanId'
@@ -600,6 +639,20 @@ class Remittance {
             if ($remittance_id === null) {
                 // Log error or skip this remittance_type
                 continue;
+            }
+
+            // DELETE existing details for this remittance_id before inserting new ones
+            $delete_sql = "DELETE FROM remittance_details WHERE remittance_id = '$remittance_id'";
+            if ($remittance_type === 'loans') {
+                // For 'loans', we only want to delete those whose detail remittance_type matches the ones we are about to save
+                // However, the current flow for loans in SaveRemittances is a bit complex.
+                // If we are regenerating 'loans' as a whole, it's safer to delete all for this $remittance_id.
+                $this->db->query($delete_sql) or die($this->db->error);
+            } elseif ($remittance_type === 'others') {
+                $this->db->query($delete_sql) or die($this->db->error);
+            } else {
+                // For standard types like 'tax', 'gsis', etc.
+                $this->db->query($delete_sql) or die($this->db->error);
             }
 
             // Save details for each employee
