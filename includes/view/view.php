@@ -1,49 +1,54 @@
-<?php 
-    include_once '../includes/view/functions.php';
-    include_once('../includes/class/Admin.php');    
-    include_once('../includes/class/Role.php'); 
+<?php
+include_once '../includes/view/functions.php';
+include_once('../includes/class/Admin.php');
+include_once('../includes/class/Role.php');
 
-    $MyAdmin = new Admin();
-    $user_id = $MyAdmin->getSessionUID();
-    $roles = $MyAdmin->initRoles($user_id);
-    $role = "";
-    $perms = [];  // Initialize as empty array
-    
-    foreach ($roles as $key => $value) {
-        $role = $key;
-        foreach ($value as $k => $v) {
-          $perms[] = $v;
-        }
+$MyAdmin = new Admin();
+$user_id = $MyAdmin->getSessionUID();
+$roles = $MyAdmin->initRoles($user_id);
+$role = "";
+$perms = [];  // Initialize as empty array
+
+foreach ($roles as $key => $value) {
+    $role = $key;
+    foreach ($value as $k => $v) {
+        $perms[] = $v;
     }
-    
-    $admin_perms = $perms;
-    $manage_system = false;
-    $update_data = false;
+}
 
-    if(in_array('Manage System', $admin_perms, true)){ $manage_system = true; }
-    if(in_array('Update Data', $admin_perms, true)){ $update_data = true; }
+$admin_perms = $perms;
+$manage_system = false;
+$update_data = false;
+
+if (in_array('Manage System', $admin_perms, true)) {
+    $manage_system = true;
+}
+if (in_array('Update Data', $admin_perms, true)) {
+    $update_data = true;
+}
 
 // Store user role in a global variable for JavaScript access through HTML data attribute
 // This will be used to hide action buttons based on user role
 $GLOBALS['user_role_for_js'] = isset($role) ? $role : 'Guest';
 ?>
 <script>
-  // Set the global user role variable that head.php checks
-  window.currentUserRole = '<?php echo htmlspecialchars(isset($GLOBALS['user_role_for_js']) ? $GLOBALS['user_role_for_js'] : 'Guest', ENT_QUOTES, 'UTF-8'); ?>';
+    // Set the global user role variable that head.php checks
+    window.currentUserRole = '<?php echo htmlspecialchars(isset($GLOBALS['user_role_for_js']) ? $GLOBALS['user_role_for_js'] : 'Guest', ENT_QUOTES, 'UTF-8'); ?>';
 </script>
 <?php
 
 ##-----Render View of Sidebar links according to user permissions-----##
-function ViewSideBarLink($link_name){
+function ViewSideBarLink($link_name)
+{
     $user_id = $GLOBALS['user_id'];                                 //access the global variable $user_id
     $user_role = $GLOBALS['role'];                                 //access the global variable $role
     $manage_system = $GLOBALS['manage_system'];         //access the global variable $manage_system
-    $update_data = $GLOBALS['update_data']; 
+    $update_data = $GLOBALS['update_data'];
     $link_text = '';
     switch ($link_name) {
         case 'users':
-                if($user_role == "Administrator"){
-                    $link_text = '<li class="nav-item">
+            if ($user_role == "Administrator") {
+                $link_text = '<li class="nav-item">
                                     <a href="users.php" class="nav-link" id="users">
                                     <i class="nav-icon fas fa-user-lock"></i>
                                     <p>
@@ -51,94 +56,94 @@ function ViewSideBarLink($link_name){
                                     </p>
                                     </a>
                                 </li>';
-                }
+            }
             break;
         case 'profile':
-                if($user_role == "Employee"){
-                    include_once '../includes/class/Employee.php';
-                    $MyEmployee = new Employee();
-                    $employee_id = "";
-                    $employee_id = $MyEmployee->getEmployeeIDByUserId($user_id);
-                    $link_text = '<li class="nav-item">
-                                    <a href="profile.php?emp_id='.$employee_id.'" class="nav-link" id="profile">
+            if ($user_role == "Employee") {
+                include_once '../includes/class/Employee.php';
+                $MyEmployee = new Employee();
+                $employee_id = "";
+                $employee_id = $MyEmployee->getEmployeeIDByUserId($user_id);
+                $link_text = '<li class="nav-item">
+                                    <a href="profile.php?emp_id=' . $employee_id . '" class="nav-link" id="profile">
                                     <i class="nav-icon fas fa-user"></i>
                                     <p>
                                         Profile
                                     </p>
                                     </a>
                                 </li>';
-                }
+            }
             break;
         case 'employment':
-                if($user_role == "Employee"){
-                    include_once '../includes/class/Employee.php';
-                    $MyEmployee = new Employee();
-                    $employee_id = "";
-                    $employee_id = $MyEmployee->getEmployeeIDByUserId($user_id);
-                    $link_text = '<li class="nav-item">
-                                    <a href="employment.php?emp_id='.$employee_id.'" class="nav-link" id="employment">
+            if ($user_role == "Employee") {
+                include_once '../includes/class/Employee.php';
+                $MyEmployee = new Employee();
+                $employee_id = "";
+                $employee_id = $MyEmployee->getEmployeeIDByUserId($user_id);
+                $link_text = '<li class="nav-item">
+                                    <a href="employment.php?emp_id=' . $employee_id . '" class="nav-link" id="employment">
                                     <i class="nav-icon fas fa-id-card"></i>
                                     <p>
                                         Employment
                                     </p>
                                     </a>
                                 </li>';
-                }
+            }
             break;
         case 'payroll':
-                if($user_role == "Employee"){
-                    include_once '../includes/class/Employee.php';
-                    $MyEmployee = new Employee();
-                    $employee_id = "";
-                    $employee_id = $MyEmployee->getEmployeeIDByUserId($user_id);
-                    $link_text = '<li class="nav-item">
-                                    <a href="payroll.php?emp_id='.$employee_id.'" class="nav-link" id="payroll">
+            if ($user_role == "Employee") {
+                include_once '../includes/class/Employee.php';
+                $MyEmployee = new Employee();
+                $employee_id = "";
+                $employee_id = $MyEmployee->getEmployeeIDByUserId($user_id);
+                $link_text = '<li class="nav-item">
+                                    <a href="payroll.php?emp_id=' . $employee_id . '" class="nav-link" id="payroll">
                                     <i class="nav-icon fas fa-money-bill-wave"></i>
                                     <p>
                                         Payroll
                                     </p>
                                     </a>
                                 </li>';
-                }
+            }
             break;
         case 'employee_payslip':
-                if($user_role == "Employee"){
-                    include_once '../includes/class/Employee.php';
-                    $MyEmployee = new Employee();
-                    $employee_id = "";
-                    $employee_id = $MyEmployee->getEmployeeIDByUserId($user_id);
-                    $link_text = '<li class="nav-item">
-                                    <a href="employee_payslip.php?emp_id='.$employee_id.'" class="nav-link" id="employee_payslip">
+            if ($user_role == "Employee") {
+                include_once '../includes/class/Employee.php';
+                $MyEmployee = new Employee();
+                $employee_id = "";
+                $employee_id = $MyEmployee->getEmployeeIDByUserId($user_id);
+                $link_text = '<li class="nav-item">
+                                    <a href="employee_payslip.php?emp_id=' . $employee_id . '" class="nav-link" id="employee_payslip">
                                     <i class="nav-icon fas fa-file-invoice-dollar"></i>
                                     <p>
                                         Payslip
                                     </p>
                                     </a>
                                 </li>';
-                }
+            }
             break;
         case 'employee_gaa_status':
-                if($user_role == "Employee"){
-                    include_once '../includes/class/Employee.php';
-                    $MyEmployee = new Employee();
-                    $employee_id = "";
-                    $employee_id = $MyEmployee->getEmployeeIDByUserId($user_id);
-                    $link_text = '<li class="nav-item">
-                                    <a href="gaa_netpay_status.php?emp_id='.$employee_id.'" class="nav-link" id="employee_gaa_status">
+            if ($user_role == "Employee") {
+                include_once '../includes/class/Employee.php';
+                $MyEmployee = new Employee();
+                $employee_id = "";
+                $employee_id = $MyEmployee->getEmployeeIDByUserId($user_id);
+                $link_text = '<li class="nav-item">
+                                    <a href="gaa_netpay_status.php?emp_id=' . $employee_id . '" class="nav-link" id="employee_gaa_status">
                                     <i class="nav-icon fas fa-shield-alt"></i>
                                     <p>
                                         Net Pay Status
                                     </p>
                                     </a>
                                 </li>';
-                }
+            }
             break;
         case 'leave_application':
-                if($user_role == "Employee"){
-                    include_once('../includes/class/Employee.php'); 
-                    $MyEmployee = new Employee();
-                    $employee_id = $MyEmployee->getEmployeeIDByUserId($user_id);
-                    $link_text = '<li class="nav-item">
+            if ($user_role == "Employee") {
+                include_once('../includes/class/Employee.php');
+                $MyEmployee = new Employee();
+                $employee_id = $MyEmployee->getEmployeeIDByUserId($user_id);
+                $link_text = '<li class="nav-item">
                                     <a href="leave_application.php" class="nav-link" id="leave_application">
                                     <i class="nav-icon fas fa-calendar-plus"></i>
                                     <p>
@@ -146,11 +151,11 @@ function ViewSideBarLink($link_name){
                                     </p>
                                     </a>
                                 </li>';
-                }
+            }
             break;
         case 'employees':
-                if($manage_system){
-                    $link_text = '<li class="nav-item">
+            if ($manage_system) {
+                $link_text = '<li class="nav-item">
                                     <a href="employees.php" class="nav-link" id="employees">
                                     <i class="nav-icon fas fa-users"></i>
                                     <p>
@@ -158,11 +163,11 @@ function ViewSideBarLink($link_name){
                                     </p>
                                     </a>
                                 </li>';
-                }
+            }
             break;
         case 'departments':
-                if($manage_system){        //if($user_role == "Administrator" || $user_role == "HR")
-                    $link_text = '<li class="nav-item">
+            if ($manage_system) {        //if($user_role == "Administrator" || $user_role == "HR")
+                $link_text = '<li class="nav-item">
                                             <a href="settings_departments.php" class="nav-link" id="settings_departments">
                                             <i class="nav-icon fas fa-cog"></i>
                                             <p>
@@ -170,11 +175,11 @@ function ViewSideBarLink($link_name){
                                             </p>
                                             </a>
                                         </li>';
-                }
+            }
             break;
         case 'positions':
-                if($manage_system){
-                    $link_text = '<li class="nav-item">
+            if ($manage_system) {
+                $link_text = '<li class="nav-item">
                                             <a href="settings_positions.php" class="nav-link" id="settings_positions">
                                             <i class="fas fa-cog nav-icon"></i>
                                             <p>
@@ -182,11 +187,11 @@ function ViewSideBarLink($link_name){
                                                 </p>
                                             </a>
                                         </li>';
-                }
+            }
             break;
         case 'user_management':
-                if($user_role == "Administrator" || $manage_system){
-                    $link_text = '<li class="nav-item">
+            if ($user_role == "Administrator") {
+                $link_text = '<li class="nav-item">
                                     <a href="../admin/user_management.php" class="nav-link" id="user_management">
                                     <i class="nav-icon fas fa-user-check"></i>
                                     <p>
@@ -194,11 +199,11 @@ function ViewSideBarLink($link_name){
                                     </p>
                                     </a>
                                 </li>';
-                }
+            }
             break;
         case 'employee_earnings':
-                if($user_role == "Payroll Master"){
-                    $link_text = '<li class="nav-item">
+            if ($user_role == "Payroll Master") {
+                $link_text = '<li class="nav-item">
                                     <a href="employee_earnings.php" class="nav-link" id="employee_earnings">
                                     <i class="nav-icon fas fa-money-bill-wave"></i>
                                     <p>
@@ -206,11 +211,11 @@ function ViewSideBarLink($link_name){
                                     </p>
                                     </a>
                                 </li>';
-                }
+            }
             break;
         case 'employee_deductions':
-            if($user_role == "Payroll Master"){
-                    $link_text = '<li class="nav-item">
+            if ($user_role == "Payroll Master") {
+                $link_text = '<li class="nav-item">
                                     <a href="employee_deductions.php" class="nav-link" id="employee_deductions">
                                     <i class="nav-icon fas fa-user-minus"></i>
                                     <p>
@@ -218,11 +223,11 @@ function ViewSideBarLink($link_name){
                                     </p>
                                     </a>
                                 </li>';
-                }
+            }
             break;
         case 'employee_govshares':
-            if($user_role == "Payroll Master"){
-                    $link_text = '<li class="nav-item">
+            if ($user_role == "Payroll Master") {
+                $link_text = '<li class="nav-item">
                                     <a href="employee_govshares.php" class="nav-link" id="employee_govshares">
                                     <i class="nav-icon fas fa-user-check"></i>
                                     <p>
@@ -230,11 +235,11 @@ function ViewSideBarLink($link_name){
                                     </p>
                                     </a>
                                 </li>';
-                }
+            }
             break;
         case 'config_earnings':
-                if($user_role == "Payroll Master"){
-                    $link_text = '<li class="nav-item">
+            if ($user_role == "Payroll Master") {
+                $link_text = '<li class="nav-item">
                                     <a href="config_earnings.php" class="nav-link" id="config_earnings">
                                     <i class="nav-icon fas fa-cog"></i>
                                     <p>
@@ -242,11 +247,11 @@ function ViewSideBarLink($link_name){
                                     </p>
                                     </a>
                                 </li>';
-                }
+            }
             break;
         case 'config_deductions':
-                if($user_role == "Payroll Master"){
-                    $link_text = '<li class="nav-item">
+            if ($user_role == "Payroll Master") {
+                $link_text = '<li class="nav-item">
                                     <a href="config_deductions.php" class="nav-link" id="config_deductions">
                                     <i class="nav-icon fas fa-cog"></i>
                                     <p>
@@ -254,12 +259,12 @@ function ViewSideBarLink($link_name){
                                     </p>
                                     </a>
                                 </li>';
-                }
+            }
             break;
 
         case 'payrolls':
-            if($user_role == "Payroll Master"){
-                    $link_text = '<li class="nav-item">
+            if ($user_role == "Payroll Master") {
+                $link_text = '<li class="nav-item">
                                     <a href="payrolls.php" class="nav-link" id="payrolls">
                                     <i class="nav-icon fas fa-file-invoice"></i>
                                     <p>
@@ -267,12 +272,12 @@ function ViewSideBarLink($link_name){
                                     </p>
                                     </a>
                                 </li>';
-                }
+            }
             break;
 
         case 'payroll_records':
-            if($user_role == "Payroll Master"){
-                    $link_text = '<li class="nav-item">
+            if ($user_role == "Payroll Master") {
+                $link_text = '<li class="nav-item">
                                     <a href="payroll_records.php" class="nav-link" id="payroll_records">
                                     <i class="nav-icon fas fa-folder-open"></i>
                                     <p>
@@ -280,12 +285,12 @@ function ViewSideBarLink($link_name){
                                     </p>
                                     </a>
                                 </li>';
-                }
+            }
             break;
 
         case 'gaa_netpay_status':
-            if($user_role == "Payroll Master"){
-                    $link_text = '<li class="nav-item">
+            if ($user_role == "Payroll Master") {
+                $link_text = '<li class="nav-item">
                                     <a href="gaa_netpay_status.php" class="nav-link" id="gaa_netpay_status">
                                     <i class="nav-icon fas fa-shield-alt"></i>
                                     <p>
@@ -293,12 +298,12 @@ function ViewSideBarLink($link_name){
                                     </p>
                                     </a>
                                 </li>';
-                }
+            }
             break;
 
         case 'remittance':
-            if($user_role == "Payroll Master"){
-                    $link_text = '<li class="nav-item">
+            if ($user_role == "Payroll Master") {
+                $link_text = '<li class="nav-item">
                                     <a href="remittance.php" class="nav-link" id="remittance">
                                     <i class="nav-icon fas fa-paper-plane"></i>
                                     <p>
@@ -306,12 +311,12 @@ function ViewSideBarLink($link_name){
                                     </p>
                                     </a>
                                 </li>';
-                }
+            }
             break;
 
         case 'govshares':
-            if($user_role == "Payroll Master"){
-                    $link_text = '<li class="nav-item">
+            if ($user_role == "Payroll Master") {
+                $link_text = '<li class="nav-item">
                                     <a href="govshares.php" class="nav-link" id="govshares">
                                     <i class="nav-icon fas fa-cog"></i>
                                     <p>
@@ -319,12 +324,12 @@ function ViewSideBarLink($link_name){
                                     </p>
                                     </a>
                                 </li>';
-                }
+            }
             break;
 
         case 'emergency_payroll_delete':
-            if($user_role == "Administrator" && $manage_system){
-                    $link_text = '<li class="nav-item">
+            if ($user_role == "Administrator" && $manage_system) {
+                $link_text = '<li class="nav-item">
                                     <a href="../admin/emergency_payroll_delete.php" class="nav-link" id="emergency_payroll_delete">
                                     <i class="nav-icon fas fa-exclamation-triangle"></i>
                                     <p>
@@ -332,12 +337,12 @@ function ViewSideBarLink($link_name){
                                     </p>
                                     </a>
                                 </li>';
-                }
+            }
             break;
-        
+
         case 'journal_entry':
-            if($user_role == "Payroll Master"){
-                    $link_text = '<li class="nav-item">
+            if ($user_role == "Payroll Master") {
+                $link_text = '<li class="nav-item">
                                     <a href="journal_entry.php" class="nav-link" id="journal_entry">
                                     <i class="nav-icon fas fa-file-invoice"></i>
                                     <p>
@@ -345,12 +350,12 @@ function ViewSideBarLink($link_name){
                                     </p>
                                     </a>
                                 </li>';
-                }
+            }
             break;
 
         case 'payslip':
-            if($user_role == "Payroll Master"){
-                    $link_text = '<li class="nav-item">
+            if ($user_role == "Payroll Master") {
+                $link_text = '<li class="nav-item">
                                     <a href="payslip.php" class="nav-link" id="payslip">
                                     <i class="nav-icon fas fa-file-invoice"></i>
                                     <p>
@@ -358,12 +363,12 @@ function ViewSideBarLink($link_name){
                                     </p>
                                     </a>
                                 </li>';
-                }
+            }
             break;
 
         case 'report_slp':
-            if($user_role == "Payroll Master" || $user_role == "Administrator"){
-                    $link_text = '<li class="nav-item">
+            if ($user_role == "Payroll Master" || $user_role == "Administrator") {
+                $link_text = '<li class="nav-item">
                                     <a href="report_slp.php" class="nav-link" id="report_slp">
                                     <i class="nav-icon fas fa-file-alt"></i>
                                     <p>
@@ -371,12 +376,12 @@ function ViewSideBarLink($link_name){
                                     </p>
                                     </a>
                                 </li>';
-                }
+            }
             break;
 
         case 'report_abstract':
-            if($user_role == "Payroll Master" || $user_role == "Administrator"){
-                    $link_text = '<li class="nav-item">
+            if ($user_role == "Payroll Master" || $user_role == "Administrator") {
+                $link_text = '<li class="nav-item">
                                     <a href="report_abstract.php" class="nav-link" id="report_abstract">
                                     <i class="nav-icon fas fa-table"></i>
                                     <p>
@@ -384,12 +389,12 @@ function ViewSideBarLink($link_name){
                                     </p>
                                     </a>
                                 </li>';
-                }
+            }
             break;
 
         case 'payroll_settings':
-            if($user_role == "Payroll Master"){
-                    $link_text = '<li class="nav-item">
+            if ($user_role == "Payroll Master") {
+                $link_text = '<li class="nav-item">
                                     <a href="settings_payroll.php" class="nav-link" id="settings_payroll">
                                     <i class="nav-icon fas fa-cog"></i>
                                     <p>
@@ -397,12 +402,12 @@ function ViewSideBarLink($link_name){
                                     </p>
                                     </a>
                                 </li>';
-                }
+            }
             break;
 
         case 'manage_leave_credits':
-            if($user_role == "HR" || $user_role == "Administrator"){
-                    $link_text = '<li class="nav-item">
+            if ($user_role == "HR" || $user_role == "Administrator") {
+                $link_text = '<li class="nav-item">
                                     <a href="manage_leave_credits.php" class="nav-link" id="manage_leave_credits">
                                     <i class="nav-icon fas fa-piggy-bank"></i>
                                     <p>
@@ -410,12 +415,12 @@ function ViewSideBarLink($link_name){
                                     </p>
                                     </a>
                                 </li>';
-                }
+            }
             break;
 
         case 'leave_applications':
-            if($user_role == "HR" || $user_role == "Administrator"){
-                    $link_text = '<li class="nav-item">
+            if ($user_role == "HR" || $user_role == "Administrator") {
+                $link_text = '<li class="nav-item">
                                     <a href="leave_applications.php" class="nav-link" id="leave_applications">
                                     <i class="nav-icon fas fa-calendar-minus"></i>
                                     <p>
@@ -423,12 +428,12 @@ function ViewSideBarLink($link_name){
                                     </p>
                                     </a>
                                 </li>';
-                }
+            }
             break;
 
         case 'config_leave_types':
-            if($user_role == "HR" || $user_role == "Administrator"){
-                    $link_text = '<li class="nav-item">
+            if ($user_role == "HR" || $user_role == "Administrator") {
+                $link_text = '<li class="nav-item">
                                     <a href="config_leave_types.php" class="nav-link" id="config_leave_types">
                                     <i class="nav-icon fas fa-cog"></i>
                                     <p>
@@ -436,12 +441,12 @@ function ViewSideBarLink($link_name){
                                     </p>
                                     </a>
                                 </li>';
-                }
+            }
             break;
 
         case 'change_password':
-            if($update_data){
-                    $link_text = '<li class="nav-item">
+            if ($update_data) {
+                $link_text = '<li class="nav-item">
                                     <a href="#" class="nav-link" id="change_password">
                                     <i class="nav-icon fas fa-lock"></i>
                                     <p>
@@ -449,12 +454,12 @@ function ViewSideBarLink($link_name){
                                     </p>
                                     </a>
                                 </li>';
-                }
+            }
             break;
 
         case 'signatories':
-            if($user_role == "Payroll Master" || $user_role == "HR" || $manage_system){
-                    $link_text = '<li class="nav-item">
+            if ($user_role == "Payroll Master" || $user_role == "HR" || $manage_system) {
+                $link_text = '<li class="nav-item">
                                     <a href="signatories.php" class="nav-link" id="signatories">
                                         <i class="nav-icon fas fa-signature"></i>
                                         <p>
@@ -462,12 +467,12 @@ function ViewSideBarLink($link_name){
                                         </p>
                                     </a>
                                 </li>';
-                }
+            }
             break;
-            
+
         case 'database_backup':
-            if($user_role == "Administrator"){
-                    $link_text = '<li class="nav-item">
+            if ($user_role == "Administrator") {
+                $link_text = '<li class="nav-item">
                                     <a href="../admin/database_backup.php" class="nav-link" id="database_backup">
                                         <i class="nav-icon fas fa-database"></i>
                                         <p>
@@ -475,7 +480,7 @@ function ViewSideBarLink($link_name){
                                         </p>
                                     </a>
                                 </li>';
-                }
+            }
             break;
     }
     return $link_text;
@@ -483,44 +488,46 @@ function ViewSideBarLink($link_name){
 
 ##-----Render View of Tables-----##
 
-function ViewDepartments(){
+function ViewDepartments()
+{
     include_once('../includes/class/Department.php');
     $MyDepartment = new Department();
     $departments = $MyDepartment->GetDepartments();
 
-    if($departments != null){
+    if ($departments != null) {
         $count = 0;
-        foreach($departments as $key => $value) {
+        foreach ($departments as $key => $value) {
             $count++;
-                //echo '<tr id="employment_row_'. $value['employment_id'] .'" class="employment-row">   -- 
-                echo '<tr id="dept_row_'. $value['dept_id'] .'" class="dept-row">
+            //echo '<tr id="employment_row_'. $value['employment_id'] .'" class="employment-row">   -- 
+            echo '<tr id="dept_row_' . $value['dept_id'] . '" class="dept-row">
                     <td>' . $count . '</td>
                     <td>' . $value['dept_code'] . '</td>
                     <td>' . $value['dept_title'] . '</td>
                     <td>' . $value['dept_name'] . '</td>
                     <td class="text-center">
                         <div class="btn-group action-buttons-group">
-                            <button class="btn btn-default btn-sm" onclick="GetDepartmentDetails('.$value["dept_id"].')" data-toggle="modal" data-target="#department_modal">
+                            <button class="btn btn-default btn-sm" onclick="GetDepartmentDetails(' . $value["dept_id"] . ')" data-toggle="modal" data-target="#department_modal">
                                 <i class="fa fa-edit"></i> Edit
                             </button>
-                            <button class="btn btn-danger btn-sm" onclick="DeleteDepartment('.$value["dept_id"].')" data-toggle="tooltip" title="Delete" data-placement="bottom">
+                            <button class="btn btn-danger btn-sm" onclick="DeleteDepartment(' . $value["dept_id"] . ')" data-toggle="tooltip" title="Delete" data-placement="bottom">
                                 <i class="fa fa-times"></i> Delete
                             </button>
                         </div>
                     </td>
                 </tr>';
-        }   
+        }
     }
 }
 
-function ViewPositions(){
+function ViewPositions()
+{
     include_once('../includes/class/Position.php');
     $MyPosition = new Position();
     $positions = $MyPosition->GetPositions();
 
-    if($positions != null){
+    if ($positions != null) {
         $count = 0;
-        foreach($positions as $key => $value) {
+        foreach ($positions as $key => $value) {
             $count++;
             echo '<tr>
                     <td>' . $count . '</td>
@@ -533,29 +540,30 @@ function ViewPositions(){
                     <td>' . $MyPosition->returnPositionStatus($value['position_status']) . '</td>
                     <td class="text-center">
                         <div class="btn-group action-buttons-group">
-                            <button class="btn btn-default btn-sm" onclick="GetPositionDetails('.$value["position_id"].')" data-toggle="modal" data-target="#position_modal">
+                            <button class="btn btn-default btn-sm" onclick="GetPositionDetails(' . $value["position_id"] . ')" data-toggle="modal" data-target="#position_modal">
                                 <i class="fa fa-edit"></i> Edit
                             </button>
-                            <button class="btn btn-danger btn-sm" onclick="DeletePosition('.$value["position_id"].')" data-toggle="tooltip" title="Delete" data-placement="bottom">
+                            <button class="btn btn-danger btn-sm" onclick="DeletePosition(' . $value["position_id"] . ')" data-toggle="tooltip" title="Delete" data-placement="bottom">
                                 <i class="fa fa-times"></i> Delete
                             </button>
                         </div>
                     </td>
                 </tr>';
-        }   
+        }
     }
 }
 
-function ViewEmployees(){
+function ViewEmployees()
+{
     include_once('../includes/class/Employee.php');
     $MyEmployee = new Employee();
     $employees = $MyEmployee->GetEmployees();
 
-    if($employees != null){
+    if ($employees != null) {
         $count = 0;
-        foreach($employees as $key => $value) {
+        foreach ($employees as $key => $value) {
             $count++;
-            echo '<tr class="clickable-row" data-href="employee_profile.php?emp_id='.$value["employee_id"].'">
+            echo '<tr class="clickable-row" data-href="employee_profile.php?emp_id=' . $value["employee_id"] . '">
                     <td>' . $count . '</td>
                     <td>' . $value['employee_id_num'] . '</td>
                     <td>' . $value['lastname'] . ", " . $value['firstname'] . " " . $value['extension'] . " " . $value['middlename'] . '</td>
@@ -564,11 +572,12 @@ function ViewEmployees(){
                     <td>' . $value['civil_status'] . '</td>
                     <td>' . $value['address'] . '</td>
                 </tr>';
-        }   
+        }
     }
 }
 
-function ViewEmployeeEmployments($employee_id){
+function ViewEmployeeEmployments($employee_id)
+{
     include_once('../includes/class/Employment.php');
     include_once('../includes/class/Department.php');
 
@@ -579,9 +588,9 @@ function ViewEmployeeEmployments($employee_id){
     $employment_end = "";
     $department_assigned = "";
 
-    if($employee_employments != null){
+    if ($employee_employments != null) {
         $count = 0;
-        foreach($employee_employments as $key => $value) {
+        foreach ($employee_employments as $key => $value) {
             $count++;
             $employment_end = ($value['employment_status'] == 1 && ($value['employment_end'] == "0000-00-00" || empty($value['employment_end']))) ? "PRESENT" : OutputShortDate($value['employment_end']);
 
@@ -600,32 +609,33 @@ function ViewEmployeeEmployments($employee_id){
                     <td>' . ($value['employment_status'] == 1 ? 'Active' : 'Inactive') . '</td>
                     <td class="text-center action-column">
                         <div class="btn-group action-buttons-group">
-                            <button class="btn btn-primary btn-sm" onclick="GetEmploymentDetails('.$value["employee_id"].','.$value["employment_id"].')" data-toggle="modal" data-target="#employment_modal">
+                            <button class="btn btn-primary btn-sm" onclick="GetEmploymentDetails(' . $value["employee_id"] . ',' . $value["employment_id"] . ')" data-toggle="modal" data-target="#employment_modal">
                                 <span data-toggle="tooltip" title="Edit" data-placement="bottom"><i class="fa fa-edit"></i></span>
                             </button>
-                            <button class="btn btn-danger btn-sm" onclick="DeleteEmployment('.$value["employment_id"].','.$value["position_id"].')" data-toggle="tooltip" title="Delete" data-placement="bottom">
+                            <button class="btn btn-danger btn-sm" onclick="DeleteEmployment(' . $value["employment_id"] . ',' . $value["position_id"] . ')" data-toggle="tooltip" title="Delete" data-placement="bottom">
                                 <i class="fa fa-times"></i>
                             </button>
                         </div>
                     </td>
                 </tr>';
-        }   
+        }
     }
 }
 
-function ViewUserEmployees(){
+function ViewUserEmployees()
+{
     include_once('../includes/class/Employee.php');
     $MyEmployee = new Employee();
     $employee_users = $MyEmployee->GetEmployeeDataUsers();
-    
-    if($employee_users != null){
+
+    if ($employee_users != null) {
         $count = 0;
-        foreach($employee_users as $key => $value) {
+        foreach ($employee_users as $key => $value) {
             $count++;
-            
+
             $emp_id = empty($value['employee_id']) ? 0 : $value['employee_id'];
-            $employee_name = empty($value['employee_id']) ? '<span class="text-danger"><i>No Employee Data</i></span>' : '<a href="employee_profile.php?emp_id='.$value['employee_id'].'">' . trim($value['firstname'] . " " . $value['middlename'] . " " . $value['lastname'] . " " . $value['extension']) . '</a>';
-            
+            $employee_name = empty($value['employee_id']) ? '<span class="text-danger"><i>No Employee Data</i></span>' : '<a href="employee_profile.php?emp_id=' . $value['employee_id'] . '">' . trim($value['firstname'] . " " . $value['middlename'] . " " . $value['lastname'] . " " . $value['extension']) . '</a>';
+
             echo '<tr>
                     <td>' . $count . '</td>
                     <td>' . $value['username'] . '</td>
@@ -633,34 +643,35 @@ function ViewUserEmployees(){
                     <td>' . $employee_name . '</td>
                     <td class="text-center">
                         <div class="btn-group action-buttons-group">
-                            <button class="btn btn-warning btn-sm" onclick="UnlinkUser('.$emp_id.','.$value['userID'].')" data-toggle="tooltip" title="Unlink User" data-placement="bottom">
+                            <button class="btn btn-warning btn-sm" onclick="UnlinkUser(' . $emp_id . ',' . $value['userID'] . ')" data-toggle="tooltip" title="Unlink User" data-placement="bottom">
                                 <i class="fa fa-user-minus"></i> Unlink
                             </button>
-                            <button class="btn btn-success btn-sm" onclick="EditUser('.$value['userID'].')" data-toggle="tooltip" title="Edit" data-placement="bottom">
+                            <button class="btn btn-success btn-sm" onclick="EditUser(' . $value['userID'] . ')" data-toggle="tooltip" title="Edit" data-placement="bottom">
                                 <i class="fa fa-edit"></i> Edit
                             </button>
                         </div>
                     </td>
                 </tr>';
-        }   
+        }
     }
 }
 
 
 ##-----For Payroll-----##
 
-function ViewPayrollMasterlistEmployees(){
+function ViewPayrollMasterlistEmployees()
+{
     include_once('../includes/class/Payroll.php');
     $Payroll = new Payroll();
     $employees = $Payroll->GetEmployeeListForPayroll();
-    
-    if($employees != null){
+
+    if ($employees != null) {
         $count = 0;
-        foreach($employees as $employee) {
+        foreach ($employees as $employee) {
             $count++;
             // Fixed syntax error in checkbox data-id and checked status
             $checked = $employee['include_in_payroll'] == '1' ? 'checked' : '';
-            
+
             echo '<tr>
                     <td>' . $count . '</td>
                     <td>' . htmlspecialchars($employee['employee_id_num']) . '</td>
@@ -671,23 +682,24 @@ function ViewPayrollMasterlistEmployees(){
                         <div class="form-check mx-auto text-success">
                             <input type="checkbox" 
                                class="form-check-input toggleIncludePayroll border-success" 
-                               data-id="'.$employee['employee_id'].'"
-                               '.$checked.' style="width:20px; height:20px; accent-color: #28a745;">
+                               data-id="' . $employee['employee_id'] . '"
+                               ' . $checked . ' style="width:20px; height:20px; accent-color: #28a745;">
                         </div>
                     </td>
                 </tr>';
-        }   
+        }
     }
 }
 
-function ViewEarningConfigs(){
+function ViewEarningConfigs()
+{
     include_once('../includes/class/Earning.php');
     $EarningConfig = new Earning();
     $earning_configs = $EarningConfig->GetEarningConfigs();
 
-    if($earning_configs != null){
+    if ($earning_configs != null) {
         $count = 0;
-        foreach($earning_configs as $key => $value) {
+        foreach ($earning_configs as $key => $value) {
             $count++;
             echo '<tr>
                     <td>' . $count . '</td>
@@ -696,27 +708,28 @@ function ViewEarningConfigs(){
                     <td>' . $value['earning_title'] . '</td>
                     <td class="text-center">
                         <div class="btn-group action-buttons-group">
-                            <button class="btn btn-default btn-sm" onclick="GetEarningConfigDetails('.$value["config_earning_id"].')" data-toggle="modal" data-target="#config_earnings_modal">
+                            <button class="btn btn-default btn-sm" onclick="GetEarningConfigDetails(' . $value["config_earning_id"] . ')" data-toggle="modal" data-target="#config_earnings_modal">
                                 <i class="fa fa-edit"></i> Edit
                             </button>
-                            <button class="btn btn-danger btn-sm" onclick="DeleteEarningConfig('.$value["config_earning_id"].')" data-toggle="tooltip" title="Delete" data-placement="bottom">
+                            <button class="btn btn-danger btn-sm" onclick="DeleteEarningConfig(' . $value["config_earning_id"] . ')" data-toggle="tooltip" title="Delete" data-placement="bottom">
                                 <i class="fa fa-times"></i> Delete
                             </button>
                         </div>
                     </td>
                 </tr>';
-        }   
+        }
     }
 }
 
-function ViewDeductionConfigs(){
+function ViewDeductionConfigs()
+{
     include_once('../includes/class/Deduction.php');
     $DeductionConfig = new Deduction();
     $deduction_configs = $DeductionConfig->GetDeductionConfigs();
 
-    if($deduction_configs != null){
+    if ($deduction_configs != null) {
         $count = 0;
-        foreach($deduction_configs as $key => $value) {
+        foreach ($deduction_configs as $key => $value) {
             $count++;
             echo '<tr>
                     <td>' . $count . '</td>
@@ -728,27 +741,28 @@ function ViewDeductionConfigs(){
                     <td>' . $value['deduct_category'] . '</td>
                     <td class="text-center">
                         <div class="btn-group action-buttons-group">
-                            <button class="btn btn-default btn-sm" onclick="GetDeductionConfigDetails('.$value["config_deduction_id"].')" data-toggle="modal" data-target="#config_deductions_modal">
+                            <button class="btn btn-default btn-sm" onclick="GetDeductionConfigDetails(' . $value["config_deduction_id"] . ')" data-toggle="modal" data-target="#config_deductions_modal">
                                 <i class="fa fa-edit"></i> Edit
                             </button>
-                            <button class="btn btn-danger btn-sm" onclick="DeleteDeductionConfig('.$value["config_deduction_id"].')" data-toggle="tooltip" title="Delete" data-placement="bottom">
+                            <button class="btn btn-danger btn-sm" onclick="DeleteDeductionConfig(' . $value["config_deduction_id"] . ')" data-toggle="tooltip" title="Delete" data-placement="bottom">
                                 <i class="fa fa-times"></i> Delete
                             </button>
                         </div>
                     </td>
                 </tr>';
-        }   
+        }
     }
 }
 
-function ViewGovShares(){
+function ViewGovShares()
+{
     include_once('../includes/class/GovShare.php');
     $GovShare = new GovShare();
     $govshares = $GovShare->GetGovShares();
 
-    if($govshares != null){
+    if ($govshares != null) {
         $count = 0;
-        foreach($govshares as $key => $value) {
+        foreach ($govshares as $key => $value) {
             $count++;
             echo '<tr>
                     <td>' . $count . '</td>
@@ -761,28 +775,29 @@ function ViewGovShares(){
                     <td>' . ($value['active'] == 1 ? 'active' : 'inactive') . '</td>
                     <td class="text-center">
                         <div class="btn-group action-buttons-group">
-                            <button class="btn btn-default btn-sm edit-btn" data-govshare-id="'.$value['govshare_id'].'" data-toggle="modal" data-target="#config_deductions_modal">
+                            <button class="btn btn-default btn-sm edit-btn" data-govshare-id="' . $value['govshare_id'] . '" data-toggle="modal" data-target="#config_deductions_modal">
                                 <i class="fa fa-edit"></i> Edit
                             </button>
-                            <button class="btn btn-danger btn-sm delete-btn" data-govshare-id="'.$value['govshare_id'].'" data-toggle="tooltip" title="Delete" data-placement="bottom">
+                            <button class="btn btn-danger btn-sm delete-btn" data-govshare-id="' . $value['govshare_id'] . '" data-toggle="tooltip" title="Delete" data-placement="bottom">
                                 <i class="fa fa-times"></i> Delete
                             </button>
                         </div>
                     </td>
                 </tr>';
-        }   
+        }
     }
 }
 
-function ViewAllEmployeesEarnings(){
+function ViewAllEmployeesEarnings()
+{
     include_once('../includes/class/Earning.php');
     $EmployeeEarning = new Earning();
     $employee_earnings = $EmployeeEarning->GetAllEmployeesEarnings();
 
-    if($employee_earnings != null){
+    if ($employee_earnings != null) {
         $count = 0;
 
-        foreach($employee_earnings as $key => $value) {
+        foreach ($employee_earnings as $key => $value) {
             $count++;
 
             echo '<tr>
@@ -793,27 +808,28 @@ function ViewAllEmployeesEarnings(){
                     <td align="right">' . OutputMoney($value['gross_amount']) . '</td>
                     <td class="text-center">
                         <div class="btn-group">
-                            <button class="btn btn-sm btn-primary btn-view-earnings" data-employee-id="'.$value['employee_id'].'">
+                            <button class="btn btn-sm btn-primary btn-view-earnings" data-employee-id="' . $value['employee_id'] . '">
                                 <span data-toggle="tooltip" title="View Earnings" data-placement="bottom"><i class="fa fa-search"></i> View Earnings
                             </button>
                         </div>
                     </td>
                 </tr>';
 
-                /**/
-        }   
+            /**/
+        }
     }
 }
 
-function ViewAllEmployeesDeductions(){
+function ViewAllEmployeesDeductions()
+{
     include_once('../includes/class/Deduction.php');
     $EmployeeDeduction = new Deduction();
     $employee_deductions = $EmployeeDeduction->GetAllEmployeesDeductions();
 
-    if($employee_deductions != null){
+    if ($employee_deductions != null) {
         $count = 0;
 
-        foreach($employee_deductions as $key => $value) {
+        foreach ($employee_deductions as $key => $value) {
             $count++;
 
             echo '<tr>
@@ -824,17 +840,18 @@ function ViewAllEmployeesDeductions(){
                     <td align="right">' . OutputMoney($value['total_deduction']) . '</td>
                     <td class="text-center">
                         <div class="btn-group">
-                            <button class="btn btn-sm btn-primary btn-view-deductions" data-employee-id="'.$value['employee_id'].'">
+                            <button class="btn btn-sm btn-primary btn-view-deductions" data-employee-id="' . $value['employee_id'] . '">
                                 <span data-toggle="tooltip" title="View Deductions" data-placement="bottom"><i class="fa fa-search"></i> View Deductions
                             </button>
                         </div>
                     </td>
                 </tr>';
-        }   
+        }
     }
 }
 
-function ViewEmployeeGovShareRecords(){
+function ViewEmployeeGovShareRecords()
+{
     include_once('../includes/class/GovShare.php');
     $GovShare = new GovShare();
     // 1. Fetch all govshare configs in the desired order
@@ -855,7 +872,7 @@ function ViewEmployeeGovShareRecords(){
         foreach ($records as $rec) {
             $empId = $rec['employee_id'];
             $employees[$empId]['name'] = $rec['lastname'] . ', ' . $rec['firstname'];
-            $employees[$empId]['govshares'][$rec['govshare_id']] = $rec['govshare_amount']; 
+            $employees[$empId]['govshares'][$rec['govshare_id']] = $rec['govshare_amount'];
         }
     }
 
@@ -882,8 +899,8 @@ function ViewEmployeeGovShareRecords(){
             echo "<td>{$count}</td>";
             echo "<td>{$emp['name']}</td>";
             foreach ($headers as $govId => $govName) {
-                $amount = isset($emp['govshares'][$govId]) 
-                    ? number_format((float)$emp['govshares'][$govId], 2) 
+                $amount = isset($emp['govshares'][$govId])
+                    ? number_format((float) $emp['govshares'][$govId], 2)
                     : "0.00";
                 echo "<td style='text-align:right;'>{$amount}</td>";
             }
@@ -897,14 +914,15 @@ function ViewEmployeeGovShareRecords(){
     echo "</tbody></table>";
 }
 
-function ViewSignatoriesList(){
+function ViewSignatoriesList()
+{
     include_once('../includes/class/Signatory.php');
     $Signatory = new Signatory();
     $signatories = $Signatory->FetchAllSignatories();
 
-    if($signatories != null){
+    if ($signatories != null) {
         $count = 0;
-        foreach($signatories as $key => $value) {
+        foreach ($signatories as $key => $value) {
             $count++;
             echo '<tr>
                     <td>' . $count . '</td>
@@ -918,20 +936,21 @@ function ViewSignatoriesList(){
                     <td class="text-center">' . ($value['is_active'] == 1 ? '<span class="badge badge-success">active</span>' : '<span class="badge badge-danger">inactive</span>') . '</td>
                     <td class="text-center">
                         <div class="btn-group action-buttons-group">
-                            <button class="btn btn-default btn-sm" onclick="GetSignatoryDetails('.$value["signatory_id"].')" data-toggle="modal" data-target="#signatory_modal">
+                            <button class="btn btn-default btn-sm" onclick="GetSignatoryDetails(' . $value["signatory_id"] . ')" data-toggle="modal" data-target="#signatory_modal">
                                 <i class="fa fa-edit"></i> Edit
                             </button>
-                            <button class="btn btn-danger btn-sm" onclick="DeleteSignatory('.$value["signatory_id"].')" data-toggle="tooltip" title="Delete" data-placement="bottom">
+                            <button class="btn btn-danger btn-sm" onclick="DeleteSignatory(' . $value["signatory_id"] . ')" data-toggle="tooltip" title="Delete" data-placement="bottom">
                                 <i class="fa fa-times"></i> Delete
                             </button>
                         </div>
                     </td>
                 </tr>';
-        }   
+        }
     }
 }
 
-function ViewAllEmployeeLeaveApplications(){
+function ViewAllEmployeeLeaveApplications()
+{
     include_once('../includes/class/Employee.php');
     include_once('../includes/class/Leave.php');
 
@@ -940,15 +959,15 @@ function ViewAllEmployeeLeaveApplications(){
 
     $employee_id = "";
 
-    if(isset($_SESSION['uid']) && $_SESSION['uid'] != ""){
+    if (isset($_SESSION['uid']) && $_SESSION['uid'] != "") {
         $employee_id = $Employee->getEmployeeIDByUserId($_SESSION['uid']);
     }
     $employee_leaves = $LeaveApplication->getLeaveApplicationsByEmployee($employee_id);
 
-    if($employee_leaves != null){
+    if ($employee_leaves != null) {
         $count = 0;
 
-        foreach($employee_leaves as $key => $value) {
+        foreach ($employee_leaves as $key => $value) {
             $count++;
 
             // Set badge HTML based on status
@@ -966,26 +985,27 @@ function ViewAllEmployeeLeaveApplications(){
             echo '<tr>
                     <td>' . $count . '</td>
                     <td>' . $value['leave_name'] . '</td>
-                    <td class="text-center">' . OutputShortDate($value['date_filed']) .'</td>
+                    <td class="text-center">' . OutputShortDate($value['date_filed']) . '</td>
                     <td class="text-center">' . (is_array($value['dates']) ? implode('<br>', array_map('OutputShortDate', $value['dates'])) : OutputShortDate($value['dates'])) . '</td>
-                    <td class="text-center">' . count($value['dates']) .'</td>
+                    <td class="text-center">' . count($value['dates']) . '</td>
                     <td class="text-center">' . $badge . '</td>
                 </tr>';
-        }   
+        }
     }
 }
 
-function ViewAllLeaveApplications(){
+function ViewAllLeaveApplications()
+{
     include_once('../includes/class/Leave.php');
 
     $LeaveApplication = new Leave();
 
     $leave_applications = $LeaveApplication->getLeaveApplications();
 
-    if($leave_applications != null){
+    if ($leave_applications != null) {
         $count = 0;
 
-        foreach($leave_applications as $key => $value) {
+        foreach ($leave_applications as $key => $value) {
             $count++;
 
             // Set badge HTML based on status
@@ -1004,34 +1024,35 @@ function ViewAllLeaveApplications(){
                     <td>' . $count . '</td>
                     <td>' . $value['employee'] . '</td>
                     <td>' . $value['leave_name'] . '</td>
-                    <td>' . OutputShortDate($value['date_filed']) .'</td>
+                    <td>' . OutputShortDate($value['date_filed']) . '</td>
                     <td>' . (is_array($value['dates']) ? implode('<br>', array_map('OutputShortDate', $value['dates'])) : OutputShortDate($value['dates'])) . '</td>
                     <td class="text-center">' . count($value['dates']) . '</td>
                     <td class="text-center">' . $badge . '</td>
                     <td class="text-center">
                         <div class="btn-group action-buttons-group">
-                            <button class="btn btn-success btn-sm btnApproveLeave" data-leaveApp-id="'.$value['leave_application_id'].'">
+                            <button class="btn btn-success btn-sm btnApproveLeave" data-leaveApp-id="' . $value['leave_application_id'] . '">
                                 <i class="fa fa-check"></i> Approve
                             </button>
-                            <button class="btn btn-danger btn-sm btnDisapproveLeave" data-leaveApp-id="'.$value['leave_application_id'].'">
+                            <button class="btn btn-danger btn-sm btnDisapproveLeave" data-leaveApp-id="' . $value['leave_application_id'] . '">
                                 <i class="fa fa-times"></i> Disapprove
                             </button>
                         </div>
                     </td>
                 </tr>';
-        }   
+        }
     }
 }
 
-function ViewLeaveTypes(){
+function ViewLeaveTypes()
+{
     include_once('../includes/class/Leave.php');
     $Leave = new Leave();
 
     $leave_types = $Leave->FetchAllLeaveTypes();
 
-    if($leave_types != null){
+    if ($leave_types != null) {
         $count = 0;
-        foreach($leave_types as $key => $value) {
+        foreach ($leave_types as $key => $value) {
             $count++;
             echo '<tr>
                     <td>' . $count . '</td>
@@ -1043,149 +1064,158 @@ function ViewLeaveTypes(){
                     <td>' . $value['gender_restriction'] . '</td>
                     <td>' . $value['reset_policy'] . '</td>
                     <td>' . $value['description'] . '</td>
-                    <td>' . ($value['active'] == 1 
-                                ? '<span class="badge badge-success">Active</span>' 
-                                : '<span class="badge badge-secondary">Inactive</span>') . 
-                    '</td>
+                    <td>' . ($value['active'] == 1
+                ? '<span class="badge badge-success">Active</span>'
+                : '<span class="badge badge-secondary">Inactive</span>') .
+                '</td>
                     <td class="text-center">
                         <div class="btn-group action-buttons-group">
-                            <button class="btn btn-default btn-sm" onclick="GetLeaveTypeDetails('.$value["leave_type_id"].')" data-toggle="modal" data-target="#leaveTypeModal">
+                            <button class="btn btn-default btn-sm" onclick="GetLeaveTypeDetails(' . $value["leave_type_id"] . ')" data-toggle="modal" data-target="#leaveTypeModal">
                                 <i class="fa fa-edit"></i> Edit
                             </button>
-                            <button class="btn btn-danger btn-sm" onclick="DeleteLeaveType('.$value["leave_type_id"].')" data-toggle="tooltip" title="Delete" data-placement="bottom">
+                            <button class="btn btn-danger btn-sm" onclick="DeleteLeaveType(' . $value["leave_type_id"] . ')" data-toggle="tooltip" title="Delete" data-placement="bottom">
                                 <i class="fa fa-times"></i> Delete
                             </button>
                         </div>
                     </td>
                 </tr>';
-        }   
+        }
     }
 }
 ##-------------------------------##
 
 ##-----Render View of Dropdowns-----##
 
-function ViewDepartmentsDropdown(){  
+function ViewDepartmentsDropdown()
+{
     include_once '../includes/class/Department.php';
-    $MyDepartment = new Department();                                    
+    $MyDepartment = new Department();
     $rendered_departments_drpdwn = "";
     $departments = $MyDepartment->GetDepartments();
-    if($departments != null || $departments != ""){
+    if ($departments != null || $departments != "") {
         foreach ($departments as $key => $value) {
-            $rendered_departments_drpdwn .= "<option value='".$value["dept_id"]."'>".$value["dept_code"] . ' | ' . $value["dept_title"] . "</option>";
+            $rendered_departments_drpdwn .= "<option value='" . $value["dept_id"] . "'>" . $value["dept_code"] . ' | ' . $value["dept_title"] . "</option>";
         }
     }
-    return $rendered_departments_drpdwn;                                            
+    return $rendered_departments_drpdwn;
 }
 
-function ViewPositionsDropdown(){  
+function ViewPositionsDropdown()
+{
     include_once '../includes/class/Position.php';
-    $MyPosition = new Position();                                    
+    $MyPosition = new Position();
     $rendered_positions_drpdwn = "";
     $positions = $MyPosition->GetPositions();
-    if($positions != null || $positions != ""){
+    if ($positions != null || $positions != "") {
         foreach ($positions as $key => $value) {
-            $rendered_positions_drpdwn .= "<option value='".$value["position_id"]."'>". $value["position_itemnum"] . " | " . $value["position_title"] . "</option>";
+            $rendered_positions_drpdwn .= "<option value='" . $value["position_id"] . "'>" . $value["position_itemnum"] . " | " . $value["position_title"] . "</option>";
         }
     }
-    return $rendered_positions_drpdwn;                                            
+    return $rendered_positions_drpdwn;
 }
 
-function ViewVacantPositionsDropdown(){  
+function ViewVacantPositionsDropdown()
+{
     include_once '../includes/class/Position.php';
-    $MyPosition = new Position();                                    
+    $MyPosition = new Position();
     $rendered_positions_drpdwn = "";
     $positions = $MyPosition->GetVacantPositions();
-    if($positions != null || $positions != ""){
+    if ($positions != null || $positions != "") {
         foreach ($positions as $key => $value) {
-            $rendered_positions_drpdwn .= "<option value='".$value["position_id"]."'>".$value["position_title"] . "</option>";
+            $rendered_positions_drpdwn .= "<option value='" . $value["position_id"] . "'>" . $value["position_title"] . "</option>";
         }
     }
-    return $rendered_positions_drpdwn;                                            
+    return $rendered_positions_drpdwn;
 }
 
-function ViewEmployeesDropdown(){  
+function ViewEmployeesDropdown()
+{
     include_once '../includes/class/Employee.php';
-    $Employees = new Employee();  
+    $Employees = new Employee();
 
     $rendered_employees_drpdwn = "";
     $employee_name = "";
 
     $employees = $Employees->GetEmployees();
-    if($employees != null || $employees != ""){
+    if ($employees != null || $employees != "") {
         foreach ($employees as $key => $value) {
-            $employee_name = $value["lastname"].', '.$value["firstname"].' '.$value["extension"].' '.$value["middlename"][0];
-            $rendered_employees_drpdwn .= "<option value='".$value["employee_id"]."'>". $employee_name . "</option>";
+            $employee_name = $value["lastname"] . ', ' . $value["firstname"] . ' ' . $value["extension"] . ' ' . $value["middlename"][0];
+            $rendered_employees_drpdwn .= "<option value='" . $value["employee_id"] . "'>" . $employee_name . "</option>";
         }
     }
-    return $rendered_employees_drpdwn;                                            
+    return $rendered_employees_drpdwn;
 }
 
-function ViewEmployedEmployeesWithEarningsDropdown(){  
+function ViewEmployedEmployeesWithEarningsDropdown()
+{
     include_once '../includes/class/Employee.php';
-    $Employees = new Employee();  
+    $Employees = new Employee();
 
     $rendered_employees_drpdwn = "";
     $employee_name = "";
 
     $employees = $Employees->FetchEmployedEmployeesWithEarnings();
-    if($employees != null || $employees != ""){
+    if ($employees != null || $employees != "") {
         foreach ($employees as $key => $value) {
             $employee_name = $value["full_name"];
-            $rendered_employees_drpdwn .= "<option value='".$value["employee_id"]."'>". $employee_name . "</option>";
+            $rendered_employees_drpdwn .= "<option value='" . $value["employee_id"] . "'>" . $employee_name . "</option>";
         }
     }
-    return $rendered_employees_drpdwn;                                            
+    return $rendered_employees_drpdwn;
 }
 
-function ViewConfigEarningsDropdown(){  
+function ViewConfigEarningsDropdown()
+{
     include_once '../includes/class/Earning.php';
-    $Earnings = new Earning();  
+    $Earnings = new Earning();
 
     $rendered_configEarnings_drpdwn = "";
 
     $earning_configs = $Earnings->GetEarningConfigs();
-    if($earning_configs != null || $earning_configs != ""){
+    if ($earning_configs != null || $earning_configs != "") {
         foreach ($earning_configs as $key => $value) {
-            $rendered_configEarnings_drpdwn .= "<option value='".$value["config_earning_id"]."'>". $value["earning_code"] . "</option>";
+            $rendered_configEarnings_drpdwn .= "<option value='" . $value["config_earning_id"] . "'>" . $value["earning_code"] . "</option>";
         }
     }
-    return $rendered_configEarnings_drpdwn;                                            
+    return $rendered_configEarnings_drpdwn;
 }
 
-function ViewConfigDeductionsDropdown(){  
+function ViewConfigDeductionsDropdown()
+{
     include_once '../includes/class/Deduction.php';
-    $Deductions = new Deduction();  
+    $Deductions = new Deduction();
 
     $rendered_configDeductions_drpdwn = "";
 
     $deduction_configs = $Deductions->GetDeductionConfigs();
-    if($deduction_configs != null || $deduction_configs != ""){
+    if ($deduction_configs != null || $deduction_configs != "") {
         foreach ($deduction_configs as $key => $value) {
-            $rendered_configDeductions_drpdwn .= "<option value='".$value["config_deduction_id"]."'>". $value["deduction_type_code"] . ' | ' . $value["deduct_code"] . "</option>";
+            $rendered_configDeductions_drpdwn .= "<option value='" . $value["config_deduction_id"] . "'>" . $value["deduction_type_code"] . ' | ' . $value["deduct_code"] . "</option>";
         }
     }
-    return $rendered_configDeductions_drpdwn;                                            
+    return $rendered_configDeductions_drpdwn;
 }
 
-function ViewDeductionTypesDropdown(){  
+function ViewDeductionTypesDropdown()
+{
     include_once '../includes/class/Deduction.php';
-    $DeductionType = new Deduction();  
+    $DeductionType = new Deduction();
 
     $rendered_deductTypes_drpdwn = "";
 
     $deduct_types = $DeductionType->GetDeductionTypes();
-    if($deduct_types != null || $deduct_types != ""){
+    if ($deduct_types != null || $deduct_types != "") {
         foreach ($deduct_types as $key => $value) {
-            $rendered_deductTypes_drpdwn .= "<option value='".$value["deduction_type_id"]."'>". $value["deduction_type_name"] . "</option>";
+            $rendered_deductTypes_drpdwn .= "<option value='" . $value["deduction_type_id"] . "'>" . $value["deduction_type_name"] . "</option>";
         }
     }
-    return $rendered_deductTypes_drpdwn;                                            
+    return $rendered_deductTypes_drpdwn;
 }
 
-function ViewPayFrequenciesDropdown(){
+function ViewPayFrequenciesDropdown()
+{
     include_once '../includes/class/Payroll.php';
-    $PayrollFrequency = new Payroll();  
+    $PayrollFrequency = new Payroll();
 
     $rendered_frequencies_drpdwn = "";
     $pay_frequencies = $PayrollFrequency->GetPayFrequencies();
@@ -1205,11 +1235,12 @@ function ViewPayFrequenciesDropdown(){
         // Prepend warning option if no active frequency found
         $rendered_frequencies_drpdwn = "<option selected hidden disabled>⚠ Please set an active payroll frequency</option>" . $rendered_frequencies_drpdwn;
     }
-    return $rendered_frequencies_drpdwn;   
+    return $rendered_frequencies_drpdwn;
 }
 
 // Function to populate pay periods
-function generatePayPeriodOptionsDropdown() {
+function generatePayPeriodOptionsDropdown()
+{
     include_once '../includes/class/Payroll.php';
     $PayrollSetting = new Payroll();
 
@@ -1218,19 +1249,19 @@ function generatePayPeriodOptionsDropdown() {
 
     $options = '';
     $pay_periods = $PayrollSetting->GetPayPeriods($frequency);
-    if(!empty($pay_periods)){
+    if (!empty($pay_periods)) {
         foreach ($pay_periods as $key => $value) {
             $val = $value['date_start'] . '_' . $value['date_end'];
-            $options .= "<option value='".$val."'>". $value["period_label"] . "</option>";
+            $options .= "<option value='" . $val . "'>" . $value["period_label"] . "</option>";
         }
-    }
-    else{
+    } else {
         $options .= "<option value='' hidden selected>Payroll Periods not set...</option>";
     }
     return $options;
 }
 
-function ViewPayPeriodYearsDropdown(){
+function ViewPayPeriodYearsDropdown()
+{
     include_once '../includes/class/Payroll.php';
     $PayrollSetting = new Payroll();
 
@@ -1242,14 +1273,14 @@ function ViewPayPeriodYearsDropdown(){
         foreach ($years as $year) {
             $options .= '<option value="' . $year . '">' . $year . '</option>';
         }
-    }
-    else{
+    } else {
         $options .= "<option value='' hidden selected>Payroll Years not set...</option>";
     }
     return $options;
 }
 
-function BuildPayrollPeriodDropdown($year) {
+function BuildPayrollPeriodDropdown($year)
+{
     include_once '../includes/class/Payroll.php';
     $PayrollSetting = new Payroll();
 
@@ -1257,8 +1288,8 @@ function BuildPayrollPeriodDropdown($year) {
     $frequency = $active_frequency['freq_code'];
 
     $options = "";
-    $periods = $PayrollSetting->GetPayrollPeriodsByYear($year,$frequency);
-    
+    $periods = $PayrollSetting->GetPayrollPeriodsByYear($year, $frequency);
+
     foreach ($periods as $period) {
         $selected = ($selected_id == $period['payroll_period_id']) ? "selected" : "";
         $options .= "<option value='{$period['payroll_period_id']}' {$selected}>{$period['period_label']}</option>";
@@ -1266,29 +1297,31 @@ function BuildPayrollPeriodDropdown($year) {
     return $options;
 }
 
-function BuildLeaveTypesDropdown(){  
+function BuildLeaveTypesDropdown()
+{
     include_once '../includes/class/Leave.php';
-    $Leave = new Leave();  
+    $Leave = new Leave();
 
     $rendered_leaveTypes_drpdwn = "";
 
     $leave_types = $Leave->FetchAllLeaveTypes();
-    if($leave_types != null || $leave_types != ""){
+    if ($leave_types != null || $leave_types != "") {
         foreach ($leave_types as $key => $value) {
-            $rendered_leaveTypes_drpdwn .= "<option value='".$value["leave_type_id"]."'>". $value["leave_name"] . "</option>";
+            $rendered_leaveTypes_drpdwn .= "<option value='" . $value["leave_type_id"] . "'>" . $value["leave_name"] . "</option>";
         }
     }
-    return $rendered_leaveTypes_drpdwn;                                            
+    return $rendered_leaveTypes_drpdwn;
 }
 
 
 /**
  * Get employee's leave balance
  */
-function GetEmployeeLeaveBalance($employee_id){
+function GetEmployeeLeaveBalance($employee_id)
+{
     include_once('../includes/class/DB_conn.php');
     $db = new DB_conn();
-    
+
     $employee_id = $db->escape_string($employee_id);
     $query = "SELECT lt.leave_name, mlc.credits_given, 
               COALESCE(SUM(la.days), 0) as used_days,
@@ -1302,7 +1335,7 @@ function GetEmployeeLeaveBalance($employee_id){
               WHERE mlc.employee_id = '$employee_id'
               AND YEAR(mlc.year_date) = YEAR(CURDATE())
               GROUP BY mlc.leave_credit_id";
-    
+
     $result = $db->query($query);
     if ($result && $result->num_rows > 0) {
         $leaves = [];
@@ -1317,10 +1350,11 @@ function GetEmployeeLeaveBalance($employee_id){
 /**
  * Get employee's leave applications
  */
-function GetEmployeeLeaveApplications($employee_id, $limit = 3){
+function GetEmployeeLeaveApplications($employee_id, $limit = 3)
+{
     include_once('../includes/class/DB_conn.php');
     $db = new DB_conn();
-    
+
     $employee_id = $db->escape_string($employee_id);
     $query = "SELECT la.*, lt.leave_name, DATE(la.date_filed) as filed_date
               FROM leave_applications la
@@ -1328,7 +1362,7 @@ function GetEmployeeLeaveApplications($employee_id, $limit = 3){
               WHERE la.employee_id = '$employee_id'
               ORDER BY la.date_filed DESC
               LIMIT $limit";
-    
+
     $result = $db->query($query);
     if ($result && $result->num_rows > 0) {
         $applications = [];
@@ -1343,13 +1377,14 @@ function GetEmployeeLeaveApplications($employee_id, $limit = 3){
 /**
  * Get employee profile summary
  */
-function GetEmployeeProfileSummary($employee_id){
+function GetEmployeeProfileSummary($employee_id)
+{
     include_once('../includes/class/DB_conn.php');
     include_once('../includes/class/Employee.php');
-    
+
     $Employee = new Employee();
     $profile = $Employee->GetEmployeeDetails($employee_id);
-    
+
     return $profile;
 }
 
@@ -1362,17 +1397,18 @@ function GetEmployeeProfileSummary($employee_id){
 /**
  * Get total count of active employees included in payroll
  */
-function ViewPayrollActiveEmployeesCount(){
+function ViewPayrollActiveEmployeesCount()
+{
     include_once('../includes/class/DB_conn.php');
     $db = new DB_conn();
-    
+
     $query = "SELECT COUNT(a.employee_id) as total_count
               FROM employees_tbl a
               INNER JOIN employee_employments_tbl b
               ON a.employee_id = b.employee_id
               WHERE b.employment_status = 1 
               AND a.include_in_payroll = 1";
-    
+
     $result = $db->query($query);
     if ($result && $result->num_rows > 0) {
         $row = $db->fetch_array($result);
@@ -1384,19 +1420,20 @@ function ViewPayrollActiveEmployeesCount(){
 /**
  * Get count of all processed payrolls for the current year
  */
-function ViewProcessedPayrollsCount(){
+function ViewProcessedPayrollsCount()
+{
     include_once('../includes/class/DB_conn.php');
     $db = new DB_conn();
-    
+
     // Get current year
     $current_year = date('Y');
-    
+
     // Count only PAID payroll entries for the current year
     $query = "SELECT COUNT(*) as processed_count
               FROM payroll_entries
               WHERE status = 'PAID'
               AND YEAR(created_at) = $current_year";
-    
+
     $result = $db->query($query);
     if ($result && $result->num_rows > 0) {
         $row = $db->fetch_array($result);
@@ -1408,19 +1445,20 @@ function ViewProcessedPayrollsCount(){
 /**
  * Get total payroll cost for current period (sum of net pay)
  */
-function ViewTotalPayrollCost(){
+function ViewTotalPayrollCost()
+{
     include_once('../includes/class/DB_conn.php');
     $db = new DB_conn();
-    
+
     // Get current year
     $current_year = date('Y');
-    
+
     // Sum of net pay for all PAID payroll entries in the current year
     $query = "SELECT COALESCE(SUM(net_pay), 0) as total_cost
               FROM payroll_entries
               WHERE status = 'PAID'
               AND YEAR(created_at) = $current_year";
-    
+
     $result = $db->query($query);
     if ($result && $result->num_rows > 0) {
         $row = $db->fetch_array($result);
@@ -1437,15 +1475,16 @@ function ViewTotalPayrollCost(){
 /**
  * Get current payroll period information
  */
-function GetCurrentPayrollPeriod(){
+function GetCurrentPayrollPeriod()
+{
     include_once('../includes/class/DB_conn.php');
     $db = new DB_conn();
-    
+
     $query = "SELECT * FROM payroll_periods 
               WHERE date_start <= CURDATE() 
               AND date_end >= CURDATE()
               ORDER BY payroll_period_id DESC LIMIT 1";
-    
+
     $result = $db->query($query);
     if ($result && $result->num_rows > 0) {
         return $db->fetch_array($result);
@@ -1456,19 +1495,20 @@ function GetCurrentPayrollPeriod(){
 /**
  * Get total remittances for the current year (only remitted status)
  */
-function ViewTotalRemittances(){
+function ViewTotalRemittances()
+{
     include_once('../includes/class/DB_conn.php');
     $db = new DB_conn();
-    
+
     // Get current year
     $current_year = date('Y');
-    
+
     // Sum all remitted remittance amounts for the current year
     $query = "SELECT COALESCE(SUM(total_amount), 0) as total_remittances
               FROM remittances
               WHERE YEAR(created_at) = $current_year
               AND status = 'Remitted'";
-    
+
     $result = $db->query($query);
     if ($result && $result->num_rows > 0) {
         $row = $db->fetch_array($result);
