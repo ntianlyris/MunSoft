@@ -837,9 +837,9 @@
       <div class="module-desc">Per-employee payslips with full breakdowns. PDF download via TCPDF plus Summary List of Payroll (SLP) reports.</div>
     </div>
     <div class="module-card reveal">
-      <div class="module-icon">📅</div>
-      <div class="module-title">Leave Management</div>
-      <div class="module-desc">Application submission, approval workflows, balance tracking, and credit management across multiple leave types.</div>
+      <div class="module-icon">🔍</div>
+      <div class="module-title">Payroll Audit Trail</div>
+      <div class="module-desc">Complete transparency with system-generated logs tracking every record modification and workflow transition for administrative review.</div>
     </div>
   </div>
 </section>
