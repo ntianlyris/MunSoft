@@ -203,12 +203,106 @@ function DeleteSystemUser(admin_id){
             });
         }
         else if (
-          /* Read more about handling dismissals below */
           result.dismiss === Swal.DismissReason.cancel
         ) {}
       });  
 }
 
 
+//-----Role Management-----//
+window.EditRole = function(role_id){
+    // Show loader
+    Swal.fire({
+        title: 'Fetching Data...',
+        text: 'Please wait while we retrieve role details.',
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
 
+    $.ajax({
+        type: "GET",
+        url: "get.php",
+        data: {"action" : "get_role_details", "role_id" : role_id},
+        success: function(data) {
+            Swal.close();
+            var obj = $.parseJSON(data);
+            
+            // Reset form and checkboxes
+            $('#formRole')[0].reset();
+            $('.perm-check').prop('checked', false);
 
+            $('#txtRoleID').val(obj.role_id);
+            $('#txtRoleName').val(obj.role_name);
+            
+            // Map permissions to checkboxes
+            if(obj.perms){
+                obj.perms.forEach(function(perm_id){
+                    $('#perm_' + perm_id).prop('checked', true);
+                });
+            }
+
+            $('#userRoleModal').modal('show');
+        },
+        error: function(){
+            Swal.fire('Error', 'Failed to fetch role data.', 'error');
+        }
+    });
+}
+
+window.DeleteRole = function(role_id){
+    Swal.fire({
+        title: 'Delete Role',
+        text: "Are you sure you want to delete this role? This action cannot be undone and may affect users assigned to this role.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#28a745',
+        cancelButtonColor: '#dc3545',
+        confirmButtonText: 'Yes, Delete it'
+      }).then((result) => {
+        if (result.isConfirmed) {
+            // Show loader
+            Swal.fire({
+                title: 'Deleting...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            $.ajax({
+                type: "POST",
+                url: "save_settings.php",
+                data: {"submit" : "delete_role", "role_id" : role_id},
+                success: function(data) {
+                    var obj = $.parseJSON(data);
+                    if (obj.result == 'deleted') {
+                        Swal.fire({
+                            title: 'Deleted!',
+                            text: "Role has been removed successfully.",
+                            icon: 'success',
+                            confirmButtonColor: '#28a745'
+                        }).then(() => {
+                            window.location.reload();
+                        });
+                    } else {
+                        Swal.fire('Error', 'Failed to delete role!', 'error');
+                    }
+                },
+                error: function(){
+                    Swal.fire('Error', 'An error occurred during deletion.', 'error');
+                }
+            });
+        }
+      });
+}
+
+// Ensure "Add New Role" button resets the form
+$(document).ready(function(){
+    $('[data-target="#userRoleModal"]').on('click', function(){
+        $('#formRole')[0].reset();
+        $('#txtRoleID').val('');
+        $('.perm-check').prop('checked', false);
+    });
+});

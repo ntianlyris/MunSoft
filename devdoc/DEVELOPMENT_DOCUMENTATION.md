@@ -1,7 +1,7 @@
 # IntelliGov Development Documentation
 
 > **Synthesized from:** Notes.txt, BUG_FIX_BLOCKING_LOGIC.md, DEPLOYMENT_CHECKLIST.md, DEPLOYMENT_COMPLETE_STATUS_BASED_EDITING.md, IMPLEMENTATION_CHANGE_SUMMARY.md, IMPLEMENTATION_REPORT.md, IMPLEMENTATION_SUMMARY.md, MOBILE_SETUP_GUIDE.md, PAYROLL_EDITING_FLOW_ANALYSIS.md, PAYROLL_STATUS_BASED_EDITING.md, PAYROLL_WORKFLOW_SETUP.md, PROJECT_COMPLETION_REPORT.md, QUICK_START.md, REMITTANCE_ISSUE_ANALYSIS.md, SECURITY_IMPLEMENTATION.md, TWO_LAYER_BLOCKING_SYSTEM.md  
-> **Date Compiled:** March 11, 2026
+> **Date Compiled:** March 12, 2026
 
 ---
 
@@ -166,11 +166,19 @@ To maintain the integrity of finalized financial reports, a blocking mechanism p
 
 ## 6. Security Implementation
 
-### 6.1 Role-Based Access Control (RBAC)
-- Employee users are restricted from edit/delete operations across all modules.
-- **Frontend:** CSS attribute selectors + JavaScript fallback hide action buttons for Employee role via `body[data-user-role="Employee"]`.
-- **Backend:** `CheckModifyPermission()` function in all `save_settings.php` handlers returns HTTP 403 for Employee role attempts.
-- Applied across HRIS, Admin, and Payroll modules.
+### 6.1 Advanced Permission-Based RBAC (Mar 2026)
+The system has transitioned from basic role-name checks to a granular, permission-centric access control model.
+
+- **Permission-Centric Gateway:** Access is controlled by specific string-based permissions (e.g., `Manage System`, `Update Data`, `Access HR`, `Access Payroll`) stored in `role_perm_tbl`.
+- **Master Bypass (`Manage System`):** This permission acting as a "root" key. Any user possessing `Manage System` (typically Administrators) automatically bypasses all other permission checks.
+- **Specialized "Updater" Roles:** Introduced `HR Updater` and `Payroll Updater` roles. These roles carry the `Update Data` permission (allowing edits) but lack the `Manage System` or `Manage HR/Payroll` permissions, effectively blocking them from performing deletions.
+- **Two-Layer Enforcement:**
+    - **Frontend:** `includes/view/view.php` initializes global permission flags based on the user's assigned roles. These flags control sidebar visibility and the rendering of action buttons (Edit/Delete).
+    - **Backend API Gating:** The `CheckModifyPermission()` function in `admin/save_settings.php` has been refactored to use the `PrivilegedUser->hasPrivilege()` method. It strictly enforces `Update Data` for modifications and `Manage System` for deletions.
+- **Core Infrastructure:**
+    - `PrivilegedUser` class: Handles session-based role/permission initialization and checking.
+    - `Role` class: Manages role-to-permission mappings and database synchronization.
+    - `User::RedirectUsersByRole()`: Now handles the expanded role ID set (including Updaters) for correct dashboard routing.
 
 ### 6.2 General Security Measures
 - Session-based authentication with 30-minute timeout.
@@ -219,16 +227,16 @@ To maintain the integrity of finalized financial reports, a blocking mechanism p
 | `db/migration_employee_photos.sql` | Employee photos table |
 | `db/payroll_migration_20260305.sql` | Payroll audit & config columns |
 | `db/payroll_workflow_migration_20260305.sql` | Workflow status & transition tables |
+| `db/migration_rbac_standardization_20260312.sql` | New Permissions, Roles & RBAC Mapping |
 
 ---
 
 ## 9. Future Recommendations
 
 1. **Remittance Schema Redesign** — Implement the documented ALTER TABLE + code changes to support granular deduction-level storage in remittance records.
-2. **Role-Based Permission Matrix** — Expand RBAC beyond Employee restriction to include granular per-operation permissions for HR, Finance, and Manager roles.
+2. **Advanced Audit Dashboard** — Build an admin UI to view and filter payroll audit trail and workflow transition history (currently accessible via database only).
 3. **Email Notifications** — Add automated email alerts for payroll status changes, payslip availability, and leave approvals.
-4. **Audit Dashboard** — Build an admin UI to view and filter payroll audit trail and workflow transition history.
-5. **Photo Enhancements** — WebP format optimization, batch upload, and AI-based face-centering for crop.
+4. **Photo Enhancements** — WebP format optimization, batch upload, and AI-based face-centering for crop.
 6. **Push Notifications** — Leverage PWA push notifications for payroll release and leave status updates.
 7. **Multi-Language Support** — Internationalization for broader deployment.
 8. **Biometric/2FA Authentication** — Stronger auth for production environments.

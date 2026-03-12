@@ -160,11 +160,11 @@
 				header("Location: ./employee");
 				$temp = true;
 			}
-			elseif ($role == 4) {
+			elseif ($role == 4 || $role == 8) {
 				header("Location: ./hris");
 				$temp = true;
 			}
-			elseif ($role == 5) {
+			elseif ($role == 5 || $role == 9) {
 				header("Location: ./payroll");
 				$temp = true;
 			}

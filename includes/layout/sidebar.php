@@ -62,7 +62,7 @@
           <?php echo ViewSideBarLink('remittance'); ?>
           <?php echo ViewSideBarLink('leave_applications'); ?>
           <?php echo ViewSideBarLink('manage_leave_credits'); ?>
-            <?php if ($role !== 'Employee') { ?>
+<?php if ($access_hr || $access_payroll || $manage_system) { ?>
               <li class="nav-item">
               <a href="#" class="nav-link">
                 <i class="nav-icon fas fa-chart-line"></i>

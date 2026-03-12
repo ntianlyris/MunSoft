@@ -5,8 +5,8 @@
     include_once '../includes/view/view.php';
     include_once '../includes/view/showModals.php';
 
-    // Restricted access check (redundant but safe)
-    if ($role !== 'Administrator' || !$manage_system) {
+    // Restricted access check - only Manage System (Administrators) can access
+    if (!$manage_system) {
         echo "<script>window.location.href='./';</script>";
         exit;
     }

@@ -19,6 +19,10 @@ foreach ($roles as $key => $value) {
 $admin_perms = $perms;
 $manage_system = false;
 $update_data = false;
+$manage_hr = false;
+$manage_payroll = false;
+$access_hr = false;
+$access_payroll = false;
 
 if (in_array('Manage System', $admin_perms, true)) {
     $manage_system = true;
@@ -26,9 +30,37 @@ if (in_array('Manage System', $admin_perms, true)) {
 if (in_array('Update Data', $admin_perms, true)) {
     $update_data = true;
 }
+if (in_array('Manage HR', $admin_perms, true)) {
+    $manage_hr = true;
+}
+if (in_array('Manage Payroll', $admin_perms, true)) {
+    $manage_payroll = true;
+}
+if (in_array('Access HR', $admin_perms, true)) {
+    $access_hr = true;
+}
+if (in_array('Access Payroll', $admin_perms, true)) {
+    $access_payroll = true;
+}
 
-// Store user role in a global variable for JavaScript access through HTML data attribute
-// This will be used to hide action buttons based on user role
+// Master Bypass for Manage System
+if ($manage_system) {
+    $update_data = true;
+    $manage_hr = true;
+    $manage_payroll = true;
+    $access_hr = true;
+    $access_payroll = true;
+}
+
+// Store user role and permissions in global variables
+$GLOBALS['manage_system'] = $manage_system;
+$GLOBALS['update_data'] = $update_data;
+$GLOBALS['manage_hr'] = $manage_hr;
+$GLOBALS['manage_payroll'] = $manage_payroll;
+$GLOBALS['access_hr'] = $access_hr;
+$GLOBALS['access_payroll'] = $access_payroll;
+$GLOBALS['role'] = $role;
+$GLOBALS['user_id'] = $user_id;
 $GLOBALS['user_role_for_js'] = isset($role) ? $role : 'Guest';
 ?>
 <script>
@@ -40,14 +72,19 @@ $GLOBALS['user_role_for_js'] = isset($role) ? $role : 'Guest';
 ##-----Render View of Sidebar links according to user permissions-----##
 function ViewSideBarLink($link_name)
 {
-    $user_id = $GLOBALS['user_id'];                                 //access the global variable $user_id
-    $user_role = $GLOBALS['role'];                                 //access the global variable $role
-    $manage_system = $GLOBALS['manage_system'];         //access the global variable $manage_system
+    $user_id = $GLOBALS['user_id'];
+    $user_role = $GLOBALS['role'];
+    $manage_system = $GLOBALS['manage_system'];
     $update_data = $GLOBALS['update_data'];
+    $manage_hr = $GLOBALS['manage_hr'];
+    $manage_payroll = $GLOBALS['manage_payroll'];
+    $access_hr = $GLOBALS['access_hr'];
+    $access_payroll = $GLOBALS['access_payroll'];
+    
     $link_text = '';
     switch ($link_name) {
         case 'users':
-            if ($user_role == "Administrator") {
+            if ($manage_system) {
                 $link_text = '<li class="nav-item">
                                     <a href="users.php" class="nav-link" id="users">
                                     <i class="nav-icon fas fa-user-lock"></i>
@@ -190,7 +227,7 @@ function ViewSideBarLink($link_name)
             }
             break;
         case 'user_management':
-            if ($user_role == "Administrator") {
+            if ($manage_system) {
                 $link_text = '<li class="nav-item">
                                     <a href="../admin/user_management.php" class="nav-link" id="user_management">
                                     <i class="nav-icon fas fa-user-check"></i>
@@ -202,7 +239,7 @@ function ViewSideBarLink($link_name)
             }
             break;
         case 'employee_earnings':
-            if ($user_role == "Payroll Master") {
+            if ($access_payroll) {
                 $link_text = '<li class="nav-item">
                                     <a href="employee_earnings.php" class="nav-link" id="employee_earnings">
                                     <i class="nav-icon fas fa-money-bill-wave"></i>
@@ -214,7 +251,7 @@ function ViewSideBarLink($link_name)
             }
             break;
         case 'employee_deductions':
-            if ($user_role == "Payroll Master") {
+            if ($access_payroll) {
                 $link_text = '<li class="nav-item">
                                     <a href="employee_deductions.php" class="nav-link" id="employee_deductions">
                                     <i class="nav-icon fas fa-user-minus"></i>
@@ -226,7 +263,7 @@ function ViewSideBarLink($link_name)
             }
             break;
         case 'employee_govshares':
-            if ($user_role == "Payroll Master") {
+            if ($access_payroll) {
                 $link_text = '<li class="nav-item">
                                     <a href="employee_govshares.php" class="nav-link" id="employee_govshares">
                                     <i class="nav-icon fas fa-user-check"></i>
@@ -238,7 +275,7 @@ function ViewSideBarLink($link_name)
             }
             break;
         case 'config_earnings':
-            if ($user_role == "Payroll Master") {
+            if ($access_payroll) {
                 $link_text = '<li class="nav-item">
                                     <a href="config_earnings.php" class="nav-link" id="config_earnings">
                                     <i class="nav-icon fas fa-cog"></i>
@@ -250,7 +287,7 @@ function ViewSideBarLink($link_name)
             }
             break;
         case 'config_deductions':
-            if ($user_role == "Payroll Master") {
+            if ($access_payroll) {
                 $link_text = '<li class="nav-item">
                                     <a href="config_deductions.php" class="nav-link" id="config_deductions">
                                     <i class="nav-icon fas fa-cog"></i>
@@ -263,7 +300,7 @@ function ViewSideBarLink($link_name)
             break;
 
         case 'payrolls':
-            if ($user_role == "Payroll Master") {
+            if ($access_payroll) {
                 $link_text = '<li class="nav-item">
                                     <a href="payrolls.php" class="nav-link" id="payrolls">
                                     <i class="nav-icon fas fa-file-invoice"></i>
@@ -276,7 +313,7 @@ function ViewSideBarLink($link_name)
             break;
 
         case 'payroll_records':
-            if ($user_role == "Payroll Master") {
+            if ($access_payroll) {
                 $link_text = '<li class="nav-item">
                                     <a href="payroll_records.php" class="nav-link" id="payroll_records">
                                     <i class="nav-icon fas fa-folder-open"></i>
@@ -289,7 +326,9 @@ function ViewSideBarLink($link_name)
             break;
 
         case 'gaa_netpay_status':
-            if ($user_role == "Payroll Master") {
+            // Logic: Accessible if user can access payroll OR if they are an employee (who only sees their own)
+            // We use $role == 'Employee' as a fallback for the basic employee view
+            if ($access_payroll || $user_role == "Employee") {
                 $link_text = '<li class="nav-item">
                                     <a href="gaa_netpay_status.php" class="nav-link" id="gaa_netpay_status">
                                     <i class="nav-icon fas fa-shield-alt"></i>
@@ -302,7 +341,7 @@ function ViewSideBarLink($link_name)
             break;
 
         case 'remittance':
-            if ($user_role == "Payroll Master") {
+            if ($access_payroll) {
                 $link_text = '<li class="nav-item">
                                     <a href="remittance.php" class="nav-link" id="remittance">
                                     <i class="nav-icon fas fa-paper-plane"></i>
@@ -315,7 +354,7 @@ function ViewSideBarLink($link_name)
             break;
 
         case 'govshares':
-            if ($user_role == "Payroll Master") {
+            if ($access_payroll) {
                 $link_text = '<li class="nav-item">
                                     <a href="govshares.php" class="nav-link" id="govshares">
                                     <i class="nav-icon fas fa-cog"></i>
@@ -328,7 +367,7 @@ function ViewSideBarLink($link_name)
             break;
 
         case 'emergency_payroll_delete':
-            if ($user_role == "Administrator" && $manage_system) {
+            if ($manage_system) {
                 $link_text = '<li class="nav-item">
                                     <a href="../admin/emergency_payroll_delete.php" class="nav-link" id="emergency_payroll_delete">
                                     <i class="nav-icon fas fa-exclamation-triangle"></i>
@@ -341,7 +380,7 @@ function ViewSideBarLink($link_name)
             break;
 
         case 'journal_entry':
-            if ($user_role == "Payroll Master") {
+            if ($access_payroll) {
                 $link_text = '<li class="nav-item">
                                     <a href="journal_entry.php" class="nav-link" id="journal_entry">
                                     <i class="nav-icon fas fa-file-invoice"></i>
@@ -354,7 +393,7 @@ function ViewSideBarLink($link_name)
             break;
 
         case 'payslip':
-            if ($user_role == "Payroll Master") {
+            if ($access_payroll) {
                 $link_text = '<li class="nav-item">
                                     <a href="payslip.php" class="nav-link" id="payslip">
                                     <i class="nav-icon fas fa-file-invoice"></i>
@@ -367,7 +406,7 @@ function ViewSideBarLink($link_name)
             break;
 
         case 'report_slp':
-            if ($user_role == "Payroll Master" || $user_role == "Administrator") {
+            if ($access_payroll || $manage_system) {
                 $link_text = '<li class="nav-item">
                                     <a href="report_slp.php" class="nav-link" id="report_slp">
                                     <i class="nav-icon fas fa-file-alt"></i>
@@ -380,7 +419,7 @@ function ViewSideBarLink($link_name)
             break;
 
         case 'report_abstract':
-            if ($user_role == "Payroll Master" || $user_role == "Administrator") {
+            if ($access_payroll || $manage_system) {
                 $link_text = '<li class="nav-item">
                                     <a href="report_abstract.php" class="nav-link" id="report_abstract">
                                     <i class="nav-icon fas fa-table"></i>
@@ -393,7 +432,7 @@ function ViewSideBarLink($link_name)
             break;
 
         case 'payroll_settings':
-            if ($user_role == "Payroll Master") {
+            if ($access_payroll) {
                 $link_text = '<li class="nav-item">
                                     <a href="settings_payroll.php" class="nav-link" id="settings_payroll">
                                     <i class="nav-icon fas fa-cog"></i>
@@ -406,7 +445,7 @@ function ViewSideBarLink($link_name)
             break;
 
         case 'manage_leave_credits':
-            if ($user_role == "HR" || $user_role == "Administrator") {
+            if ($access_hr || $manage_system) {
                 $link_text = '<li class="nav-item">
                                     <a href="manage_leave_credits.php" class="nav-link" id="manage_leave_credits">
                                     <i class="nav-icon fas fa-piggy-bank"></i>
@@ -419,7 +458,7 @@ function ViewSideBarLink($link_name)
             break;
 
         case 'leave_applications':
-            if ($user_role == "HR" || $user_role == "Administrator") {
+            if ($access_hr || $manage_system) {
                 $link_text = '<li class="nav-item">
                                     <a href="leave_applications.php" class="nav-link" id="leave_applications">
                                     <i class="nav-icon fas fa-calendar-minus"></i>
@@ -432,7 +471,7 @@ function ViewSideBarLink($link_name)
             break;
 
         case 'config_leave_types':
-            if ($user_role == "HR" || $user_role == "Administrator") {
+            if ($access_hr || $manage_system) {
                 $link_text = '<li class="nav-item">
                                     <a href="config_leave_types.php" class="nav-link" id="config_leave_types">
                                     <i class="nav-icon fas fa-cog"></i>
@@ -458,7 +497,7 @@ function ViewSideBarLink($link_name)
             break;
 
         case 'signatories':
-            if ($user_role == "Payroll Master" || $user_role == "HR" || $manage_system) {
+            if ($access_payroll || $access_hr || $manage_system) {
                 $link_text = '<li class="nav-item">
                                     <a href="signatories.php" class="nav-link" id="signatories">
                                         <i class="nav-icon fas fa-signature"></i>
@@ -471,7 +510,7 @@ function ViewSideBarLink($link_name)
             break;
 
         case 'database_backup':
-            if ($user_role == "Administrator") {
+            if ($manage_system) {
                 $link_text = '<li class="nav-item">
                                     <a href="../admin/database_backup.php" class="nav-link" id="database_backup">
                                         <i class="nav-icon fas fa-database"></i>
@@ -486,6 +525,11 @@ function ViewSideBarLink($link_name)
     return $link_text;
 }
 
+// Access variables for tables
+$manage_hr = $GLOBALS['manage_hr'];
+$manage_payroll = $GLOBALS['manage_payroll'];
+$update_data = $GLOBALS['update_data'];
+
 ##-----Render View of Tables-----##
 
 function ViewDepartments()
@@ -498,7 +542,11 @@ function ViewDepartments()
         $count = 0;
         foreach ($departments as $key => $value) {
             $count++;
-            //echo '<tr id="employment_row_'. $value['employment_id'] .'" class="employment-row">   -- 
+            $delete_btn = $GLOBALS['manage_system'] ? '
+                            <button class="btn btn-danger btn-sm" onclick="DeleteDepartment(' . $value["dept_id"] . ')" data-toggle="tooltip" title="Delete" data-placement="bottom">
+                                <i class="fa fa-times"></i> Delete
+                            </button>' : '';
+
             echo '<tr id="dept_row_' . $value['dept_id'] . '" class="dept-row">
                     <td>' . $count . '</td>
                     <td>' . $value['dept_code'] . '</td>
@@ -509,9 +557,7 @@ function ViewDepartments()
                             <button class="btn btn-default btn-sm" onclick="GetDepartmentDetails(' . $value["dept_id"] . ')" data-toggle="modal" data-target="#department_modal">
                                 <i class="fa fa-edit"></i> Edit
                             </button>
-                            <button class="btn btn-danger btn-sm" onclick="DeleteDepartment(' . $value["dept_id"] . ')" data-toggle="tooltip" title="Delete" data-placement="bottom">
-                                <i class="fa fa-times"></i> Delete
-                            </button>
+                            ' . $delete_btn . '
                         </div>
                     </td>
                 </tr>';
@@ -529,6 +575,11 @@ function ViewPositions()
         $count = 0;
         foreach ($positions as $key => $value) {
             $count++;
+            $delete_btn = $GLOBALS['manage_system'] ? '
+                            <button class="btn btn-danger btn-sm" onclick="DeletePosition(' . $value["position_id"] . ')" data-toggle="tooltip" title="Delete" data-placement="bottom">
+                                <i class="fa fa-times"></i> Delete
+                            </button>' : '';
+
             echo '<tr>
                     <td>' . $count . '</td>
                     <td>' . $value['position_refnum'] . '</td>
@@ -543,9 +594,7 @@ function ViewPositions()
                             <button class="btn btn-default btn-sm" onclick="GetPositionDetails(' . $value["position_id"] . ')" data-toggle="modal" data-target="#position_modal">
                                 <i class="fa fa-edit"></i> Edit
                             </button>
-                            <button class="btn btn-danger btn-sm" onclick="DeletePosition(' . $value["position_id"] . ')" data-toggle="tooltip" title="Delete" data-placement="bottom">
-                                <i class="fa fa-times"></i> Delete
-                            </button>
+                            ' . $delete_btn . '
                         </div>
                     </td>
                 </tr>';
@@ -595,6 +644,12 @@ function ViewEmployeeEmployments($employee_id)
             $employment_end = ($value['employment_status'] == 1 && ($value['employment_end'] == "0000-00-00" || empty($value['employment_end']))) ? "PRESENT" : OutputShortDate($value['employment_end']);
 
             $department_assigned = $MyDepartment->GetDepartmentDetails($value['dept_assigned'])['dept_title'];
+            
+            $delete_btn = $GLOBALS['manage_hr'] ? '
+                            <button class="btn btn-danger btn-sm" onclick="DeleteEmployment(' . $value["employment_id"] . ',' . $value["position_id"] . ')" data-toggle="tooltip" title="Delete" data-placement="bottom">
+                                <i class="fa fa-times"></i>
+                            </button>' : '';
+
             echo '<tr>
                     <td>' . $count . '</td>
                     <td>' . $value['employment_refnum'] . '</td>
@@ -612,9 +667,7 @@ function ViewEmployeeEmployments($employee_id)
                             <button class="btn btn-primary btn-sm" onclick="GetEmploymentDetails(' . $value["employee_id"] . ',' . $value["employment_id"] . ')" data-toggle="modal" data-target="#employment_modal">
                                 <span data-toggle="tooltip" title="Edit" data-placement="bottom"><i class="fa fa-edit"></i></span>
                             </button>
-                            <button class="btn btn-danger btn-sm" onclick="DeleteEmployment(' . $value["employment_id"] . ',' . $value["position_id"] . ')" data-toggle="tooltip" title="Delete" data-placement="bottom">
-                                <i class="fa fa-times"></i>
-                            </button>
+                            ' . $delete_btn . '
                         </div>
                     </td>
                 </tr>';
@@ -701,6 +754,11 @@ function ViewEarningConfigs()
         $count = 0;
         foreach ($earning_configs as $key => $value) {
             $count++;
+            $delete_btn = $GLOBALS['manage_payroll'] ? '
+                            <button class="btn btn-danger btn-sm" onclick="DeleteEarningConfig(' . $value["config_earning_id"] . ')" data-toggle="tooltip" title="Delete" data-placement="bottom">
+                                <i class="fa fa-times"></i> Delete
+                            </button>' : '';
+
             echo '<tr>
                     <td>' . $count . '</td>
                     <td>' . $value['earning_acct_code'] . '</td>
@@ -711,9 +769,7 @@ function ViewEarningConfigs()
                             <button class="btn btn-default btn-sm" onclick="GetEarningConfigDetails(' . $value["config_earning_id"] . ')" data-toggle="modal" data-target="#config_earnings_modal">
                                 <i class="fa fa-edit"></i> Edit
                             </button>
-                            <button class="btn btn-danger btn-sm" onclick="DeleteEarningConfig(' . $value["config_earning_id"] . ')" data-toggle="tooltip" title="Delete" data-placement="bottom">
-                                <i class="fa fa-times"></i> Delete
-                            </button>
+                            ' . $delete_btn . '
                         </div>
                     </td>
                 </tr>';
@@ -731,6 +787,11 @@ function ViewDeductionConfigs()
         $count = 0;
         foreach ($deduction_configs as $key => $value) {
             $count++;
+            $delete_btn = $GLOBALS['manage_payroll'] ? '
+                            <button class="btn btn-danger btn-sm" onclick="DeleteDeductionConfig(' . $value["config_deduction_id"] . ')" data-toggle="tooltip" title="Delete" data-placement="bottom">
+                                <i class="fa fa-times"></i> Delete
+                            </button>' : '';
+
             echo '<tr>
                     <td>' . $count . '</td>
                     <td>' . $value['deduction_type_code'] . '</td>
@@ -744,9 +805,7 @@ function ViewDeductionConfigs()
                             <button class="btn btn-default btn-sm" onclick="GetDeductionConfigDetails(' . $value["config_deduction_id"] . ')" data-toggle="modal" data-target="#config_deductions_modal">
                                 <i class="fa fa-edit"></i> Edit
                             </button>
-                            <button class="btn btn-danger btn-sm" onclick="DeleteDeductionConfig(' . $value["config_deduction_id"] . ')" data-toggle="tooltip" title="Delete" data-placement="bottom">
-                                <i class="fa fa-times"></i> Delete
-                            </button>
+                            ' . $delete_btn . '
                         </div>
                     </td>
                 </tr>';
@@ -764,6 +823,11 @@ function ViewGovShares()
         $count = 0;
         foreach ($govshares as $key => $value) {
             $count++;
+            $delete_btn = $GLOBALS['manage_payroll'] ? '
+                            <button class="btn btn-danger btn-sm delete-btn" data-govshare-id="' . $value['govshare_id'] . '" data-toggle="tooltip" title="Delete" data-placement="bottom">
+                                <i class="fa fa-times"></i> Delete
+                            </button>' : '';
+
             echo '<tr>
                     <td>' . $count . '</td>
                     <td>' . $value['deduction_type_name'] . '</td>
@@ -778,9 +842,7 @@ function ViewGovShares()
                             <button class="btn btn-default btn-sm edit-btn" data-govshare-id="' . $value['govshare_id'] . '" data-toggle="modal" data-target="#config_deductions_modal">
                                 <i class="fa fa-edit"></i> Edit
                             </button>
-                            <button class="btn btn-danger btn-sm delete-btn" data-govshare-id="' . $value['govshare_id'] . '" data-toggle="tooltip" title="Delete" data-placement="bottom">
-                                <i class="fa fa-times"></i> Delete
-                            </button>
+                            ' . $delete_btn . '
                         </div>
                     </td>
                 </tr>';
@@ -924,6 +986,11 @@ function ViewSignatoriesList()
         $count = 0;
         foreach ($signatories as $key => $value) {
             $count++;
+            $delete_btn = ($GLOBALS['manage_hr'] || $GLOBALS['manage_payroll']) ? '
+                            <button class="btn btn-danger btn-sm" onclick="DeleteSignatory(' . $value["signatory_id"] . ')" data-toggle="tooltip" title="Delete" data-placement="bottom">
+                                <i class="fa fa-times"></i> Delete
+                            </button>' : '';
+
             echo '<tr>
                     <td>' . $count . '</td>
                     <td>' . $value['full_name'] . '</td>
@@ -939,9 +1006,7 @@ function ViewSignatoriesList()
                             <button class="btn btn-default btn-sm" onclick="GetSignatoryDetails(' . $value["signatory_id"] . ')" data-toggle="modal" data-target="#signatory_modal">
                                 <i class="fa fa-edit"></i> Edit
                             </button>
-                            <button class="btn btn-danger btn-sm" onclick="DeleteSignatory(' . $value["signatory_id"] . ')" data-toggle="tooltip" title="Delete" data-placement="bottom">
-                                <i class="fa fa-times"></i> Delete
-                            </button>
+                            ' . $delete_btn . '
                         </div>
                     </td>
                 </tr>';

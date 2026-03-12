@@ -60,6 +60,21 @@ if($action = isset($_REQUEST['action'])?$_REQUEST['action']:''){
                 return false;
             }
             break;
+        case 'get_role_details':
+            include_once '../includes/class/Role.php';
+            $role_id = $_GET['role_id'];
+            $role_perms = Role::getRolePermID($role_id);
+            // Also need the role name
+            $all_roles = Role::getRoles();
+            $role_name = '';
+            foreach($all_roles as $r){
+                if($r['roleID'] == $role_id){
+                    $role_name = $r['roleName'];
+                    break;
+                }
+            }
+            echo json_encode(['role_id' => $role_id, 'role_name' => $role_name, 'perms' => $role_perms]);
+            break;
         
     }
 }

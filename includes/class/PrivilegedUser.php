@@ -120,9 +120,15 @@ class PrivilegedUser extends User
 
     // check if user has a specific privilege
     public function hasPrivilege($perm) {
-        foreach ($this->roles as $role) {
-            if ($role->hasPerm($perm)) {
-                return true;
+        foreach ($this->roles as $rolePerms) {
+            if (is_array($rolePerms)) {
+                // Master Bypass: 'Manage System' grants all permissions
+                if (in_array("Manage System", $rolePerms)) {
+                    return true;
+                }
+                if (in_array($perm, $rolePerms)) {
+                    return true;
+                }
             }
         }
         return false;

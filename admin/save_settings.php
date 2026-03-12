@@ -13,13 +13,18 @@ foreach ($user_roles as $role) {
 
 // Function to check if user has permission for data modification
 function CheckModifyPermission($action = 'modify') {
-    global $current_user_role;
+    global $Admin;
     
-    // Employee users cannot modify/delete data
-    if ($current_user_role === 'Employee') {
-        $json_data = '{"result":"error", "message":"Access Denied: You do not have permission to modify data."}';
-        http_response_code(403);
-        return false;
+    if ($action === 'delete') {
+        // Deletion remains an administrative privilege
+        if (!$Admin->hasPrivilege('Manage System')) {
+            return false;
+        }
+    } else {
+        // Modification requires at least Update Data permission
+        if (!$Admin->hasPrivilege('Update Data')) {
+            return false;
+        }
     }
     return true;
 }
@@ -77,6 +82,11 @@ if (isset($_POST['submit'])){
 			break;
 
 		case 'SavePositionItem':
+			// Security check for modify operations
+			if (!CheckModifyPermission('modify')) {
+				echo '{"result":"error", "message":"Access Denied"}';
+				exit;
+			}
 			include_once '../includes/class/Position.php';
 			$MyPosition = new Position();
 
@@ -113,6 +123,11 @@ if (isset($_POST['submit'])){
 			break;
 		
 		case 'delete_position':
+			// Security check for delete operations
+			if (!CheckModifyPermission('delete')) {
+				echo '{"result":"error", "message":"Access Denied"}';
+				exit;
+			}
 			include_once '../includes/class/Position.php';
 			$MyPosition = new Position();
 			$json_data = "";
@@ -127,6 +142,11 @@ if (isset($_POST['submit'])){
 			break;
 
 		case 'SaveSystemUser':
+				// Security check: Only 'Manage System' can save users
+				if (!$Admin->hasPrivilege('Manage System')) {
+					header("Location: user_management.php?access=denied");
+					exit;
+				}
 				include_once('../includes/class/Admin.php');
 
 					$UserAdmin = new Admin();
@@ -177,54 +197,77 @@ if (isset($_POST['submit'])){
 				break;
 
 		case 'AddUserRole':
-
+				// Security check: Only 'Manage System' can modify roles
+				if (!$Admin->hasPrivilege('Manage System')) {
+					header("Location: user_management.php?access=denied");
+					exit;
+				}
 				include_once('../includes/class/Role.php');
 
 					$role_name = $_POST["role_name"];
-					$role_perms = $_POST["role_perms"];
+					$role_perms = isset($_POST["role_perms"]) ? $_POST["role_perms"] : null;
+					$role_id_input = isset($_POST["role_id"]) ? $_POST["role_id"] : '';
 
 					//new selected permissions for role
 					$added_perms = $role_perms;
 
-					//get the roleid for tthe role name
-					if($role_id = Role::insertRole($role_name)){
-						//existing permissions of role
-						if($current_perms = Role::getRolePermID($role_id)){
+					// If role_id is provided, we are editing
+					if($role_id_input != ''){
+						$role_id = $role_id_input;
+						Role::updateRoleName($role_id, $role_name);
+					} else {
+						// Otherwise we are adding (or fetching ID by name)
+						$role_id = Role::insertRole($role_name);
+					}
 
-							//compare the selected and existing perms and get the non-existing perm
-							$new_perms = array_diff($added_perms, $current_perms);
-							foreach ($new_perms as $value) {
-								include_once('../includes/class/PrivilegedUser.php');
-								if(PrivilegedUser::insertPerm($role_id, $value)){
-									$msg = "New permissions to existing Role have been added.";
-								}
-								else{ $msg = "Failed to add permissions."; }
-							}
-						}
-						//if role do not contains perms, insert all added permissions
-						else{
+					if($role_id){
+						
+						// Synchronize permissions: Clear existing and add new selection
+						Role::deleteRolePerms($role_id);
+
+						if($added_perms){
 							foreach ($added_perms as $value) {
 								include_once('../includes/class/PrivilegedUser.php');
-								if(PrivilegedUser::insertPerm($role_id, $value)){
-									$msg = "New Role with permissions have been added.";
-								}
-								else{ $msg = "Failed to add permissions to Role."; }
+								PrivilegedUser::insertPerm($role_id, $value);
 							}
 						}
 
-						echo $msg;
+						header("Location: user_management.php?add_role=1");
 					}
-					else{ echo "Failed to add Role."; }
+					else{ header("Location: user_management.php?add_role=0"); }
 
 			break;
 	
 		case 'delete_user':
+					// Security check: Only 'Manage System' can delete users
+					if (!$Admin->hasPrivilege('Manage System')) {
+						echo '{"result":"error", "message":"Access Denied"}';
+						exit;
+					}
 					include_once('../includes/class/Admin.php');
 					$DeletedUser = new Admin();
 	
 					$Data =  isset($_POST["Data"])?$_POST["Data"]:"" ;
 					$json_data = '';
 					if($DeletedUser->RemoveAdminUser($Data)){
+						$json_data = '{"result":"deleted"}';
+					}
+					else{
+						$json_data = '{"result":"xxx"}';
+					}
+					echo $json_data;
+				break;
+
+		case 'delete_role':
+					// Security check: Only 'Manage System' can delete roles
+					if (!$Admin->hasPrivilege('Manage System')) {
+						echo '{"result":"error", "message":"Access Denied"}';
+						exit;
+					}
+					include_once('../includes/class/Role.php');
+					$role_id = $_POST["role_id"];
+					$json_data = '';
+					if(Role::deleteRole($role_id)){
 						$json_data = '{"result":"deleted"}';
 					}
 					else{

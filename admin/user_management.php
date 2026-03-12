@@ -28,85 +28,133 @@
     <!-- Main content -->
     <section class="content">
     <div class="container-fluid">
-        <div class="row">
+        <div class="row mb-3">
             <div class="col-12">
-                <!-- Button trigger modal -->
-                <div class="btn-group myButton">
+                <div class="btn-group">
                     <button type="button" class="btn btn-primary btn-flat" data-toggle="modal" data-target="#systemUserModal"><i class="fa fa-plus-circle"></i> Add System User</button>
-                </div>  
-                <!-- Button trigger modal -->
-                <div class="btn-group myButton">
-                    <button type="button" class="btn btn-primary btn-flat" data-toggle="modal" data-target="#userRoleModal"><i class="fa fa-plus-circle"></i> Add New Role</button>
+                    <button type="button" class="btn btn-info btn-flat" data-toggle="modal" data-target="#userRoleModal"><i class="fa fa-plus-circle"></i> Add New Role</button>
                 </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-8">
                 <div class="card card-outline card-primary">
-                <div class="card-header">
-                    <h3 class="card-title">System Users</h3>
-                </div>
-                <!-- /.card-header -->
-                <div class="card-body">
-                    <table id="example1" class="table table-bordered table-hover">
-                        <thead>
-                            <tr>
-                                <th class="text-center">No.</th>
-                                <th class="text-center">Username</th>
-                                <th class="text-center">Employee Name</th>
-                                <th class="text-center">Roles</th>
-                                <th class="text-center">Status</th>
-                                <th class="text-center">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                                <?php
-                                    include_once('../includes/class/Admin.php');
-                                              
-                                    $MyAdmin = new Admin();
-                                              
-                                    $users = $MyAdmin->getAdminUsers();
-
-                                            if($users != null){
-                                                $count = 0;
-                                                foreach($users as $value) {
-                                                    $count++;
-                                                    $name = $value['firstname']." ".$value['lastname'];
-
-                                                    $roles = $MyAdmin->initRoles($value['userID']);
-       
-                                                    echo '<tr> 
-                                                            <td>' . $count . '</td>                                                       
-                                                            <td>' . $value['username'] . '</td>
-                                                            <td><a href="employee_profile.php?emp_id='.$value['employee_id'].'">' . $name . '</a></td>
-                                                            <td>';
-
-                                                    foreach ($roles as $key => $role) {
-                                                        echo $key.'<br/>';
-                                                    }
-
-                                                    echo '</td>
-                                                            <td>' . $value['status'] . '</td>
-                                                            <td class="text-center">
-                                                                <div class="btn-group">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-users-cog"></i> System Users</h3>
+                    </div>
+                    <!-- /.card-header -->
+                    <div class="card-body">
+                        <table id="example1" class="table table-bordered table-hover table-sm">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="text-center" width="5%">No.</th>
+                                    <th class="text-center">Username</th>
+                                    <th class="text-center">Employee Name</th>
+                                    <th class="text-center">Roles</th>
+                                    <th class="text-center">Status</th>
+                                    <th class="text-center" width="10%">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                    <?php
+                                        include_once('../includes/class/Admin.php');
+                                                  
+                                        $MyAdmin = new Admin();
+                                                  
+                                        $users = $MyAdmin->getAdminUsers();
+    
+                                                if($users != null){
+                                                    $count = 0;
+                                                    foreach($users as $value) {
+                                                        $count++;
+                                                        $name = $value['firstname']." ".$value['lastname'];
+    
+                                                        $roles = $MyAdmin->initRoles($value['userID']);
+           
+                                                        echo '<tr> 
+                                                                <td class="text-center">' . $count . '</td>                                                       
+                                                                <td>' . $value['username'] . '</td>
+                                                                <td><a href="employee_profile.php?emp_id='.$value['employee_id'].'">' . $name . '</a></td>
+                                                                <td>';
+    
+                                                        foreach ($roles as $key => $role) {
+                                                            echo '<span class="badge badge-info mr-1">'.$key.'</span>';
+                                                        }
+    
+                                                        echo '</td>
+                                                                <td class="text-center"><span class="badge badge-'.($value['status'] == 'active' ? 'success' : 'secondary').'">' . ucfirst($value['status']) . '</span></td>
+                                                                <td class="text-center">
                                                                     <button 
-                                                                        class="btn btn-danger btn-flat btn-sm" 
+                                                                        class="btn btn-outline-danger btn-xs" 
                                                                         onclick="DeleteSystemUser('.$value['adminID'].');" 
                                                                         data-toggle="tooltip" 
-                                                                        title="Remove User" 
-                                                                        data-placement="bottom">
-                                                                        <i class="fas fa-times-circle"></i> Remove
+                                                                        title="Remove User">
+                                                                        <i class="fas fa-trash"></i>
                                                                     </button>
-                                                                </div>
-                                                            </td> 
-                                                    </tr>';
-                                             
-                                                }   
-                                            }
-
-                                ?>
-                        </tbody>
-                    </table>
-                </div>
-                <!-- /.card-body -->
+                                                                </td> 
+                                                        </tr>';
+                                                 
+                                                    }   
+                                                }
+    
+                                    ?>
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- /.card-body -->
                 </div>
                 <!-- /.card -->
+            </div>
+            <!-- /.col -->
+
+            <div class="col-lg-4">
+                <div class="card card-outline card-info">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-user-shield"></i> System Roles</h3>
+                    </div>
+                    <!-- /.card-header -->
+                    <div class="card-body p-0">
+                        <table id="roleTable" class="table table-hover table-sm">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th>Role Name</th>
+                                    <th>Permissions</th>
+                                    <th class="text-center" width="20%">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php
+                                    include_once('../includes/class/Role.php');
+                                    $all_roles = Role::getRoles();
+                                    if($all_roles){
+                                        foreach($all_roles as $role){
+                                            $perms = Role::getRolePerms($role['roleID']);
+                                            echo '<tr>
+                                                    <td class="font-weight-bold">'.$role['roleName'].'</td>
+                                                    <td>';
+                                            if($perms){
+                                                foreach($perms as $p){
+                                                    echo '<small class="d-block text-muted"><i class="fas fa-check text-success mr-1"></i>'.$p.'</small>';
+                                                }
+                                            } else {
+                                                echo '<small class="text-muted">No permissions</small>';
+                                            }
+                                            echo '</td>
+                                                  <td class="text-center">
+                                                    <div class="btn-group">
+                                                        <button class="btn btn-outline-info btn-xs" onclick="EditRole('.$role['roleID'].')" title="Edit Role"><i class="fas fa-edit"></i></button>
+                                                        <button class="btn btn-outline-danger btn-xs" onclick="DeleteRole('.$role['roleID'].')" title="Delete Role"><i class="fas fa-trash"></i></button>
+                                                    </div>
+                                                  </td>
+                                                  </tr>';
+                                        }
+                                    }
+                                ?>
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- /.card-body -->
+                </div>
             </div>
             <!-- /.col -->
         </div>
@@ -159,7 +207,7 @@
                                                     include_once('../includes/class/Employee.php'); 
                                                     $MyEmployee = new Employee();
                                                     $employees = $MyEmployee->GetEmployees();
-
+    
                                                     if($employees){
                                                         foreach ($employees as $value) {
                                                             echo "<option value='".$value["employee_id"]."'>". $value['firstname'] .' '.$value['lastname'] . ' ' .$value['extension'] ."</option>";
@@ -205,46 +253,52 @@
         <div class="modal fade" id="userRoleModal" tabindex="-1" role="dialog" aria-labelledby="userRoleModalLabel" aria-hidden="true">
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
-                <div class="modal-header">
+                <div class="modal-header bg-info color-palette">
+                    <h4 class="modal-title" id="userRoleModalLabel">Manage Role</h4>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                     </button>
-                    <h4 class="modal-title" id="userRoleModal">Manage Role</h4>
                 </div>
-                    <form class="form-horizontal" method="POST" name="form_role" action="save_settings.php">
+                    <form class="form-horizontal" id="formRole" method="POST" name="form_role" action="save_settings.php">
+                        <input type="hidden" name="role_id" id="txtRoleID">
                         <div class="modal-body">
                                 
                                 <div class="form-group">
-                                    <span class="control-label col-sm-4">Role Name:</span>
-                                    <div class="col-sm-6">
-                                        <input type="text" class="form-control" id="txtRoleName" name="role_name">
-                                    </div>
+                                    <label class="font-weight-bold">Role Name:</label>
+                                    <input type="text" class="form-control" id="txtRoleName" name="role_name" placeholder="Enter Role Name" required>
                                 </div>
 
                                 <div class="form-group">
-                                    <span class="control-label col-sm-4" for="">Permissions:</span>
-                                    <div class="col-sm-6">     
-
-                                        <?php
-
-                                            include_once('../includes/class/Role.php');
-
-                                            $roles = Role::getPerms();
-
-                                            if($roles != null){
-                                                foreach($roles as $row) {
-                                                    echo '<div class="checkbox"><input type="checkbox" name="role_perms[]" value="'.$row['perm_id'].'">'.$row['perm_desc'].'</div>';
-                                                }   
-                                            }
-
-                                        ?>
-
+                                    <label class="font-weight-bold">Permissions:</label>
+                                    <div class="card card-outline card-secondary">
+                                        <div class="card-body">
+                                            <div class="row">
+                                            <?php
+        
+                                                include_once('../includes/class/Role.php');
+        
+                                                $perms = Role::getPerms();
+        
+                                                if($perms != null){
+                                                    foreach($perms as $row) {
+                                                        echo '<div class="col-sm-6 mb-2">
+                                                                <div class="custom-control custom-switch">
+                                                                    <input class="custom-control-input perm-check" type="checkbox" id="perm_'.$row['perm_id'].'" name="role_perms[]" value="'.$row['perm_id'].'">
+                                                                    <label for="perm_'.$row['perm_id'].'" class="custom-control-label font-weight-normal">'.$row['perm_desc'].'</label>
+                                                                </div>
+                                                              </div>';
+                                                    }   
+                                                }
+        
+                                            ?>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
                         </div>
                         <div class="modal-footer">
-                            <button type="submit" class="btn btn-primary btn-flat" name="submit" value="AddUserRole"><i class="fa fa-check-circle"></i> Save Role</button>    
+                            <button type="submit" class="btn btn-primary btn-flat" name="submit" value="AddUserRole"><i class="fa fa-save"></i> Save Role</button>    
                             <button type="button" class="btn btn-danger btn-flat" data-dismiss="modal"><i class="fa fa-times-circle"></i> Close</button>       
                         </div>
                     </form>
@@ -286,7 +340,7 @@
 <script src="../dist/js/demo.js"></script>
 
 <!-- System Engine -->
-<script src="system.js"></script>
+<script src="system.js?v=<?php echo time(); ?>"></script>
 
 
 <script>
@@ -306,40 +360,79 @@
       "searching": true,
       "buttons": ["excel", "pdf", "print"]
     }).buttons().container().appendTo('#example1_wrapper .col-md-6:eq(0)');
+
+    $("#roleTable").DataTable({
+        "responsive": true,
+        "lengthChange": false,
+        "autoWidth": false,
+        "paging": true,
+        "searching": true,
+        "info": false
+    });
   });
 </script>
 <script type="text/javascript">
     $( document ).ready(function(){
         var query = getQuery();
         var add = query.add;
-        switch (add) {
-            case '0':
-                Swal.fire({
-                    title: 'Error',
-                    text: 'Failed to add User!',
-                    icon: 'error',
-                    confirmButtonText: 'Ok'
-                    }).then((result) => {
-                            if (result.isConfirmed) {
-                                window.location.href = 'user_management.php';
-                        }
-                });
-                break;
-            case '1':
-                Swal.fire({
-                    title: 'Success',
-                    text: 'New System User Added!',
-                    icon: 'success',
-                    confirmButtonText: 'Ok'
-                    }).then((result) => {
-                            if (result.isConfirmed) {
-                                window.location.href = 'user_management.php';
-                        }
-                });
-                break;
-        
-            default:
-                break;
+        var add_role = query.add_role;
+
+        if (add) {
+            switch (add) {
+                case '0':
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'Failed to add System User!',
+                        icon: 'error',
+                        confirmButtonText: 'Ok'
+                        }).then((result) => {
+                                if (result.isConfirmed) {
+                                    window.location.href = 'user_management.php';
+                            }
+                    });
+                    break;
+                case '1':
+                    Swal.fire({
+                        title: 'Success',
+                        text: 'New System User Added!',
+                        icon: 'success',
+                        confirmButtonText: 'Ok'
+                        }).then((result) => {
+                                if (result.isConfirmed) {
+                                    window.location.href = 'user_management.php';
+                            }
+                    });
+                    break;
+            }
+        }
+
+        if (add_role) {
+            switch (add_role) {
+                case '0':
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'Failed to add New Role!',
+                        icon: 'error',
+                        confirmButtonText: 'Ok'
+                        }).then((result) => {
+                                if (result.isConfirmed) {
+                                    window.location.href = 'user_management.php';
+                            }
+                    });
+                    break;
+                case '1':
+                    Swal.fire({
+                        title: 'Success',
+                        text: 'New Role and Permissions Added!',
+                        icon: 'success',
+                        confirmButtonText: 'Ok'
+                        }).then((result) => {
+                                if (result.isConfirmed) {
+                                    window.location.href = 'user_management.php';
+                            }
+                    });
+                    break;
+            }
         }
     });
 </script>

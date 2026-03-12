@@ -136,13 +136,11 @@ class Role
 
     // update roles for specified user id
     public function UpdateUserRole($user_id, $role_id) {
-        $role = new Role();
-
             $sql = "UPDATE user_role_tbl
                         SET roleID = '".$role_id."'
                         WHERE userID ='".$user_id."'";
 
-            if($result = $role->db->query($sql) or die($role->db->error)){
+            if($this->db->query($sql) or die($this->db->error)){
                 return true;
             }
             else {return false;}
@@ -168,14 +166,20 @@ class Role
 
             $query = $role->db->query($sql) or die($role->db->error);
             if($query){
-                return $role->db->last_id();
+                return $role->db->insert_id();
             }
             else{return false;}
         }
-
     }
 
-    public function AddRolePerms($user_role_id){
+    // update role name
+    public static function updateRoleName($role_id, $role_name) {
+        $role = new Role();
+        $sql = "UPDATE roles_tbl SET roleName = '$role_name' WHERE roleID = '$role_id'";
+        return $role->db->query($sql) or die($role->db->error);
+    }
+
+    public function AddRolePerms($role_id){
 
         $permissions = $this->permissions;
 
@@ -183,8 +187,8 @@ class Role
 
         for($i=0;$i<$arrlength;$i++){
 
-            $sql = "INSERT INTO role_perm_tbl (user_role_id, perm_id)
-                    VALUES ('".$user_role_id."', '".$permissions[$i]."');";
+            $sql = "INSERT INTO role_perm_tbl (roleID, perm_id)
+                    VALUES ('".$role_id."', '".$permissions[$i]."');";
 
             $query = $this->db->query($sql) or die($this->db->error);
              
@@ -205,6 +209,36 @@ class Role
         }
         else{return false;}
 
+    }
+
+    // delete ALL permissions for specified role id
+    public static function deleteRolePerms($role_id) {
+        $role = new Role();
+        $sql = "DELETE FROM role_perm_tbl WHERE roleID = '$role_id'";
+        
+        $query = $role->db->query($sql) or die($role->db->error);
+
+        if($query){
+            return true;
+        }
+        else{return false;}
+    }
+
+    // delete role entirely
+    public static function deleteRole($role_id) {
+        $role = new Role();
+        
+        // delete associated permissions first
+        if($role->deleteRolePerms($role_id)){
+            $sql = "DELETE FROM roles_tbl WHERE roleID = '$role_id'";
+            $query = $role->db->query($sql) or die($role->db->error);
+
+            if($query){
+                return true;
+            }
+            else{return false;}
+        }
+        else{return false;}
     }
 
      // check if a permission is set

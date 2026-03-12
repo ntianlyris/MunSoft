@@ -67,7 +67,7 @@
 
             $count_row = $this->db->num_rows($result);
 
-            if($count_row > 1){
+            if($count_row > 0){
                 return true;
             }
             else{return false;}
@@ -102,8 +102,8 @@
             $query = "SELECT * FROM admins_tbl a
                         INNER JOIN users_tbl b
                         ON a.userID = b.userID
-                        INNER JOIN members_tbl c
-                        ON a.memberID = c.memberID
+                        LEFT JOIN employees_tbl c
+                        ON a.employee_id = c.employee_id
                         WHERE a.status != 'removed'";
             
             $result = $this->db->query($query) or die($this->db->error);
@@ -159,11 +159,11 @@
 
         public function getAdminInfo($user_id){
 
-            $query = "SELECT * FROM members_tbl a
-                        INNER JOIN address_tbl b
-                        ON a.memberID = b.memberID
+            $query = "SELECT * FROM employees_tbl a
+                        LEFT JOIN address_tbl b
+                        ON a.employee_id = b.employee_id
                         INNER JOIN admins_tbl c
-                        ON b.memberID = c.memberID
+                        ON a.employee_id = c.employee_id
                         INNER JOIN users_tbl d
                         ON c.userID = d.userID
                         WHERE d.userID = '$user_id';";
