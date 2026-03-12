@@ -34,179 +34,209 @@
     <section class="content">
       <div class="container-fluid">
         <div class="row">
-          <div class="col-md-2">
-            <!-- Profile Image -->
-            <div class="card card-primary card-outline">
+          <!-- Left Column: Profile Card -->
+          <div class="col-12 col-lg-3">
+            <div class="card card-primary card-outline shadow-sm">
               <div class="card-body box-profile">
-                <div class="text-center">
-                  <div style="width: 200px; height: 200px; margin: 0 auto; overflow: hidden; border-radius: 50%; display: flex; align-items: center; justify-content: center; background-color: #f0f0f0;">
-                  <img class="profile-user-img"
-                     id="employeePhotoImg"
-                     src="../includes/images/avatar.jpg"
-                     alt="User profile picture"
-                     style="cursor: pointer; width: 100%; height: 100%; object-fit: cover; object-position: center;" 
-                     title="Click to view full size">
+                <!-- Responsive Circular Photo -->
+                <div class="text-center mb-3">
+                  <div class="profile-photo-wrapper">
+                    <img class="profile-user-img img-fluid img-circle"
+                         id="employeePhotoImg"
+                         src="../includes/images/avatar.jpg"
+                         alt="User profile picture"
+                         title="Click to view full size">
                   </div>
                 </div>
 
-                <h3 class="profile-username text-center"><span id="lblDisplayName"></span></h3>
+                <h3 class="profile-username text-center font-weight-bold mb-1"><span id="lblDisplayName"><i class="fas fa-spinner fa-spin"></i></span></h3>
+                <p class="text-muted text-center mb-3"><span id="lblProfExpertise"><i class="fas fa-spinner fa-spin"></i></span></p>
 
-                <p class="text-muted text-center"><span id="lblProfExpertise">Software Engineer</span></p>
-                <div class="text-center">
-                  <button type="button" class="btn btn-primary btn-sm btn-flat" data-toggle="modal" data-target="#photoUploadModal"><i class="fas fa-upload"></i> Upload Photo</button>
-                </div>
-                <hr>
-                <span>Username</span>
-                <p><strong id="lblEmployeeUser"></strong></p>
-                <hr>
-                <span>Mobile</span>
-                <p><strong id="lblEmployeeMobile"></strong></p>
-              </div>
-              <!-- /.card-body -->
-            </div>
-            <!-- /.card -->
-          </div>
-          <!-- /.col -->
-
-           <!-- /.col -->
-           <div class="col-12 col-md-10">
-            <div class="card card-primary card-outline card-tabs">
-              <div class="card-header p-0 pt-1 border-bottom-0">
-                <ul class="nav nav-tabs" id="custom-tabs-three-tab" role="tablist">
-                  <li class="nav-item">
-                    <a class="nav-link active" id="custom-tabs-three-home-tab" data-toggle="pill" href="#custom-tabs-three-home" role="tab" aria-controls="custom-tabs-three-home" aria-selected="true">Employee Details</a>
+                <ul class="list-group list-group-unbordered mb-3">
+                  <li class="list-group-item">
+                    <b>Status</b> <span class="float-right"><span id="lblEmployeeStatus" class="badge badge-info"><i class="fas fa-spinner fa-spin"></i></span></span>
                   </li>
-                  <li class="nav-item">
-                    <a class="nav-link" id="custom-tabs-three-gov-tab" data-toggle="pill" href="#custom-tabs-three-gov" role="tab" aria-controls="custom-tabs-three-gov" aria-selected="false">Gov't Numbers</a>
+                  <li class="list-group-item">
+                    <b>Username</b> <span class="float-right text-primary" id="lblEmployeeUser"><i class="fas fa-spinner fa-spin"></i></span>
                   </li>
-                  <li class="nav-item">
-                    <a class="nav-link" id="custom-tabs-three-qualification-tab" data-toggle="pill" href="#custom-tabs-three-qualification" role="tab" aria-controls="custom-tabs-three-qualification" aria-selected="false">Qualification</a>
-                  </li>
-                  <li class="nav-item">
-                    <a class="nav-link" id="custom-tabs-three-profile-tab" data-toggle="pill" href="#custom-tabs-three-profile" role="tab" aria-controls="custom-tabs-three-profile" aria-selected="false">Profile</a>
-                  </li>
-                  <li class="nav-item">
-                    <a class="nav-link" id="custom-tabs-three-settings-tab" data-toggle="pill" href="#custom-tabs-three-settings" role="tab" aria-controls="custom-tabs-three-settings" aria-selected="false">Settings</a>
+                  <li class="list-group-item">
+                    <b>Mobile</b> <span class="float-right text-muted" id="lblEmployeeMobile"><i class="fas fa-spinner fa-spin"></i></span>
                   </li>
                 </ul>
+
+                <button type="button" class="btn btn-primary btn-block btn-sm mb-2" data-toggle="modal" data-target="#photoUploadModal">
+                  <i class="fas fa-camera mr-1"></i> Change Photo
+                </button>
+              </div>
+            </div>
+
+            <!-- ID Information -->
+            <div class="card card-primary card-outline shadow-sm d-none d-lg-block">
+              <div class="card-header">
+                <h3 class="card-title text-sm"><i class="fas fa-id-card mr-1"></i> Identification</h3>
+              </div>
+              <div class="card-body py-3">
+                <small class="text-muted d-block mb-1">Employee ID Number (EIDN)</small>
+                <h5 class="font-weight-bold mb-0" id="lblEmployeeID"><i class="fas fa-spinner fa-spin"></i></h5>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column: Detail Cards -->
+          <div class="col-12 col-lg-9">
+            <!-- Personal Information Card -->
+            <div class="card card-white shadow-sm mb-4">
+              <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+                <h3 class="card-title font-weight-bold mb-0"><i class="fas fa-user text-primary mr-2"></i> Personal Information</h3>
+                <div class="card-tools">
+                    <button class="btn btn-primary btn-xs btn-flat" onclick="GetEmployeeDetails(<?php echo $employee_id; ?>)" data-toggle="modal" data-target="#employee_modal">
+                        <i class="fa fa-edit mr-1"></i> Edit
+                    </button>
+                    <button class="btn btn-danger btn-xs btn-flat" onclick="DeleteEmployee(<?php echo $employee_id; ?>)" data-toggle="tooltip" title="Delete" data-placement="bottom">
+                        <i class="fa fa-times mr-1"></i> Delete
+                    </button>
+                </div>
               </div>
               <div class="card-body">
-                <div class="tab-content" id="custom-tabs-three-tabContent">
-                  <div class="tab-pane fade show active" id="custom-tabs-three-home" role="tabpanel" aria-labelledby="custom-tabs-three-home-tab">
-                    <div class="row">
-                      <div class="col-sm-3">
-                        <span>Employee ID No. (EIDN)</span>
-                        <p><h5 id="lblEmployeeID"></h5></p>
-                      </div>
-                      <div class="col-sm-3">
-                        <span>Date Hired</span>
-                        <p><h5 id="lblDateHired"></h5></p>
-                      </div>
-                      <div class="col-sm-3">
-                        <span>Status</span>
-                        <p><h5 id="lblEmployeeStatus"></h5></p>
-                      </div>
-                    </div>
-                    <div class="row">
-                      <div class="col-sm-3">
-                        <span>Lastname</span>
-                        <p><h5 id="lblLastname"></h5></p>
-                      </div>
-                      <div class="col-sm-3">
-                        <span>Firstname</span>
-                        <p><h5 id="lblFirstname"></h5></p>
-                      </div>
-                      <div class="col-sm-3">
-                        <span>Middlename</span>
-                        <p><h5 id="lblMiddlename"></h5></p>
-                      </div>
-                      <div class="col-sm-3">
-                        <span>Extension (Sr., Jr., etc.)</span>
-                        <p><h5 id="lblExtension"></h5></p>
-                      </div>
-                    </div>
-                    <div class="row">
-                      <div class="col-sm-3">
-                        <span>Birthdate</span>
-                        <p><h5 id="lblBirthdate"></h5></p>
-                      </div>
-                      <div class="col-sm-3">
-                        <span>Age</span>
-                        <p><h5 id="lblAge"></h5></p>
-                      </div>
-                      <div class="col-sm-3">
-                        <span>Gender</span>
-                        <p><h5 id="lblGender"></h5></p>
-                      </div>
-                      <div class="col-sm-3">
-                        <span>Civil Status</span>
-                        <p><h5 id="lblCivilStatus"></h5></p>
-                      </div>
-                    </div>
-                    <div class="row">
-                      <div class="col-12">
-                        <span>Address</span>
-                        <p><h5 id="lblAddress"></h5></p>
-                      </div>
-                    </div>
-                    <hr>
-                                <div class="text-right">
-                                  <button class="btn btn-primary btn-flat" onclick="GetEmployeeDetails(<?php echo $employee_id; ?>)" data-toggle="modal" data-target="#employee_modal">
-                                      <i class="fa fa-edit"></i> Edit
-                                  </button>
-                                  <button class="btn btn-danger btn-flat" onclick="DeleteEmployee(<?php echo $employee_id; ?>)" data-toggle="tooltip" title="Delete" data-placement="bottom">
-                                      <i class="fa fa-times"></i> Delete
-                                  </button>
-                                </div>
+                <div class="row">
+                  <div class="col-md-3 mb-3">
+                    <label class="text-muted small d-block">Last Name</label>
+                    <span class="h6 mb-0 font-weight-normal" id="lblLastname"><i class="fas fa-spinner fa-spin"></i></span>
                   </div>
-                  <div class="tab-pane fade" id="custom-tabs-three-gov" role="tabpanel" aria-labelledby="custom-tabs-three-gov-tab">
-                    <div class="row">
-                      <div class="col-sm-6">
-                        <table class="table table-bordered">
-                          <tr>
-                            <th>SSS TIN No.</th>
-                            <td><span id="lblBIRTIN"></span></td>
-                          </tr>
-                          <tr>
-                            <th>GSIS BP No.</th>
-                            <td><span id="lblGSISBP"></span></td>
-                          </tr>
-                          <tr>
-                            <th>Pag-ibig MID</th>
-                            <td><span id="lblPagibigMID"></span></td>
-                          </tr>
-                          <tr>
-                            <th>PhilHealth No.</th>
-                            <td><span id="lblPhilHealth"></span></td>
-                          </tr>
-                          <tr>
-                            <th>SSS No.</th>
-                            <td><span id="lblSSSNo"></span></td>
-                          </tr>
-                        </table>
-                      </div>
-                      <div class="col-sm-6 d-flex align-items-center">
-                        <button class="btn btn-primary btn-flat" data-toggle="modal" data-target="#govNumbersModal">
-                          <i class="fa fa-edit"></i> Add/Edit Numbers
-                        </button>
-                      </div>
-                    </div>
+                  <div class="col-md-3 mb-3">
+                    <label class="text-muted small d-block">First Name</label>
+                    <span class="h6 mb-0 font-weight-normal" id="lblFirstname"><i class="fas fa-spinner fa-spin"></i></span>
                   </div>
-                  <div class="tab-pane fade" id="custom-tabs-three-qualification" role="tabpanel" aria-labelledby="custom-tabs-three-qualification-tab">
-                    
+                  <div class="col-md-3 mb-3">
+                    <label class="text-muted small d-block">Middle Name</label>
+                    <span class="h6 mb-0 font-weight-normal" id="lblMiddlename"><i class="fas fa-spinner fa-spin"></i></span>
                   </div>
-                  <div class="tab-pane fade" id="custom-tabs-three-profile" role="tabpanel" aria-labelledby="custom-tabs-three-profile-tab">
-                     Mauris tincidunt mi at erat gravida, eget tristique urna bibendum. Mauris pharetra purus ut ligula tempor, et vulputate metus facilisis. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Maecenas sollicitudin, nisi a luctus interdum, nisl ligula placerat mi, quis posuere purus ligula eu lectus. Donec nunc tellus, elementum sit amet ultricies at, posuere nec nunc. Nunc euismod pellentesque diam.
+                  <div class="col-md-3 mb-3">
+                    <label class="text-muted small d-block">Extension</label>
+                    <span class="h6 mb-0 font-weight-normal" id="lblExtension"><i class="fas fa-spinner fa-spin"></i></span>
                   </div>
-                  <div class="tab-pane fade" id="custom-tabs-three-settings" role="tabpanel" aria-labelledby="custom-tabs-three-settings-tab">
-                     Pellentesque vestibulum commodo nibh nec blandit. Maecenas neque magna, iaculis tempus turpis ac, ornare sodales tellus. Mauris eget blandit dolor. Quisque tincidunt venenatis vulputate. Morbi euismod molestie tristique. Vestibulum consectetur dolor a vestibulum pharetra. Donec interdum placerat urna nec pharetra. Etiam eget dapibus orci, eget aliquet urna. Nunc at consequat diam. Nunc et felis ut nisl commodo dignissim. In hac habitasse platea dictumst. Praesent imperdiet accumsan ex sit amet facilisis.
+                </div>
+                <hr class="my-2">
+                <div class="row">
+                  <div class="col-md-3 mb-3">
+                    <label class="text-muted small d-block">Birthdate</label>
+                    <span class="h6 mb-0 font-weight-normal" id="lblBirthdate"><i class="fas fa-spinner fa-spin"></i></span>
+                  </div>
+                  <div class="col-md-3 mb-3">
+                    <label class="text-muted small d-block">Age</label>
+                    <span class="h6 mb-0 font-weight-normal" id="lblAge"><i class="fas fa-spinner fa-spin"></i></span>
+                  </div>
+                  <div class="col-md-3 mb-3">
+                    <label class="text-muted small d-block">Gender</label>
+                    <span class="h6 mb-0 font-weight-normal" id="lblGender"><i class="fas fa-spinner fa-spin"></i></span>
+                  </div>
+                  <div class="col-md-3 mb-3">
+                    <label class="text-muted small d-block">Civil Status</label>
+                    <span class="h6 mb-0 font-weight-normal" id="lblCivilStatus"><i class="fas fa-spinner fa-spin"></i></span>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-12">
+                    <label class="text-muted small d-block">Residential Address</label>
+                    <span class="h6 mb-0 font-weight-normal" id="lblAddress"><i class="fas fa-spinner fa-spin"></i></span>
                   </div>
                 </div>
               </div>
-              <!-- /.card -->
+            </div>
+
+            <!-- Government Identifiers Card -->
+            <div class="card card-white shadow-sm mb-4">
+              <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+                <h3 class="card-title font-weight-bold mb-0"><i class="fas fa-id-badge text-success mr-2"></i> Government Identifiers</h3>
+                <div class="card-tools">
+                    <button class="btn btn-success btn-xs btn-flat" data-toggle="modal" data-target="#govNumbersModal">
+                      <i class="fa fa-edit mr-1"></i> Add/Edit Numbers
+                    </button>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="row text-center text-md-left">
+                  <div class="col-md-4 mb-3">
+                    <label class="text-muted small d-block">TIN No.</label>
+                    <span class="h6 mb-0 font-weight-normal" id="lblBIRTIN"><i class="fas fa-spinner fa-spin"></i></span>
+                  </div>
+                  <div class="col-md-4 mb-3">
+                    <label class="text-muted small d-block">GSIS BP No.</label>
+                    <span class="h6 mb-0 font-weight-normal" id="lblGSISBP"><i class="fas fa-spinner fa-spin"></i></span>
+                  </div>
+                  <div class="col-md-4 mb-3">
+                    <label class="text-muted small d-block">Pag-IBIG MID No.</label>
+                    <span class="h6 mb-0 font-weight-normal" id="lblPagibigMID"><i class="fas fa-spinner fa-spin"></i></span>
+                  </div>
+                </div>
+                <hr class="my-2">
+                <div class="row text-center text-md-left">
+                  <div class="col-md-4 mb-3">
+                    <label class="text-muted small d-block">PhilHealth No.</label>
+                    <span class="h6 mb-0 font-weight-normal" id="lblPhilHealth"><i class="fas fa-spinner fa-spin"></i></span>
+                  </div>
+                  <div class="col-md-4 mb-3">
+                    <label class="text-muted small d-block">SSS No.</label>
+                    <span class="h6 mb-0 font-weight-normal" id="lblSSSNo"><i class="fas fa-spinner fa-spin"></i></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tenure Information Card -->
+            <div class="card card-white shadow-sm mb-4">
+              <div class="card-header bg-white py-3 border-bottom">
+                <h3 class="card-title font-weight-bold"><i class="fas fa-briefcase text-info mr-2"></i> Tenure & Professional info</h3>
+              </div>
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label class="text-muted small d-block">Date of Original Appointment (Hire Date)</label>
+                    <span class="h6 mb-0 font-weight-normal" id="lblDateHired"><i class="fas fa-spinner fa-spin"></i></span>
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label class="text-muted small d-block">Employee ID Number (EIDN)</label>
+                    <span class="h6 mb-0 font-weight-normal" id="lblEmployeeID2"><i class="fas fa-spinner fa-spin"></i></span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-          <!-- /.col -->
+
+
+        <!-- Custom CSS for Profile Design -->
+        <style>
+          .profile-photo-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 180px;
+            margin: 0 auto;
+            aspect-ratio: 1 / 1;
+            overflow: hidden;
+            border-radius: 50%;
+            border: 4px solid #fff;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            background-color: #f4f6f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+          .profile-photo-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+          }
+          .profile-photo-wrapper img:hover {
+            transform: scale(1.05);
+          }
+          .card-white {
+            background: #fff;
+            border: 1px solid rgba(0,0,0,.125);
+            border-radius: .25rem;
+          }
+        </style>
           <div class="col-12">
             <div class="card card-primary card-outline">
               <div class="card-header" style="width: 100%;">
@@ -240,7 +270,6 @@
                               <th class="text-center">Employment End</th>
                               <th class="text-center">Department</th>
                               <th class="text-center">Office Assignment</th>
-                              <th class="text-center">Designation</th>
                               <th class="text-center">Particulars</th>
                               <th class="text-center">Rate</th>
                               <th class="text-center">Status</th>
@@ -262,6 +291,30 @@
       <!-- Modals -->
       <?php ShowEmployeeModal(); ?>
       <?php ShowEmploymentModal(); ?>
+
+      <!-- Employment Detail Modal (Read-Only) -->
+      <div class="modal fade" id="employmentDetailModal" tabindex="-1" role="dialog" aria-labelledby="employmentDetailModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+              <h5 class="modal-title" id="employmentDetailModalLabel"><i class="fas fa-briefcase"></i> Employment Details</h5>
+              <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body p-0">
+              <table class="table table-striped mb-0">
+                <tbody id="employmentDetailContent">
+                  <!-- Content populated by JS -->
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
       
       <!-- Modal for Employee Photo Upload -->
       <div class="modal fade" id="photoUploadModal" tabindex="-1" role="dialog" aria-labelledby="photoUploadModalLabel" aria-hidden="true">
@@ -494,21 +547,23 @@ $('#formPhotoUpload').on('submit', function(e) {
         dataType: "json",
         success: function(response) {
             if (response.status) {
+                $('#photoUploadModal').modal('hide');
                 Swal.fire({
                     title: 'Success',
                     text: 'Photo uploaded successfully!',
                     icon: 'success',
                     confirmButtonColor: '#28a745',
                     confirmButtonText: 'Ok'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        $('#photoUploadModal').modal('hide');
-                        $('#formPhotoUpload')[0].reset();
-                        $('.custom-file-label').html('Choose file...');
-                        $('#photoPreview').hide();
-                        $('#previewText').show();
-                        LoadEmployeePhoto(employee_id);
-                    }
+                }).then(() => {
+                    $('#formPhotoUpload')[0].reset();
+                    $('.custom-file-label').html('Choose file...');
+                    $('#photoPreview').hide();
+                    $('#previewText').show();
+                    LoadEmployeePhoto(employee_id);
+                    
+                    // Final cleanup to prevent "freeze" or "darkening"
+                    $('.modal-backdrop').remove();
+                    $('body').removeClass('modal-open');
                 });
             } else {
                 Swal.fire({
@@ -568,20 +623,36 @@ $('#formPhotoUpload').on('submit', function(e) {
             data: {"action" : action, "employee_id" : employee_id},
             success: function(data) {
                     var obj = $.parseJSON(data);
-                    $('#lblEmployeeID').html(obj['employee_id_num']);
-                    $('#lblDateHired').html(moment(obj['hire_date']).format('MM/DD/YYYY'));
-                    $('#lblEmployeeStatus').html(obj['employee_status']);
                     $('#lblDisplayName').html(obj['firstname'] + " " + obj['lastname']);
+                    $('#lblProfExpertise').html(obj['prof_expertise'] || "Not Specified");
+                    
+                    // Status Badge
+                    var status = obj['employee_status'];
+                    var badgeClass = 'badge-secondary';
+                    if (status == 'Active' || status == 'Employed' || status == '1') {
+                        badgeClass = 'badge-success';
+                    } else if (status == 'Inactive' || status == '0') {
+                        badgeClass = 'badge-danger';
+                    }
+                    $('#lblEmployeeStatus').removeClass().addClass('badge ' + badgeClass).html(status);
+                    
+                    // Identification
+                    $('#lblEmployeeID').html(obj['employee_id_num']);
+                    $('#lblEmployeeID2').html(obj['employee_id_num']);
+                    
+                    // Personal Info
                     $('#lblLastname').html(obj['lastname']);
                     $('#lblFirstname').html(obj['firstname']);
-                    $('#lblMiddlename').html(obj['middlename']);
-                    $('#lblExtension').html(obj['extension']);
-                    $('#lblBirthdate').html(moment(obj['birthdate']).format('MM/DD/YYYY'));
+                    $('#lblMiddlename').html(obj['middlename'] || "—");
+                    $('#lblExtension').html(obj['extension'] || "—");
+                    $('#lblBirthdate').html(moment(obj['birthdate']).format('MMMM D, YYYY'));
                     $('#lblAge').html(CalculateAge(obj['birthdate']));
                     $('#lblGender').html(obj['gender']);
                     $('#lblCivilStatus').html(obj['civil_status']);
                     $('#lblAddress').html(obj['address']);
-                    $('#lblProfExpertise').html(obj['prof_expertise']);
+                    
+                    // Tenure
+                    $('#lblDateHired').html(obj['hire_date'] ? moment(obj['hire_date']).format('MMMM D, YYYY') : "Not Recorded");
             }
         });
 
@@ -591,13 +662,16 @@ $('#formPhotoUpload').on('submit', function(e) {
             data: {"action" : action1, "employee_id" : employee_id},
             success: function(data) {
                     var obj = $.parseJSON(data);
-                    $('#lblEmployeeUser').html(obj['username']);
-                    $('#lblEmployeeMobile').html(obj['mobile']);
+                    $('#lblEmployeeUser').html(obj['username'] || "Not Linked");
+                    $('#lblEmployeeMobile').html(obj['mobile'] || "Not Linked");
             }
         });
         
         // Load employee photo
         LoadEmployeePhoto(employee_id);
+        
+        // Load Government Numbers immediately
+        LoadGovNumbers(employee_id);
   });
 </script>
 <script type="text/javascript">
@@ -659,10 +733,6 @@ $(document).ready(function() {
     var query = getQuery();
     var employee_id = query.emp_id;
 
-    // Load gov numbers on tab show
-    $('a[data-toggle="pill"][href="#custom-tabs-three-gov"]').on('shown.bs.tab', function () {
-        LoadGovNumbers(employee_id);
-    });
 
     // Also load when modal is opened
     $('#govNumbersModal').on('show.bs.modal', function () {
@@ -719,6 +789,70 @@ $(document).ready(function() {
 });
 </script>
 <script>
+  var _cachedEmployments = [];
+
+  function formatCurrency(amount) {
+    var val = parseFloat(amount);
+    if (isNaN(val)) return "0.00";
+    return val.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  }
+
+  function formatEmploymentDate(dateStr, status) {
+    if (!dateStr || dateStr === '0000-00-00' || dateStr === 'null') {
+      return status == '1' ? 'PRESENT' : 'N/A';
+    }
+    var m = moment(dateStr);
+    if (!m.isValid()) {
+      return status == '1' ? 'PRESENT' : 'N/A';
+    }
+    return m.format('MMMM D, YYYY');
+  }
+
+  function showEmploymentDetailModal(id) {
+    // If cache is empty, fetch from the dashboard/profile data
+    if (_cachedEmployments.length === 0) {
+      $.ajax({
+        url: '../employee/get_dashboard_data.php',
+        type: 'GET',
+        dataType: 'json',
+        data: { action: 'all' },
+        success: function (response) {
+          if (response.success && response.employments) {
+            _cachedEmployments = response.employments;
+            renderDetailModal(id);
+          }
+        }
+      });
+    } else {
+      renderDetailModal(id);
+    }
+  }
+
+  function renderDetailModal(id) {
+    var e = _cachedEmployments.find(function (item) { return item.employment_id == id; });
+    if (!e) return;
+
+    var start = formatEmploymentDate(e.employment_start, '0');
+    var end = formatEmploymentDate(e.employment_end, e.employment_status);
+    var pos = e.designation || e.position_title || 'Position';
+    var dept = e.dept_name || e.dept_assigned || 'Department';
+
+    var html =
+      '<tr><th width="40%">Ref Number</th><td>' + (e.employment_refnum || 'N/A') + '</td></tr>' +
+      '<tr><th>Type</th><td>' + (e.employment_type || 'N/A') + '</td></tr>' +
+      '<tr><th>Position</th><td>' + pos + '</td></tr>' +
+      '<tr><th>Department</th><td>' + dept + '</td></tr>' +
+      '<tr><th>Designation</th><td>' + (e.designation || 'N/A') + '</td></tr>' +
+      '<tr><th>Period</th><td>' + start + ' - ' + end + '</td></tr>' +
+      '<tr><th>Nature of Work</th><td>' + (e.work_nature || 'N/A') + '</td></tr>' +
+      '<tr><th>Specifics</th><td>' + (e.work_specifics || 'N/A') + '</td></tr>' +
+      '<tr><th>Particulars</th><td>' + (e.employment_particulars || 'N/A') + '</td></tr>' +
+      '<tr><th>Rate</th><td>' + (e.rate ? '₱' + formatCurrency(e.rate) : 'N/A') + '</td></tr>';
+
+    $('#employmentDetailContent').html(html);
+    $('#employmentDetailModal').modal('show');
+  }
+
   $(function () {
     $("#tbl_employments").DataTable({
       //"order": [[ 2, "desc" ]],

@@ -121,8 +121,6 @@
 </div>
 <!-- /.content-wrapper -->
 
-
-<?php $page_title = 'Dashboard'; include_once '../includes/layout/appfooter.php'; ?>
 <!-- jQuery -->
 <script src="../plugins/jquery/jquery.min.js"></script>
 <script>
@@ -144,3 +142,6 @@ $(document).ready(function() {
   $('#home_li').addClass('active');
 });
 </script>
+<?php
+    include_once '../includes/layout/footer.php';
+?>

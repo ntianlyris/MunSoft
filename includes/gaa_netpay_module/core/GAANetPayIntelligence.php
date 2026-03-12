@@ -277,12 +277,14 @@ class GAANetPayIntelligence extends GAANetPayValidator {
         if ($n < 2) {
             return [
                 'slope'             => 0,
+                'intercept'         => $n === 1 ? round($history[0], 2) : 0,
                 'direction'         => 'STABLE',
                 'velocity'          => 'SLOW',
                 'periods_to_breach' => null,
                 'r_squared'         => 0,
                 'data_points'       => $n,
                 'average_net_pay'   => $n === 1 ? round($history[0], 2) : 0,
+                'history'           => array_map(fn($v) => round($v, 2), $history),
                 'trend_note'        => 'Insufficient history for trend analysis.',
             ];
         }

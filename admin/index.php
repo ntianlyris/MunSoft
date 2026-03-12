@@ -104,13 +104,13 @@
 <!-- /.content-wrapper -->
 
 
-<?php $page_title = 'Admin Dashboard'; include_once '../includes/layout/appfooter.php'; ?>
-<!-- jQuery -->
-<script src="../plugins/jquery/jquery.min.js"></script>
+<?php include_once '../includes/layout/footer.php'; ?>
+
 <script>
-$( document ).ready(function(){
+$(document).ready(function() {
+    // Check for access denied
     var query = getQuery();
-    if (query.user == 0) {
+    if (query && query.user == 0) {
         Swal.fire({
             title: 'ERROR',
             text: 'Access Denied. User not allowed.',
@@ -119,14 +119,8 @@ $( document ).ready(function(){
             confirmButtonText: 'Ok'
         });
     }
-});
-</script>
-<script>
-$(document).ready(function() {
-  $('#home_li').addClass('active');
-});
-</script>
 
-<?php
-    include_once '../includes/layout/footer.php';
-?>
+    // Set active link in sidebar
+    $('#home_li').addClass('active');
+});
+</script>

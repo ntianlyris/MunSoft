@@ -10,13 +10,14 @@ $MyDepartment = new Department();
 
 $employee_id = isset($_GET['employee_id']) ? intval($_GET['employee_id']) : 0;
 
-// Get employee details using Employee class
+// Get employee and employment details using classes
 require_once('../includes/class/Employee.php');
+require_once('../includes/class/Employment.php');
 $MyEmployee = new Employee();
-$employee = $MyEmployee->GetEmployeeDetails($employee_id);
+$MyEmployment = new Employment();
 
-// Get database connection for employment data
-$conn = new mysqli('localhost', 'root', '', 'munsoft_polanco');
+$employee = $MyEmployee->GetEmployeeDetails($employee_id);
+$employments = $MyEmployment->GetEmployeeEmployments($employee_id);
 
 // Create new PDF document - Standard letter size portrait
 $pdf = new TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
@@ -139,19 +140,11 @@ $html = '<table border="1" cellpadding="2" style="font-size:7.5pt;">
   </thead>
   <tbody>';
 
-// Get employment data
-$sql = "SELECT * FROM employee_employments_tbl a 
-        INNER JOIN positions_tbl b 
-        ON a.position_id = b.position_id 
-        INNER JOIN departments_tbl c
-        ON b.dept_id = c.dept_id
-        WHERE employee_id = $employee_id ORDER BY employment_start DESC";
-$result = $conn->query($sql);
-
 $department_assigned = "";
 $i = 1;
 $rows = [];
-while ($row = $result->fetch_assoc()) {
+if ($employments) {
+  foreach ($employments as $row) {
   $start_date = new DateTime($row['employment_start']);
   $end_date = ($row['employment_end'] == '0000-00-00' || empty($row['employment_end']))
     ? new DateTime()
@@ -184,6 +177,7 @@ while ($row = $result->fetch_assoc()) {
       'sort_date' => $row_start->format('Y-m-d'),
     ];
   }
+}
 }
 
 // Sort rows by 'sort_date' descending
@@ -253,11 +247,6 @@ $pdf->SetFont('helvetica', '', 9);
 $pdf->Cell(0, 3.5, 'Date of Certification: ______________________', 0, 1, 'L');
 
 $pdf->Ln(2);
-
-// Official Seal/Stamp location
-$pdf->SetFont('helvetica', '', 8);
-$pdf->SetXY(135, $signatory_y + 3);
-$pdf->Cell(50, 12, '[OFFICIAL SEAL\nOF THE AGENCY]', 0, 1, 'C', false);
 
 ob_end_clean();
 // Output

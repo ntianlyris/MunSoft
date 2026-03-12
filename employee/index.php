@@ -167,27 +167,50 @@ $payslip_history = [];
           </div>
         </div>
 
-        <!-- LEAVE CARD -->
+        <!-- GAA RISK STATUS WIDGET -->
         <div class="col-12 col-sm-6 col-md-6 col-lg-3 mb-3">
-          <div class="card card-warning card-outline h-100 clickable-card" style="cursor: pointer;"
-            onclick="window.location.href='leave_application.php'">
-            <div class="card-body text-center py-2">
-              <div class="mb-2">
-                <i class="fas fa-calendar-check fa-2x text-warning"></i>
+          <div id="gaa-risk-widget-outer" class="h-100">
+             <!-- Initial Leave Card (replaced by JS if GAA data exists) -->
+             <div class="card card-warning card-outline h-100 clickable-card" style="cursor: pointer;"
+                onclick="window.location.href='leave_application.php'">
+                <div class="card-body text-center py-2">
+                  <div class="mb-2">
+                    <i class="fas fa-calendar-check fa-2x text-warning"></i>
+                  </div>
+                  <h6 class="card-title mb-1">Leave</h6>
+                  <p class="card-text text-muted small mb-2" style="font-size: 0.75rem;">
+                    Manage your requests
+                  </p>
+                  <div class="d-grid gap-1">
+                    <button class="btn btn-warning btn-xs" type="button"
+                      style="font-size: 0.75rem; padding: 0.4rem 0.6rem;">
+                      <i class="fas fa-arrow-right"></i> Apply
+                    </button>
+                  </div>
+                </div>
               </div>
-              <h6 class="card-title mb-1">Leave</h6>
-              <p class="card-text text-muted small mb-2" style="font-size: 0.75rem;">
-                Manage your requests
-              </p>
-              <div class="d-grid gap-1">
-                <button class="btn btn-warning btn-xs" type="button"
-                  style="font-size: 0.75rem; padding: 0.4rem 0.6rem;">
-                  <i class="fas fa-arrow-right"></i> Apply
-                </button>
-              </div>
-            </div>
           </div>
         </div>
+
+        <style>
+          /* GAA Dashboard Responsiveness Overrides */
+          #gaa-risk-widget-outer .gaa-card {
+            padding: 15px !important;
+            height: 100% !important;
+            display: flex !important;
+            flex-direction: column !important;
+          }
+          #gaa-risk-widget-outer .gaa-card > div[style*="grid-template-columns"] {
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)) !important;
+            gap: 8px !important;
+          }
+          /* Fix for very small screens */
+          @media (max-width: 380px) {
+            #gaa-risk-widget-outer .gaa-card > div[style*="grid-template-columns"] {
+              grid-template-columns: 1fr !important;
+            }
+          }
+        </style>
 
       </div>
       <!-- /.row -->
@@ -222,10 +245,10 @@ $payslip_history = [];
                   </button>
                 </div>
                 <div class="col-6 col-sm-4 col-md-3 col-lg-2">
-                  <button class="btn btn-light border w-100 py-3" onclick="window.location.href='leave_application.php'"
-                    title="Apply Leave">
-                    <i class="fas fa-file-import fa-2x mb-2"></i>
-                    <div class="small">File Leave</div>
+                  <button class="btn btn-light border w-100 py-3 disabled" disabled title="Coming Soon">
+                    <i class="fas fa-file-import fa-2x mb-2 text-muted"></i>
+                    <div class="small text-muted">File Leave</div>
+                    <div style="font-size: 0.6rem; color: #adb5bd;">Coming Soon</div>
                   </button>
                 </div>
               </div>
@@ -254,7 +277,27 @@ $payslip_history = [];
         </div>
 
         <div class="col-12 col-md-6">
-          <!-- Recent Leave Applications -->
+          <!-- Employment History Section -->
+          <div class="card card-primary card-outline" id="employmentsSection">
+            <div class="card-header">
+              <h3 class="card-title"><i class="fas fa-briefcase"></i> Employment History / Service Records</h3>
+            </div>
+            <div class="card-body p-0">
+              <div class="list-group list-group-flush">
+                <div class="p-3 text-center text-muted">
+                  <i class="fas fa-spinner fa-spin"></i> Loading employment history...
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- /.row -->
+
+      <!-- Recent Leave Applications (Commented out for future use) -->
+      <!--
+      <div class="row mt-4">
+        <div class="col-12">
           <div class="card card-warning card-outline" id="leavesSection">
             <div class="card-header">
               <h3 class="card-title"><i class="fas fa-calendar"></i> Leave Applications</h3>
@@ -269,25 +312,7 @@ $payslip_history = [];
           </div>
         </div>
       </div>
-      <!-- /.row -->
-
-      <!-- Employment History Section -->
-      <div class="row mt-4">
-        <div class="col-12">
-          <div class="card card-primary card-outline" id="employmentsSection">
-            <div class="card-header">
-              <h3 class="card-title"><i class="fas fa-briefcase"></i> Employment History</h3>
-            </div>
-            <div class="card-body p-0">
-              <div class="list-group list-group-flush">
-                <div class="p-3 text-center text-muted">
-                  <i class="fas fa-spinner fa-spin"></i> Loading employment history...
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      -->
       <!-- /.row -->
 
     </div><!-- /.container-fluid -->
@@ -369,12 +394,40 @@ $payslip_history = [];
       </div>
     </div>
   </div>
+</div>
 
-
+<!-- Employment Detail Modal -->
+<div class="modal fade" id="employmentDetailModal" tabindex="-1" role="dialog" aria-labelledby="employmentDetailModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="employmentDetailModalLabel"><i class="fas fa-briefcase"></i> Employment Details</h5>
+        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body p-0">
+        <table class="table table-striped mb-0">
+          <tbody id="employmentDetailContent">
+            <!-- Content populated by JS -->
+          </tbody>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- jQuery -->
 <script src="../plugins/jquery/jquery.min.js"></script>
+
+<!-- GAA Module Assets -->
+<link rel="stylesheet" href="../includes/gaa_netpay_module/assets/css/gaa.css">
+<script src="../includes/gaa_netpay_module/js/gaa.core.js"></script>
+<script src="../includes/gaa_netpay_module/js/gaa.ui.js"></script>
+<script src="scripts/gaa_employee.js"></script>
 
 <script>
   // Initialize dashboard on page load
@@ -430,6 +483,9 @@ $payslip_history = [];
 
     var periodLabel = data.period_label || 'Current Period';
     $('#gross-pay-period, #deductions-date, #netpay-date').html(periodLabel);
+
+    // Update GAA Risk Status
+    GAAEmployee.loadRiskStatus('<?php echo $employee_id; ?>', data.total_gross, data.total_deductions);
   }
 
   function showPayrollSummaryError() {
@@ -528,11 +584,14 @@ $payslip_history = [];
     $('#leavesSection .list-group').html(html);
   }
 
+  var _cachedEmployments = [];
+
   function updateEmploymentsUI(employments) {
+    _cachedEmployments = employments;
     var html = '';
     employments.forEach(function (e) {
-      var start = e.employment_start || 'N/A';
-      var end = e.employment_end ? e.employment_end : (e.employment_status == '1' ? 'Present' : 'N/A');
+      var start = formatEmploymentDate(e.employment_start, '0');
+      var end = formatEmploymentDate(e.employment_end, e.employment_status);
       var pos = e.designation || e.position_title || 'Position';
       var dept = e.dept_name || e.dept_assigned || 'Department';
       var badge = e.employment_status == '1' ? 'success' : 'secondary';
@@ -541,13 +600,49 @@ $payslip_history = [];
       html += '<div class="list-group-item p-3 border-bottom">' +
         '<div class="d-flex justify-content-between align-items-start">' +
         '<div><h6 class="mb-1">' + pos + ' <small class="text-muted">(' + dept + ')</small></h6>' +
-        '<small class="text-muted">' + start + ' — ' + end + '</small></div>' +
+        '<small class="text-muted">' + start + ' - ' + end + '</small></div>' +
         '<div class="text-right"><div class="mb-2"><span class="badge badge-' + badge + '">' + label + '</span></div>' +
-        '<a class="btn btn-sm btn-outline-primary" href="employment.php?emp_id=' + e.employee_id + '&employment_id=' + e.employment_id + '">' +
-        '<i class="fas fa-eye"></i> View</a></div>' +
+        '<button class="btn btn-sm btn-outline-primary" onclick="showEmploymentDetailModal(\'' + e.employment_id + '\')">' +
+        '<i class="fas fa-eye"></i> View</button></div>' +
         '</div></div>';
     });
     $('#employmentsSection .list-group').html(html);
+  }
+
+  function formatEmploymentDate(dateStr, status) {
+    if (!dateStr || dateStr === '0000-00-00' || dateStr === 'null') {
+      return status == '1' ? 'PRESENT' : 'N/A';
+    }
+    var m = moment(dateStr);
+    if (!m.isValid()) {
+      return status == '1' ? 'PRESENT' : 'N/A';
+    }
+    return m.format('MMMM D, YYYY');
+  }
+
+  function showEmploymentDetailModal(id) {
+    var e = _cachedEmployments.find(function (item) { return item.employment_id == id; });
+    if (!e) return;
+
+    var start = formatEmploymentDate(e.employment_start, '0');
+    var end = formatEmploymentDate(e.employment_end, e.employment_status);
+    var pos = e.designation || e.position_title || 'Position';
+    var dept = e.dept_name || e.dept_assigned || 'Department';
+
+    var html =
+      '<tr><th width="40%">Ref Number</th><td>' + (e.employment_refnum || 'N/A') + '</td></tr>' +
+      '<tr><th>Type</th><td>' + (e.employment_type || 'N/A') + '</td></tr>' +
+      '<tr><th>Position</th><td>' + pos + '</td></tr>' +
+      '<tr><th>Department</th><td>' + dept + '</td></tr>' +
+      '<tr><th>Designation</th><td>' + (e.designation || 'N/A') + '</td></tr>' +
+      '<tr><th>Period</th><td>' + start + ' - ' + end + '</td></tr>' +
+      '<tr><th>Nature of Work</th><td>' + (e.work_nature || 'N/A') + '</td></tr>' +
+      '<tr><th>Specifics</th><td>' + (e.work_specifics || 'N/A') + '</td></tr>' +
+      '<tr><th>Particulars</th><td>' + (e.employment_particulars || 'N/A') + '</td></tr>' +
+      '<tr><th>Rate</th><td>' + (e.rate ? '₱' + formatCurrency(e.rate) : 'N/A') + '</td></tr>';
+
+    $('#employmentDetailContent').html(html);
+    $('#employmentDetailModal').modal('show');
   }
 
   /**

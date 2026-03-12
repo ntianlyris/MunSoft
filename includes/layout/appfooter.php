@@ -15,6 +15,6 @@ $footer_page_label = $page_title ?? 'IntelliGov';
     <div class="float-right d-none d-sm-block">
         <small>Powered by IntelliGov & AdminLTE v3.1.0 | Proprietary for MGLU Polanco</small>
     </div>
-    <strong>Copyright &copy; <?php echo date("Y"); ?> <a href="#">Tagz Software Solutions</a>.</strong>
+    <strong><small>Copyright &copy; <?php echo date("Y"); ?> <a href="#">Tagz Software Solutions</a>.</small></strong>
     All rights reserved.
 </footer>

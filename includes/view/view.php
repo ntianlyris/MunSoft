@@ -583,9 +583,7 @@ function ViewEmployeeEmployments($employee_id){
         $count = 0;
         foreach($employee_employments as $key => $value) {
             $count++;
-            if($value['employment_end'] != "0000-00-00"){
-                $employment_end = $value['employment_end'];
-            }
+            $employment_end = ($value['employment_status'] == 1 && ($value['employment_end'] == "0000-00-00" || empty($value['employment_end']))) ? "PRESENT" : OutputShortDate($value['employment_end']);
 
             $department_assigned = $MyDepartment->GetDepartmentDetails($value['dept_assigned'])['dept_title'];
             echo '<tr>
@@ -597,7 +595,6 @@ function ViewEmployeeEmployments($employee_id){
                     <td>' . OutputShortDate($employment_end) . '</td>
                     <td>' . $value['dept_title'] . '</td>
                     <td>' . $department_assigned . '</td>
-                    <td>' . $value['designation'] . '</td>
                     <td>' . $value['employment_particulars'] . '</td>
                     <td>' . OutputMoney($value['rate']) . '</td>
                     <td>' . ($value['employment_status'] == 1 ? 'Active' : 'Inactive') . '</td>

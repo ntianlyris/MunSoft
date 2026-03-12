@@ -1,5 +1,5 @@
   <footer class="main-footer">
-    <strong>Copyright &copy; <?php echo date("Y"); ?> Tagz Software Solutions.</strong>
+    <strong><small>Copyright &copy; <?php echo date("Y"); ?> <a href="#">Tagz Software Solutions</a>.</small></strong>
     All rights reserved.
     <div class="float-right d-none d-sm-inline-block">
       <small>Powered by IntelliGov & AdminLTE v3.1.0 | Proprietary for MGLU Polanco</small>
@@ -45,9 +45,9 @@
 <!-- AdminLTE App -->
 <script src="../dist/js/adminlte.js"></script>
 <!-- AdminLTE for demo purposes -->
-<script src="../dist/js/demo.js"></script>
+<!--<script src="../dist/js/demo.js"></script>-->
 <!-- AdminLTE dashboard demo (This is only for demo purposes) -->
-<script src="../dist/js/pages/dashboard.js"></script>
+<!--<script src="../dist/js/pages/dashboard.js"></script>-->
 
 </body>
 </html>

@@ -19,13 +19,13 @@
       <div class="container-fluid">
         <div class="row mb-2">
           <div class="col-sm-6">
-            <h1>Employment Details</h1>
+            <h1>Employment</h1>
           </div>
           <div class="col-sm-6">
             <ol class="breadcrumb float-sm-right">
               <li class="breadcrumb-item"><a href="./">Dashboard</a></li>
               <li class="breadcrumb-item"><a href="profile.php?emp_id=<?php echo $employee_id; ?>">Profile</a></li>
-              <li class="breadcrumb-item active">Employment</li>
+              <li class="breadcrumb-item active">Employment History / Service Records</li>
             </ol>
           </div>
         </div>
@@ -43,34 +43,19 @@
                   <div class="col-6">
                     <h5 class="card-title m-0">Employment Record</h5>
                   </div>
-                  <div class="col-6">
-                    <button type="button" class="btn btn-primary btn-flat btn-sm" style="float:right;" onclick="GetEmployeeDetailsForEmployment(<?php echo $employee_id; ?>)" data-toggle="modal" data-target="#employment_modal"><i class="fas fa-plus-circle"></i> Add Employment</button>
+                  <div class="col-6 text-right">
+                    <a href="../prints/print_service_record.php?employee_id=<?php echo $employee_id; ?>" target="_blank" class="btn btn-sm btn-primary">
+                      <i class="fas fa-file-pdf"></i> Print Service Record
+                    </a>
+                  </div>
+              </div>
+              <div class="card-body p-0">
+                <div id="employmentsList" class="list-group list-group-flush">
+                  <div class="p-4 text-center text-muted">
+                    <i class="fas fa-spinner fa-spin fa-2x mb-2"></i>
+                    <p>Loading employment records...</p>
                   </div>
                 </div>
-              </div>
-              <div class="card-body">
-                  
-                  <table id="employmentTable" class="table table-bordered table-hover">
-                      <thead>
-                          <tr>
-                              <th class="text-center">No.</th>
-                              <th class="text-center">Reference No.</th>
-                              <th class="text-center">Position</th>
-                              <th class="text-center">Employment Type</th>
-                              <th class="text-center">Start of Employment</th>
-                              <th class="text-center">End of Employment</th>
-                              <th class="text-center">Department</th>
-                              <th class="text-center">Office Assignment</th>
-                              <th class="text-center">Designation</th>
-                              <th class="text-center">Particulars</th>
-                              <th class="text-center">Rate</th>
-                              <th class="text-center">Status</th>
-                          </tr>
-                      </thead>
-                      <tbody>
-                          <?php ViewEmployeeEmployments($employee_id); ?>
-                      </tbody>
-                  </table>
               </div>
             </div>
           </div>
@@ -81,6 +66,30 @@
 
       <!-- Modals -->
       <?php ShowEmploymentModal(); ?>
+
+      <!-- Employment Detail Modal (Read-Only) -->
+      <div class="modal fade" id="employmentDetailModal" tabindex="-1" role="dialog" aria-labelledby="employmentDetailModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+              <h5 class="modal-title" id="employmentDetailModalLabel"><i class="fas fa-briefcase"></i> Employment Details</h5>
+              <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body p-0">
+              <table class="table table-striped mb-0">
+                <tbody id="employmentDetailContent">
+                  <!-- Content populated by JS -->
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
     <!-- /.content -->
   </div>
@@ -108,81 +117,139 @@
 
 <!-- AdminLTE App -->
 <script src="../dist/js/adminlte.js"></script>
-<!-- AdminLTE for demo purposes -->
-<script src="../dist/js/demo.js"></script>
-<!-- Employees Engine -->
-<script src="../payroll/scripts/employees.js"></script>
-<script src="system.js"></script>
+<!-- Moment.js -->
+<script src="../plugins/moment/moment.min.js"></script>
 
-<script type="text/javascript">
-    $("#cmbEmpType").change(function(){
-        var employment_type = $("#cmbEmpType").find('option:selected').val(); 
-        if(employment_type == "Regular" || employment_type == "Casual"){
-          $('#cmbPosition').removeAttr('disabled');
-          $("#cmbDepartment").removeAttr('disabled');
-        }
-        else{
-          $("#cmbPosition").val("");
-          $("#cmbDepartment").val("");
-          $("#cmbPosition").attr('disabled','disabled'); 
-          $("#cmbDepartment").attr('disabled','disabled'); 
-        }
-    });
-</script>
-<script type="text/javascript">
-    $("#cmbPosition").change(function(){
-        var position_item_id = $("#cmbPosition").find('option:selected').val(); 
-        var action = 'get_position_details';
-
-        $.ajax({
-            type: "GET",
-            url: "get.php",
-            data: {"action" : action, "position_id" : position_item_id},
-            success: function(data) {
-                    var obj = $.parseJSON(data);
-                    $('#cmbDepartment').val(obj['dept_id']);
-            }
-        });
-    });
-</script>
 <script>
-  $(function () {
-    $("#employmentTable").DataTable({
-      "responsive": false, 
-      "lengthChange": false, 
-      "autoWidth": false,
-      "paging": true,
-      "searching": true,
-      "scrollX": true,
-      "buttons": ["excel", "pdf", "print"]
-    }).buttons().container().appendTo('#employmentTable_wrapper .col-md-6:eq(0)');
+  var _cachedEmployments = [];
+
+  $(document).ready(function() {
+    loadEmploymentData();
   });
-</script>
 
-<script>
-  // If an employment_id is provided in the query string, open and highlight it
-  $(document).ready(function(){
-    var highlightEmploymentId = <?php echo isset($_GET['employment_id']) && is_numeric($_GET['employment_id']) ? intval($_GET['employment_id']) : 'null'; ?>;
-    var employeeId = <?php echo $employee_id ? $employee_id : 'null'; ?>;
-    if (highlightEmploymentId && employeeId) {
-      // Wait a tick to ensure DataTable has rendered
-      setTimeout(function(){
-        // Open modal with details
-        if (typeof GetEmploymentDetails === 'function') {
-          GetEmploymentDetails(employeeId, highlightEmploymentId);
+  function loadEmploymentData() {
+    $.ajax({
+      url: 'get_dashboard_data.php',
+      type: 'GET',
+      dataType: 'json',
+      data: { action: 'all' },
+      success: function (response) {
+        if (response.success && response.employments) {
+          _cachedEmployments = response.employments;
+          renderEmploymentsList(_cachedEmployments);
+          checkHighlight();
+        } else {
+          $('#employmentsList').html('<div class="p-4 text-center text-muted">No employment records found.</div>');
         }
+      },
+      error: function (err) {
+        console.error('AJAX error:', err);
+        $('#employmentsList').html('<div class="p-4 text-center text-danger"><i class="fas fa-exclamation-circle"></i> Failed to load employment records.</div>');
+      }
+    });
+  }
 
-        // Scroll to and highlight the row if present
-        var row = $('#employment_row_' + highlightEmploymentId);
-        if (row.length) {
-          $('html, body').animate({scrollTop: row.offset().top - 120}, 600);
-          row.addClass('table-info');
-          setTimeout(function(){ row.removeClass('table-info'); }, 4000);
-        }
-      }, 300);
+  function renderEmploymentsList(employments) {
+    var html = '';
+    employments.forEach(function (e) {
+      var start = formatEmploymentDate(e.employment_start, '0'); // Start usually has a date
+      var end = formatEmploymentDate(e.employment_end, e.employment_status);
+      var pos = e.designation || e.position_title || 'Position';
+      var dept = e.dept_name || e.dept_assigned || 'Department';
+      var badge = e.employment_status == '1' ? 'success' : 'secondary';
+      var label = e.employment_status == '1' ? 'Active' : 'Ended';
+      var typeBadge = e.employment_type == 'Regular' ? 'info' : 'warning';
+
+      html += 
+        '<div class="list-group-item p-3 border-bottom employment-card" id="employment_row_' + e.employment_id + '">' +
+          '<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">' +
+            '<div class="mb-2 mb-md-0">' +
+              '<div class="d-flex align-items-center mb-1">' +
+                '<h6 class="font-weight-bold mb-0 mr-2">' + pos + '</h6>' +
+                '<span class="badge badge-pill badge-' + badge + ' small">' + label + '</span>' +
+              '</div>' +
+              '<div class="text-sm text-muted mb-1">' +
+                '<i class="fas fa-building mr-1"></i> ' + dept + 
+              '</div>' +
+              '<div class="text-sm text-muted">' +
+                '<i class="fas fa-calendar-alt mr-1"></i> ' + start + ' - ' + end + 
+              '</div>' +
+            '</div>' +
+            '<div class="text-md-right">' +
+              '<div class="mb-2">' +
+                '<span class="badge badge-outline-' + typeBadge + ' border text-' + typeBadge + ' px-2">' + (e.employment_type || 'N/A') + '</span>' +
+                (e.employment_refnum ? '<div class="small text-muted mt-1">Ref: ' + e.employment_refnum + '</div>' : '') +
+              '</div>' +
+              '<button class="btn btn-sm btn-outline-primary" onclick="showEmploymentDetailModal(\'' + e.employment_id + '\')">' +
+                '<i class="fas fa-eye"></i> View Details' +
+              '</button>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+    });
+    $('#employmentsList').html(html);
+  }
+
+  function formatEmploymentDate(dateStr, status) {
+    if (!dateStr || dateStr === '0000-00-00' || dateStr === 'null') {
+      return status == '1' ? 'PRESENT' : 'N/A';
     }
-  });
+    var m = moment(dateStr);
+    if (!m.isValid()) {
+      return status == '1' ? 'PRESENT' : 'N/A';
+    }
+    return m.format('MMMM D, YYYY');
+  }
+
+  function formatCurrency(amount) {
+    var val = parseFloat(amount);
+    if (isNaN(val)) return "0.00";
+    return val.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  }
+
+  function showEmploymentDetailModal(id) {
+    var e = _cachedEmployments.find(function (item) { return item.employment_id == id; });
+    if (!e) return;
+
+    var start = formatEmploymentDate(e.employment_start, '0');
+    var end = formatEmploymentDate(e.employment_end, e.employment_status);
+    var pos = e.designation || e.position_title || 'Position';
+    var dept = e.dept_name || e.dept_assigned || 'Department';
+
+    var html =
+      '<tr><th width="40%">Ref Number</th><td>' + (e.employment_refnum || 'N/A') + '</td></tr>' +
+      '<tr><th>Type</th><td>' + (e.employment_type || 'N/A') + '</td></tr>' +
+      '<tr><th>Position</th><td>' + pos + '</td></tr>' +
+      '<tr><th>Department</th><td>' + dept + '</td></tr>' +
+      '<tr><th>Designation</th><td>' + (e.designation || 'N/A') + '</td></tr>' +
+      '<tr><th>Period</th><td>' + start + ' - ' + end + '</td></tr>' +
+      '<tr><th>Nature of Work</th><td>' + (e.work_nature || 'N/A') + '</td></tr>' +
+      '<tr><th>Specifics</th><td>' + (e.work_specifics || 'N/A') + '</td></tr>' +
+      '<tr><th>Particulars</th><td>' + (e.employment_particulars || 'N/A') + '</td></tr>' +
+      '<tr><th>Rate</th><td>' + (e.rate ? '₱' + formatCurrency(e.rate) : 'N/A') + '</td></tr>';
+
+    $('#employmentDetailContent').html(html);
+    $('#employmentDetailModal').modal('show');
+  }
+
+  function checkHighlight() {
+    var urlParams = new URLSearchParams(window.location.search);
+    var highlightEmploymentId = urlParams.get('employment_id');
+    
+    if (highlightEmploymentId) {
+      setTimeout(function(){
+        var card = $('#employment_row_' + highlightEmploymentId);
+        if (card.length) {
+          $('html, body').animate({scrollTop: card.offset().top - 120}, 600);
+          card.addClass('bg-light border-primary');
+          setTimeout(function(){ card.removeClass('bg-light border-primary'); }, 4000);
+          showEmploymentDetailModal(highlightEmploymentId);
+        }
+      }, 500);
+    }
+  }
 </script>
 
-</body>
-</html>
+<?php
+include_once '../includes/layout/footer.php';
+?>

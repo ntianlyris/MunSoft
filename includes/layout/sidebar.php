@@ -37,7 +37,7 @@
         <ul class="nav nav-pills nav-sidebar flex-column" id="sidebar-nav" data-widget="treeview" role="menu" data-accordion="false">
           <!-- Add icons to the links using the .nav-icon class
                with font-awesome or any other icon font library -->
-          <li class="nav-item menu-open">
+          <li class="nav-item">
             <a href="./" class="nav-link" id="home_li">
               <i class="nav-icon fas fa-tachometer-alt"></i>
               <p>
@@ -49,10 +49,10 @@
           <?php echo ViewSideBarLink('employees'); ?>
           <?php echo ViewSideBarLink('profile'); ?>
           <?php echo ViewSideBarLink('employment'); ?>
-          <?php echo ViewSideBarLink('payroll'); ?>
-          <?php echo ViewSideBarLink('employee_payslip'); ?>
-          <?php echo ViewSideBarLink('employee_gaa_status'); ?>
-          <?php echo ViewSideBarLink('leave_application'); ?>
+          <?php //echo ViewSideBarLink('payroll'); ?>
+          <?php //echo ViewSideBarLink('employee_payslip'); ?>
+          <?php //echo ViewSideBarLink('employee_gaa_status'); ?>
+          <?php //echo ViewSideBarLink('leave_application'); ?>
           <?php echo ViewSideBarLink('employee_earnings'); ?>
           <?php echo ViewSideBarLink('employee_deductions'); ?>
           <?php echo ViewSideBarLink('employee_govshares'); ?>
