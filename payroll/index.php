@@ -144,7 +144,3 @@ $(document).ready(function() {
   $('#home_li').addClass('active');
 });
 </script>
-
-<?php
-    include_once '../includes/layout/footer.php';
-?>

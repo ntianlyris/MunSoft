@@ -13,7 +13,8 @@ $footer_page_label = $page_title ?? 'IntelliGov';
 <!-- Main Footer -->
 <footer class="main-footer">
     <div class="float-right d-none d-sm-block">
-        <b>Intelli</b>Gov
+        <small>Powered by IntelliGov & AdminLTE v3.1.0 | Proprietary for MGLU Polanco</small>
     </div>
-    <?php echo htmlspecialchars($footer_page_label); ?>
+    <strong>Copyright &copy; <?php echo date("Y"); ?> <a href="#">Tagz Software Solutions</a>.</strong>
+    All rights reserved.
 </footer>

@@ -780,9 +780,14 @@
     </div>
   </div>
 
-  <div class="footer-bottom">
-    <p class="copy">&copy; <?php echo date("Y"); ?> Municipal Government of Polanco. All Rights Reserved.</p>
-    <p class="copy" style="opacity: 0.6;">Powered by IntelliGov Enterprise Edition v3.0</p>
+  <div class="footer-content" style="margin-top: 60px; padding-top: 30px; border-top: 1px solid var(--glass-border); text-align: center;">
+    <p class="copy">
+      &copy; <?php echo date("Y"); ?> Tagz Software Solutions. All rights reserved.
+    </p>
+    <p class="distribution-notice" style="opacity: 0.6; font-size: 0.75rem; margin-top: 10px;">
+      <small>This software is proprietary and distributed exclusively to Municipal Government of Polanco. Unauthorized copying, modification, or distribution is strictly prohibited.</small>
+    </p>
+    <p class="copy" style="opacity: 0.6; font-size: 0.65rem; margin-top: 5px;">Powered by IntelliGov Enterprise Edition v3.0 & AdminLTE v3.1.0</p>
   </div>
 </footer>
 

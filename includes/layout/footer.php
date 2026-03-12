@@ -1,8 +1,8 @@
-<footer class="main-footer">
-    <strong>Copyright &copy; 2014-2021 <a href="https://adminlte.io">AdminLTE.io</a>.</strong>
+  <footer class="main-footer">
+    <strong>Copyright &copy; <?php echo date("Y"); ?> Tagz Software Solutions.</strong>
     All rights reserved.
     <div class="float-right d-none d-sm-inline-block">
-      <b>Version</b> 3.1.0
+      <small>Powered by IntelliGov & AdminLTE v3.1.0 | Proprietary for MGLU Polanco</small>
     </div>
   </footer>
 
