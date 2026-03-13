@@ -5,13 +5,14 @@ include_once("DB_interface.php");
 define('DB_SERVER', 'localhost');
 define('DB_USERNAME', 'acctg_polanco');
 define('DB_PASSWORD', 'Vmo9ulk6JPVJWR@Polanco');
-define('DB_DATABASE', 'munsoft_polanco');
+define('DB_DATABASE', 'intelligov');
 
 class DB_conn implements DB
 {
 
     /* Properties */
     public $conn;
+    public $last_result = null;
 
     // Constructor:
     function __construct()
@@ -29,7 +30,7 @@ class DB_conn implements DB
         if ($name === 'connect_error') {
             return $this->conn->connect_error;
         }
-        if ($name === 'num_rows' && isset($this->last_result)) {
+        if ($name === 'num_rows' && isset($this->last_result) && is_object($this->last_result)) {
             return $this->last_result->num_rows;
         }
         return null;
@@ -50,6 +51,7 @@ class DB_conn implements DB
     public function query($query)
     {
         $resultSet = $this->conn->query($query);
+        $this->last_result = $resultSet;
 
         return $resultSet;
     }
@@ -71,6 +73,9 @@ class DB_conn implements DB
     // Method for checking number of returned rows (when doing select queries)
     public function num_rows($result)
     {
+        if (!is_object($result)) {
+            return false;
+        }
         $numRows = $result->num_rows;
 
         if ($numRows > 0) {
