@@ -91,6 +91,7 @@
                 <?php echo ViewSideBarLink('payslip'); ?>
                 <?php echo ViewSideBarLink('report_slp'); ?>
                 <?php echo ViewSideBarLink('report_abstract'); ?>
+                <?php echo ViewSideBarLink('report_deduction_registers'); ?>
               </ul>
               </li>
             <?php } ?>

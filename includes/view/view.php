@@ -387,6 +387,19 @@ function ViewSideBarLink($link_name)
                                 </li>';
             }
             break;
+        
+        case 'report_deduction_registers':
+            if ($access_payroll || $manage_system) {
+                $link_text = '<li class="nav-item">
+                                    <a href="report_deduction_registers.php" class="nav-link" id="report_deduction_registers">
+                                    <i class="nav-icon fas fa-file-invoice"></i>
+                                    <p>
+                                        Deduction Registers
+                                    </p>
+                                    </a>
+                                </li>';
+            }
+            break;
 
         case 'payroll_settings':
             if ($access_payroll) {
