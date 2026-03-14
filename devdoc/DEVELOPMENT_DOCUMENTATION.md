@@ -79,6 +79,24 @@
 - Dark mode, accessibility (ARIA labels, keyboard nav, high contrast), and print styles included.
 - Five new PHP functions added to `includes/view/view.php`: `GetEmployeePayrollRecords()`, `GetEmployeeLeaveBalance()`, `GetEmployeeLeaveApplications()`, `GetEmployeeProfileSummary()`, `GetEmployeePayslipHistory()`.
 
+### 2.12 Deduction Register Module Redesign (Mar 2026)
+- **Objective:** Complete overhaul of the Deduction Register module to ensure 100% accuracy alignment with Remittance processing and provide a modern, multi-tab user interface.
+- **Architecture Shift:** Transitioned from a "type-by-type" single-view request model to an "all-at-once" fetching strategy. This eliminates discrepancies between report types and matches the authoritative data source of the Remittance module.
+- **Backend Refactoring (`deduction_registers_handler.php`):**
+    - Optimized to fetch all 8 deduction types (Tax, GSIS, GSIS ECC, PhilHealth, Pag-IBIG, SSS, Loans, Others) in a single AJAX request.
+    - Implementation of prepared statements across all queries to neutralize SQL injection risks.
+    - Added granular `fetch_loan_breakdown` action for employee-level detail modals.
+- **Frontend UI/UX (`report_deduction_registers.php`):**
+    - Redesigned with a Bootstrap 4 tab-based interface allowing users to switch between deduction types instantly without re-fetching data.
+    - Introduced "Quick Actions" bar for batch viewing and exporting.
+    - Added "View" modals for Loans and Other Payables to show individual employee amortizations.
+- **JavaScript Engine (`scripts/report_deduction_registers.js`):**
+    - Completely rewritten to handle complex state management of all deduction data in a single `allData` object.
+    - Implemented client-side filtering and formatting (`money()` utility) for high performance.
+- **Export System (`deduction_export_handler.php` / `prints/`):**
+    - Dedicated engine for high-fidelity Excel (.xlsx) and PDF (.pdf) exports.
+    - Supports multi-sheet Excel workbooks (one sheet per deduction type) and multi-page formatted PDFs with proper headers and signatories.
+
 ---
 
 ## 3. Payroll Edit Blocking System
@@ -180,7 +198,12 @@ The system has transitioned from basic role-name checks to a granular, permissio
     - `Role` class: Manages role-to-permission mappings and database synchronization.
     - `User::RedirectUsersByRole()`: Now handles the expanded role ID set (including Updaters) for correct dashboard routing.
 
-### 6.2 General Security Measures
+### 6.3 Deduction Register Security Audit (Mar 2026)
+- **Neutralized SQL Injection:** Eliminated multiple high-risk vulnerabilities in the legacy `deduction_registers_handler.php` where raw POST input was directly concatenated into SQL queries. Replaced with type-safe parameterized queries across all endpoints.
+- **Request Validation:** Enforced strict POST-only method validation and centralized session-based authentication.
+- **Role-Based Authorization:** Restricted backend handler access strictly to the `Administrator`, `Payroll`, and `HRIS` roles to prevent unauthorized data leakage.
+
+### 6.4 General Security Measures
 - Session-based authentication with 30-minute timeout.
 - CSRF protection, XSS prevention (htmlspecialchars), SQL injection protection.
 - Input sanitization and type validation on all endpoints.
